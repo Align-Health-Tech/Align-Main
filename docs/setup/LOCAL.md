@@ -1,0 +1,167 @@
+# Local development setup
+
+Prerequisites: **Docker Desktop**, **Node 20+** (npm), **Python 3.12+**.
+
+---
+
+## 1. Clone and install JS workspaces
+
+```bash
+git clone <repo-url> Align-Main
+cd Align-Main
+npm install
+```
+
+This installs Turborepo + workspace apps (`urgent-care-app`, `api-server` npm scripts).
+
+---
+
+## 2. Start Postgres
+
+```bash
+docker compose up -d --wait
+```
+
+| Setting | Value |
+| ------- | ----- |
+| Host | `localhost` |
+| Port | `5432` |
+| Database | `align` |
+| User | `align_owner` |
+| Password | `local_dev_only` |
+
+Postgres **18** mounts data at `/var/lib/postgresql` (not `.../data`). If the container exits on start after an image upgrade, recreate the volume:
+
+```bash
+docker compose down -v && docker compose up -d --wait
+```
+
+---
+
+## 3. Python API server (`apps/api-server`)
+
+```bash
+cd apps/api-server
+python3 -m venv venv          # folder must be named `venv` (see package.json)
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # edit if needed
+```
+
+`.env` must include (SQLAlchemy form):
+
+```env
+DATABASE_URL=postgresql+psycopg://align_owner:local_dev_only@localhost:5432/align
+```
+
+---
+
+## 4. Migrations (Alembic)
+
+From `apps/api-server` with venv active and Postgres healthy:
+
+```bash
+alembic upgrade head
+```
+
+Expected chain:
+
+```
+base → 859d69d120fc (initial schema) → rls_roles_policies_001 (RLS)
+```
+
+Check:
+
+```bash
+alembic current   # should show rls_roles_policies_001 (head)
+```
+
+**Do not** `alembic revision --autogenerate` for RLS — that migration is hand-written (`alembic/versions/rls_roles_and_policies.py`).
+
+---
+
+## 5. RLS role passwords (local only)
+
+Roles `align_app`, `align_engine`, `align_admin` are created by the RLS migration **without** passwords (secrets stay out of git). Set them once:
+
+```bash
+# from repo root — container name is align-main-postgres-1
+docker compose exec postgres psql -U align_owner -d align -c "
+ALTER ROLE align_app WITH PASSWORD 'local_dev_password';
+ALTER ROLE align_engine WITH PASSWORD 'local_dev_password';
+ALTER ROLE align_admin WITH PASSWORD 'local_dev_password';
+"
+```
+
+---
+
+## 6. LangGraph checkpoint tables (optional until engine is wired)
+
+Checkpoint tables are **not** created by Alembic. After installing deps:
+
+```bash
+cd apps/api-server
+source venv/bin/activate
+python -c "
+from langgraph.checkpoint.postgres import PostgresSaver
+with PostgresSaver.from_conn_string(
+    'postgresql://align_owner:local_dev_only@localhost:5432/align'
+) as cp:
+    cp.setup()
+"
+```
+
+Use plain `postgresql://` here (not `postgresql+psycopg://`). Needs package `langgraph-checkpoint-postgres`.
+
+After `setup()`, a follow-up migration may be needed to attach `organization_id` + RLS to checkpoint tables (skipped on first RLS run if tables were missing).
+
+---
+
+## 7. Run everything
+
+From **repo root**:
+
+```bash
+npm run dev
+```
+
+This:
+
+1. Starts Postgres (`docker compose up -d --wait`)
+2. Runs Turbo `dev` for `urgent-care-app` (Next.js) and `api-server` (uvicorn on `:8000`)
+
+Apps only (Postgres already up):
+
+```bash
+npm run dev:apps-only
+```
+
+| Service | URL |
+| ------- | --- |
+| API health | http://localhost:8000/health |
+| API docs | http://localhost:8000/docs |
+| Urgent care UI | http://localhost:3000 (Next default) |
+
+---
+
+## Common failures
+
+| Symptom | Fix |
+| ------- | --- |
+| `DATABASE_URL is not set` | Create `apps/api-server/.env` from `.env.example` |
+| `Connection refused` on 5432 | `docker compose up -d --wait` |
+| Postgres container exits immediately | Postgres 18 volume path / wipe with `docker compose down -v` |
+| `.venv/bin/activate: No such file` | Create `venv` (not `.venv`) under `apps/api-server` |
+| `No module named 'langgraph.checkpoint.postgres'` | `pip install langgraph-checkpoint-postgres` |
+| `relation "checkpoints" does not exist` during RLS | Expected if setup not run; current migration skips missing checkpoint tables |
+| `docker exec ... No such container` | Use `docker compose exec postgres ...` or `align-main-postgres-1` |
+| Wrong empty DB in GUI | Connect to database **`align`**, user **`align_owner`** |
+
+---
+
+## Docs to read next
+
+- [DATABASE.md](../database/DATABASE.md) — schema
+- [RLS.md](../database/RLS.md) — roles & policies
+- [APISTRUCTURE.md](../apps/api-server/APISTRUCTURE.md) — target API surface
+- [REPOSITORYRULE.md](../repository-rule/REPOSITORYRULE.md) — conventions

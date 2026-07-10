@@ -1,17 +1,17 @@
 # Local Postgres + api-server. api-server image/build will be wired once the FastAPI app exists.
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18
     environment:
-      POSTGRES_USER: align
-      POSTGRES_PASSWORD: align
       POSTGRES_DB: align
+      POSTGRES_USER: align_owner
+      POSTGRES_PASSWORD: local_dev_only
     ports:
       - "5432:5432"
     volumes:
-      - align_pg_data:/var/lib/postgresql/data
+      - align_pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U align -d align"]
+      test: ["CMD-SHELL", "pg_isready -U align_owner -d align"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -27,4 +27,4 @@ services:
   #       condition: service_healthy
 
 volumes:
-  align_pg_data:
+  align_pgdata:

@@ -17,7 +17,7 @@ The app will consist of:
 | ------------------- | ----------------------------------------------------- |
 | Backend framework   | FastAPI (Python)                                      |
 | Orchestration       | LangGraph                                             |
-| ORM                 | SQLAlchemy + Alembic                                  |
+| ORM                 | SQLAlchemy (ORM) + Alembic (Migrations)               |
 | DB                  | Local Postgres now → Supabase or Azure Postgres later |
 | Frontend            | Next.js, one app per segment                          |
 | Type contract       | Pydantic → OpenAPI → `openapi-typescript`             |
@@ -31,7 +31,7 @@ The app will consist of:
 
 ## 2. Agent structure
 
-LillyV1.jpg
+![image](public/images/LillyV1.jpg)
 
 
 | Agent                         | Job                                                | Input                                                    | Output                                                       |
@@ -89,7 +89,7 @@ Align-Main/
 
 High-level layout: one marketing landing page, three segment frontends (urgent care / GP / physio), one shared FastAPI backend, Postgres, external AI providers, and PMS adapters.
 
-Align high-level system diagram
+![Align high-level system diagram](public/images/align-high-level-system-diagram.jpg)
 
 ### Route structure (per app)
 
@@ -102,10 +102,18 @@ middleware
 
 ---
 
-## 4. Specific Documents
+## 4. Local setup
 
+New teammates: follow **[docs/setup/LOCAL.md](docs/setup/LOCAL.md)** (Docker Postgres, Python venv, Alembic, RLS roles, `npm run dev`).
+
+---
+
+## 5. Specific Documents
+
+- [Local setup](docs/setup/LOCAL.md)
 - [API structure](docs/apps/api-server/APISTRUCTURE.md)
 - [Database schema](docs/database/DATABASE.md)
 - [Database RLS](docs/database/RLS.md)
 - [Repository conventions](docs/repository-rule/REPOSITORYRULE.md)
 - [Structure ideation](docs/structures/structure.md)
+

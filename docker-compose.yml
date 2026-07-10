@@ -1,0 +1,30 @@
+# Local Postgres + api-server. api-server image/build will be wired once the FastAPI app exists.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: align
+      POSTGRES_PASSWORD: align
+      POSTGRES_DB: align
+    ports:
+      - "5432:5432"
+    volumes:
+      - align_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U align -d align"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # api-server:
+  #   build: ./apps/api-server
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     DATABASE_URL: postgresql+psycopg://align:align@postgres:5432/align
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+volumes:
+  align_pg_data:

@@ -1,0 +1,35 @@
+# Contributing to Align
+
+## 1. Code style
+
+**Python:**
+
+- Type hints everywhere; Pydantic models for anything crossing a boundary (API request/response, LangGraph state, provider interfaces)
+- No bare `except:` — catch what you expect, let the rest surface
+- `black` + `ruff` - for pretty code and strict code convention checks. 
+
+**TypeScript:**
+
+- Strict mode on
+- Types for API calls come from `packages/generated-types` — if you're hand-writing an interface that matches a backend response, you're duplicating a source of truth that will drift; regenerate instead
+
+**Both:** no `console.log`/`print` debug statements left in merged code. No commented-out code blocks — delete it, git remembers.
+
+---
+
+## 2. Naming conventions
+
+- Tables: When possible, make it directly equivalent to the table name. 
+- Variables and classes: Use clear, descriptive names that make their purpose obvious. Follow language conventions for naming style: use `snake_case` for Python, `camelCase` for TypeScript, and keep abbreviations or alternative spellings (like `organization_id` vs `organisation_id`) consistent within a project. For IDs and foreign keys, always prefer patterns like `organization_id` unless a strong reason exists to do otherwise. Use names that match existing terminology in the database or codebase when possible.
+
+---
+
+## 3. RLS aware code
+
+Always refer to `docs/database/RLS.md` and `docs/database/DATABASE.md` before touching any database related code.
+
+---
+
+## 4. Documentations
+
+All documentations sit under `/docs`. They must be updated when any relevant code changes.

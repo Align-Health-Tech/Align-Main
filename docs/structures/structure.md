@@ -1,4 +1,4 @@
-# Just an ideation of the structure
+# Just an ideation of the structure (nothing here is determined, don't use as source of truth)
 
 ---
 

@@ -46,7 +46,8 @@ class Encounter(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     ice_idea: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     ice_concern: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     ice_expectation: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    encounter_summary: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Plain English summary string — not a NarrativeField / jsonb wrapper.
+    encounter_summary: Mapped[str | None] = mapped_column(String, nullable=True)
     acc_claim_suspected: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     acc_can_work: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 

@@ -63,7 +63,7 @@ Checkpoint tables are owned by LangGraph and follow its own schema.
 | Column                     | Purpose                                                                                                           |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `id`, `name`, `slug`       | Identity (`slug` unique)                                                                                          |
-| `segment_type`             | Postgres enum: `PHYSIO \| URGENT_CARE \| GP`                                                                      |
+| `segment_type`             | Postgres enum: `PHYSIO | URGENT_CARE | GP`                                                                        |
 | `pms_config`               | jsonb — vendor / practice identity (not secrets)                                                                  |
 | `pms_integration_config`   | jsonb, adapter-specific credentials — kept separate from `pms_config` since this holds secrets, not identity info |
 | `created_at`, `updated_at` | Timestamps                                                                                                        |
@@ -79,11 +79,11 @@ Checkpoint tables are owned by LangGraph and follow its own schema.
 | Column                                         | Purpose                                                                                                                                                                             |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `organization_id`                              | Tenant scope                                                                                                                                                                        |
-| `kind`                                         | `GUEST` (QR scan, no PMS match) \| `REGISTERED` \| `DEMO`                                                                                                                           |
+| `kind`                                         | `GUEST` (QR scan, no PMS match) | `REGISTERED` | `DEMO`                                                                                                                             |
 | `given_name`, `family_name`, `name_prefix`     | FHIR `Patient.name` (HumanName)                                                                                                                                                     |
 | `nhi_number`, `dob`                            | Core identifiers                                                                                                                                                                    |
 | `gender`                                       | Administrative/social gender — FHIR core                                                                                                                                            |
-| `sex_at_birth`                                 | FHIR extension, not a core field — kept as its own column so a future `to_fhir()` export places it under `extension[]`, not `gender`                                                 |
+| `sex_at_birth`                                 | FHIR extension, not a core field — kept as its own column so a future `to_fhir()` export places it under `extension[]`, not `gender`                                                |
 | `preferred_language`                           | FHIR core (`Patient.communication`) — drives which `encounters` fields get an `en_text` alongside `text`                                                                            |
 | `ethnicity`                                    | FHIR extension, stored as an array (NZ convention allows multiple selections)                                                                                                       |
 | `occupation`                                   | FHIR extension                                                                                                                                                                      |
@@ -109,15 +109,15 @@ All extension/PMS-linked fields above are nullable — collection path (self-ent
 | Column group                                                                      | Purpose                                                                                                                                                                                                                                                                                                                              |
 | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `patient_id`, `organization_id`                                                   | Scope — links back to the patient and tenant this session belongs to                                                                                                                                                                                                                                                                 |
-| `status`                                                                          | `NOT_STARTED \| IN_PROGRESS \| AWAITING_REVIEW \| COMPLETED`                                                                                                                                                                                                             |
-| `presentation_category`                                                           | `LOCALISED \| NOT_LOCALISED`                                                                                                                                                                                                                                             |
+| `status`                                                                          | `NOT_STARTED | IN_PROGRESS | AWAITING_REVIEW | COMPLETED`                                                                                                                                                                                                                                                                            |
+| `presentation_category`                                                           | `LOCALISED | NOT_LOCALISED`                                                                                                                                                                                                                                                                                                          |
 | `chief_complaint`                                                                 | jsonb, `{text}` or `{text, en_text}` — the one field where `en_text` comes from an actual translation call, since this is genuinely free-form patient input                                                                                                                                                                          |
 | `duration`, `persistence`, `progression`, `onset_circumstance`, `self_management` | jsonb, `{text, source}` or `{text, en_text, source}` — `source` is `"option"` (patient picked from LLM-generated multiple-choice options that already carry both languages, so `en_text` is just stored alongside) or `"free_text"` (patient picked "Other" and typed something, so `en_text` comes from an actual translation call) |
 | `severity_score`, `functional_impact_score`                                       | Integer scalars — no translation needed                                                                                                                                                                                                                                                                                              |
 | `weight_change`                                                                   | Free-text string — patients rarely report an exact number                                                                                                                                                                                                                                                                            |
 | `character`, `mitigating_factors`, `exacerbating_factors`, `comorbidities`        | jsonb holding a JSON array of `{text, source}` / `{text, en_text, source}` — not a Postgres `jsonb[]` column. `source` matters since one answer can mix `"option"` elements with a single `"free_text"` element                                                                                                                      |
 | `ice_idea`, `ice_concern`, `ice_expectation`                                      | jsonb, `{text}` or `{text, en_text}`                                                                                                                                                                                                                                                                                                 |
-| `encounter_summary`                                                               | jsonb, generated directly in English — no `text`/`en_text` wrapper needed                                                                                                                                                                                                                                                            |
+| `encounter_summary`                                                               | Free-text string, generated directly in English — no `text`/`en_text` wrapper, not jsonb                                                                                                                                                                                                                                             |
 | `acc_claim_suspected`, `acc_can_work`                                             | NZ ACC-specific fields                                                                                                                                                                                                                                                                                                               |
 | `created_at`, `updated_at`                                                        | Timestamps                                                                                                                                                                                                                                                                                                                           |
 
@@ -135,7 +135,7 @@ All extension/PMS-linked fields above are nullable — collection path (self-ent
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `encounter_id`, `organization_id`    | Scope                                                                                                                                                                               |
 | `region_detail`, `sub_region_detail` | Static coded lookup jsonb — `{layman_term, anatomical_term, fhir_system, fhir_code}`. Not translated patient input; a direct lookup from the diagram's fixed, pre-labeled region ID |
-| `laterality`                         | Simple value (left/right/bilateral)                                                                                                                                                 |
+| `laterality`                         | `left \| right \| bilateral` — enforced by CHECK constraint; nullable                                                                                                                                               |
 | `severity_score`, `radiation_status` | Localised-detail phase output                                                                                                                                                       |
 | `character`                          | jsonb holding a JSON array (same element shape as `encounters.character`)                                                                                                           |
 | `created_at`, `updated_at`           | Timestamps                                                                                                                                                                          |
@@ -164,14 +164,14 @@ Child of `body_structures` — one row per site the pain radiates to.
 **FHIR: `Flag`**. Red flags / safety markers.
 
 
-| Column                                     | Purpose             |
-| ------------------------------------------ | ------------------- |
-| `encounter_id`, `organization_id`          | Scope               |
-| `source`                                   | `CATALOGUE \| LILLY_INFERRED \| PRACTITIONER_ENTERED` |
-| `tier`                                     | `MILD \| MODERATE \| SEVERE \| EXTREME`               |
-| `status`                                   | `ACTIVE \| INACTIVE \| ENTERED_IN_ERROR`              |
-| `fhir_system`, `fhir_code`, `fhir_display` | Already FHIR-shaped |
-| `created_at`, `updated_at`                 | Timestamps          |
+| Column                                     | Purpose                                             |
+| ------------------------------------------ | --------------------------------------------------- |
+| `encounter_id`, `organization_id`          | Scope                                               |
+| `source`                                   | `CATALOGUE | LILLY_INFERRED | PRACTITIONER_ENTERED` |
+| `tier`                                     | `MILD | MODERATE | SEVERE | EXTREME`                |
+| `status`                                   | `ACTIVE | INACTIVE | ENTERED_IN_ERROR`              |
+| `fhir_system`, `fhir_code`, `fhir_display` | Already FHIR-shaped                                 |
+| `created_at`, `updated_at`                 | Timestamps                                          |
 
 
 ---
@@ -181,13 +181,14 @@ Child of `body_structures` — one row per site the pain radiates to.
 Patient-stated facts (allergies, meds, past conditions) — distinct from the current complaint captured on `Encounter`.
 
 
-| Column                                     | Purpose                                   |
-| ------------------------------------------ | ----------------------------------------- |
-| `encounter_id`, `organization_id`          | Scope                                     |
-| `kind`                                     | `ALLERGY \| MEDICATION \| CONDITION \| PROCEDURE \| IMMUNIZATION \| FAMILY_HISTORY \| SOCIAL_HISTORY \| VITAL_SIGN \| OTHER_OBSERVATION` |
-| `source`                                   | `PATIENT_INTAKE \| LILLY_EXTRACTED \| PRACTITIONER_ENTERED`                                                                               |
-| `fhir_system`, `fhir_code`, `fhir_display` | Coding, same pattern as `body_structures` |
-| `created_at`, `updated_at`                 | Timestamps                                |
+| Column                                     | Purpose                                                                                                                                                                                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `encounter_id`, `organization_id`          | Scope                                                                                                                                                                                                                        |
+| `kind`                                     | `ALLERGY | MEDICATION | CONDITION | PROCEDURE | IMMUNIZATION | FAMILY_HISTORY | SOCIAL_HISTORY | VITAL_SIGN | OTHER_OBSERVATION`                                                                                             |
+| `source`                                   | `PATIENT_INTAKE | LILLY_EXTRACTED | PRACTITIONER_ENTERED`                                                                                                                                                                    |
+| `display`                                  | jsonb, `{text}` or `{text, en_text}` — the patient-stated fact itself (e.g. "penicillin"), same narrative shape as `encounters.chief_complaint`. Distinct from `fhir_display`, which is the clinical/coded term this maps to |
+| `fhir_system`, `fhir_code`, `fhir_display` | Coding, same pattern as `flags`                                                                                                                                                                                          |
+| `created_at`, `updated_at`                 | Timestamps                                                                                                                                                                                                                   |
 
 
 **FHIR mapping is per-`kind`, not one resource** — this table stands in for several logical FHIR resources:
@@ -235,7 +236,7 @@ Unique per (`patient_id`, `kind`, `version`).
 | Column                     | Purpose                                                                                                                                                                                                                                                                                                     |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `organization_id`          | Tenant scope — segment is inherited from `organizations.segment_type`, not stored per-practitioner                                                                                                                                                                                                          |
-| `role`                     | `DOCTOR \| NURSE \| GP \| PHYSICIAN \| RECEPTIONIST`                                                                                                                                                                                                                    |
+| `role`                     | `DOCTOR | NURSE | GP | PHYSICIAN | RECEPTIONIST`                                                                                                                                                                                                                                                            |
 | `hpi_cpn`                  | NZ Health Provider Index Common Person Number — national unique identifier issued by Health NZ/Te Whatu Ora (format `NNXXXX`). One per person, used wherever they work. Replaces both `password_hash` (auth belongs to a real provider) and `pms_integration_config` (PMS lookups can key off this instead) |
 | `created_at`, `updated_at` | Timestamps                                                                                                                                                                                                                                                                                                  |
 
@@ -301,7 +302,7 @@ Internal — deliberately not FHIR `AuditEvent` - shaped
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`                           | Unique identifier                                                                                                                                                                              |
 | `organization_id`              | Scope                                                                                                                                                                                          |
-| `actor_kind`                   | `PATIENT \| PRACTITIONER \| AI \| SYSTEM`                                                                                                                                                              |
+| `actor_kind`                   | `PATIENT | PRACTITIONER | AI | SYSTEM`                                                                                                                                                         |
 | `actor_id`                     | ID of the actor who performed the action                                                                                                                                                       |
 | `action`                       | Free text, not an enum — new event types (e.g. `red_flag_triggered`, `consent_revoked`) can be added without a migration. Kept consistent via a code-level constants list, not a DB constraint |
 | `resource_kind`, `resource_id` | The kind and ID of the affected resource                                                                                                                                                       |
@@ -314,14 +315,14 @@ Internal — deliberately not FHIR `AuditEvent` - shaped
 ### `lilly_ai_interactions`
 
 
-| Column                                                                       | Purpose                                                  |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `encounter_id`, `organization_id`                                            | Scope                                                    |
-| `operation`                                                                  | `INTAKE_CLASSIFY \| REDFLAG_DETECT \| PRECONSULT_SUMMARY \| QUESTION_GENERATION` |
-| `model`, `latency_ms`, `input_tokens`, `output_tokens`, `estimated_cost_usd` | Ops/observability detail                                 |
-| `prompt`, `response`, `extracted_json`                                       | The actual LLM call content, for debugging/replay        |
-| `level`, `category`, `message`                                               | Lightweight structured logging fields (warn/error cases) |
-| `created_at`, `updated_at`                                                   | Timestamps                                               |
+| Column                                                                       | Purpose                                                                       |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `encounter_id`, `organization_id`                                            | Scope                                                                         |
+| `operation`                                                                  | `INTAKE_CLASSIFY | REDFLAG_DETECT | PRECONSULT_SUMMARY | QUESTION_GENERATION` |
+| `model`, `latency_ms`, `input_tokens`, `output_tokens`, `estimated_cost_usd` | Ops/observability detail                                                      |
+| `prompt`, `response`, `extracted_json`                                       | The actual LLM call content, for debugging/replay                             |
+| `level`, `category`, `message`                                               | Lightweight structured logging fields (warn/error cases)                      |
+| `created_at`, `updated_at`                                                   | Timestamps                                                                    |
 
 
 ---

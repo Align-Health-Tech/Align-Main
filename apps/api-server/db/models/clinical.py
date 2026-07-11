@@ -2,7 +2,7 @@
 import uuid
 from typing import Literal
 
-from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,6 +11,8 @@ from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 FlagSource = Literal["CATALOGUE", "LILLY_INFERRED", "PRACTITIONER_ENTERED"]
 FlagTier = Literal["MILD", "MODERATE", "SEVERE", "EXTREME"]
 FlagStatus = Literal["ACTIVE", "INACTIVE", "ENTERED_IN_ERROR"]
+
+Laterality = Literal["left", "right", "bilateral"]
 
 IntakeFactKind = Literal[
     "ALLERGY",
@@ -28,6 +30,12 @@ IntakeFactSource = Literal["PATIENT_INTAKE", "LILLY_EXTRACTED", "PRACTITIONER_EN
 
 class BodyStructure(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     __tablename__ = "body_structures"
+    __table_args__ = (
+        CheckConstraint(
+            "laterality IS NULL OR laterality IN ('left', 'right', 'bilateral')",
+            name="ck_body_structures_laterality",
+        ),
+    )
 
     encounter_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("encounters.id"), nullable=False, index=True
@@ -38,7 +46,7 @@ class BodyStructure(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     # Static lookup: {layman_term, anatomical_term, fhir_system, fhir_code}
     region_detail: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     sub_region_detail: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    laterality: Mapped[str | None] = mapped_column(String, nullable=True)
+    laterality: Mapped[Laterality | None] = mapped_column(String, nullable=True)
     severity_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     character: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     radiation_status: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -93,6 +101,8 @@ class IntakeFactItem(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     kind: Mapped[IntakeFactKind] = mapped_column(String, nullable=False)
     source: Mapped[IntakeFactSource] = mapped_column(String, nullable=False)
+    # jsonb: {text} or {text, en_text} — patient-stated fact; distinct from fhir_display
+    display: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     fhir_system: Mapped[str | None] = mapped_column(String, nullable=True)
     fhir_code: Mapped[str | None] = mapped_column(String, nullable=True)
     fhir_display: Mapped[str | None] = mapped_column(String, nullable=True)

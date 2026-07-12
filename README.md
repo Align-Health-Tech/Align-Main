@@ -43,7 +43,10 @@ The app will consist of:
 
 ### Why Devise & Prioritise is a separate agent
 
-David/Kevin are building a clinical reasoning capability in parallel. If it sits behind a clean interface, our fallback implementation and their engine can be swapped without touching anything else.
+David/Kevin are building a clinical reasoning capability in parallel. When it is
+ready, replace `run_devise_and_prioritise` in `clinical_ai/agents.py` (or its
+body) — keep returning `list[TopicCandidate]`. There is no separate
+`ClinicalReasoningProvider` Protocol to swap.
 
 ### Graph node flow
 
@@ -52,11 +55,11 @@ patient_registration           (deterministic form)
   → presenting_complaint_agent (classifier: localised? Y/N)
       ├─ Yes → localised_detail_agent   (question_gen: body diagram, severity, duration, radiation)
       └─ No  → non_localised_agent      (question_gen: severity, duration, frequency)
-  → devise_and_prioritise_agent (tools: web search → ranked topics + red flags)
-  → priority_questions_agent    (question_gen, max 4, from top-ranked topics)
-  → optional_questions_agent    (question_gen, max 4, user can skip)
+  → devise_and_prioritise + priority_questions_agent (question_gen, max 4)
+  → devise_and_prioritise(phase=redflag_screening) + redflag question_gen
+  → optional_questions_agent    (devise + question_gen, user can skip)
   → ice_agent                   (question_gen: ideas/concerns/expectations)
-  → review_node                 (deterministic summary)
+  → review_node                 (run_nurse_review_summary_agent → ReviewSummaryResult)
   → optional_survey_node        (deterministic form)
 ```
 
@@ -73,9 +76,10 @@ Align-Main/
 │   ├── urgent-care-app/      # Next.Js frontend app
 │   ├── gp-app/                 # not built yet
 │   └── api-server/             # FastAPI + LangGraph, single Python process
-│       ├── routers/            # session.py (patient) / clinician.py / demo.py
-│       ├── engine/             # graph.py, nodes/, state.py
-│       ├── external_systems/   # pms/, clinical_reasoning/ — Protocol + adapters
+│       ├── routers/            # session / clinician / demo (scaffold)
+│       ├── engine/             # graph + nodes (scaffold)
+│       ├── external_systems/   # pms/ (Protocol+adapters), clinical_ai/ (run_* agents)
+│       ├── schemas/            # SessionState, NextStep, clinical_ai I/O, …
 │       └── db/                 # SQLAlchemy models, Alembic migrations
 ├── packages/
 │   ├── generated-types/       # openapi-typescript output — never hand-edit

@@ -6,7 +6,22 @@
 
 - Type hints everywhere; Pydantic models for anything crossing a boundary (API request/response, LangGraph state, provider interfaces)
 - No bare `except:` — catch what you expect, let the rest surface
-- `black` + `ruff` - for pretty code and strict code convention checks. 
+- `black` + `ruff` — for pretty code and strict code convention checks
+- **Named `Literal` aliases, not inline.** Do not put `Literal["…"]` (or `Optional[Literal["…"]]`) directly on a field, parameter, or return type. Define a module-level alias first, then reference it:
+
+  ```python
+  # good
+  FreeTextPolicy = Literal["avoid", "optional_other"]
+
+  class CollectTarget(BaseModel):
+      free_text_policy: Optional[FreeTextPolicy] = None
+
+  # bad
+  class CollectTarget(BaseModel):
+      free_text_policy: Optional[Literal["avoid", "optional_other"]] = None
+  ```
+
+  Same rule for shared mappings between vocabularies (e.g. session phase → `CollectPhase`): put the named alias and the map in one schema module (`schemas/collect_targets.py`), not as a private dict inside an agent.
 
 **TypeScript:**
 
@@ -19,7 +34,7 @@
 
 ## 2. Naming conventions
 
-- Tables: When possible, make it directly equivalent to the table name. 
+- Tables: When possible, make it directly equivalent to the table name.
 - Variables and classes: Use clear, descriptive names that make their purpose obvious. Follow language conventions for naming style: use `snake_case` for Python, `camelCase` for TypeScript, and keep abbreviations or alternative spellings (like `organization_id` vs `organisation_id`) consistent within a project. For IDs and foreign keys, always prefer patterns like `organization_id` unless a strong reason exists to do otherwise. Use names that match existing terminology in the database or codebase when possible.
 
 ---

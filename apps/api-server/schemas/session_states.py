@@ -1,11 +1,4 @@
-"""
-SessionState — the LangGraph state schema for one encounter's intake
-session. `StateGraph(SessionState)` in engine/graph.py uses this directly.
-
-One row of this state maps onto the `encounters` table (mostly 1:1 column
-mapping) plus nested lists for the encounter's child tables
-(`body_structures`, `intake_fact_items`). See docs/database/DATABASE.md.
-"""
+"""SessionState — LangGraph intake state for one encounter."""
 from typing import Annotated, Literal, Optional
 
 from langgraph.graph.message import add_messages
@@ -92,16 +85,11 @@ class SessionState(BaseModel):
     # body_structures / radiation_sites mapping
     body_structures: list[BodyStructureState] = []
 
-    # devise_and_prioritise_agent output — shared contract with
-    # ClinicalReasoningProvider (fallback now, David/Kevin's engine later)
+    # Ranked topics from run_devise_and_prioritise(phase, context)
     prioritised_topics: list[TopicCandidate] = []
 
-    # Topics from prioritised_topics with is_red_flag=True that have already
-    # been raised as a Flag — checked before raising the same one again.
-    # Not needed for the current single-checkpoint redflag_screening phase,
-    # but required as soon as red-flag checking becomes adaptive (re-run
-    # from more than one point in the graph) so the same concern isn't
-    # re-flagged/re-asked every time it re-runs.
+    # Topic strings already raised as Flag rows after redflag_screening
+    # answers — dedupe when Devise/redflag re-runs adaptively.
     raised_flag_topics: list[str] = []
 
     # intake_fact_items mapping

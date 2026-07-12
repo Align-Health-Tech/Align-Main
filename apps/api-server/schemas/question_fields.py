@@ -1,9 +1,4 @@
-"""
-Question-related shapes: what the engine sends the frontend for a batch of
-questions, and the top-level NextStep envelope every session endpoint
-returns. See apps/api-server/README.md — POST /sessions,
-POST /sessions/{id}/respond, and GET /sessions/{id} all return NextStep.
-"""
+"""QuestionField + NextStep — patient API / frontend response envelope."""
 from typing import Literal, Optional
 
 from pydantic import BaseModel
@@ -30,10 +25,21 @@ Phase = Literal[
 
 
 # What the frontend must render for this NextStep.
-StepType = Literal["consent", "question_batch", "review", "survey", "complete"]
+StepType = Literal[
+    "consent", 
+    "question_batch", 
+    "review", 
+    "survey", 
+    "complete"
+]
 
 # What kind of UI control a single question needs.
-QuestionKind = Literal["single_choice", "multi_choice", "yes_no", "consent_accept"]
+QuestionKind = Literal[
+    "single_choice", 
+    "multi_choice", 
+    "yes_no", 
+    "consent_accept"
+]
 
 
 class QuestionOption(BaseModel):

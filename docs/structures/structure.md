@@ -1,34 +1,87 @@
-# Just an ideation of the structure (nothing here is determined, don't use as source of truth)
+# Structure ideation
+
+Scratchpad — not source of truth. Prefer `apps/api-server/README.md` for the live layout.
 
 ---
 
-## 1. External system integration — Provider pattern
+## 1. Layers
 
-Both PMS integration and clinical reasoning follow the same shape: define a `Protocol`, ship a fallback implementation now, swap in the real one later without touching engine code.
+```mermaid
+flowchart TB
+  FE[Frontend]
+  R[routers — HTTP]
+  E[engine — LangGraph nodes]
+  S[schemas — shared contracts]
+  CAI[clinical_ai — run_*]
+  PMS[pms — Protocol + adapters]
+  DB[(Postgres)]
 
-```python
-class PMSProvider(Protocol):
-    def fetch_patient(self, identifier: str) -> Optional[PatientRecord]: ...
-    def push_consult_summary(self, session_id: str, summary: ConsultSummary) -> bool: ...
-    def is_available(self) -> bool: ...
-
-class MedTechAdapter(PMSProvider): ...   # real MedTech API
-class NoPMSAdapter(PMSProvider): ...     # no-op, always succeeds — this is how "PMS off" works, not a branch in engine code
+  FE --> R --> E
+  E --> S
+  CAI --> S
+  R --> S
+  E --> CAI
+  E --> PMS
+  E --> DB
+  PMS --> DB
 ```
 
-```python
-class ClinicalReasoningProvider(Protocol):
-    def get_topics(self, presenting_complaint: str, classification: str) -> list[TopicCandidate]: ...
-
-class FallbackReasoningProvider(ClinicalReasoningProvider): ...  # what we're building now (LLM + pathway lookup + web search)
-class ClinicalEngineProvider(ClinicalReasoningProvider): ...     # David/Kevin's engine, later
-```
-
-`PMSFactory` / a config lookup picks the concrete implementation per tenant, based on a `pms_type` column — so "turning PMS on" for a clinic is a data change, not a deploy.
-
-**Interface contract for Devise & Prioritise needs to be agreed with David/Kevin now**, since they're building a version of this in parallel — our fallback and their engine both need to satisfy the same `get_topics()` shape (`TopicCandidate` list) or integration breaks later.
-
-Anything that's a mechanical write (dashboard mirror tables, PMS push) is a plain function call, not an LLM tool — tools are reserved for steps that need model judgment (pathway/web search lookups).
+| Layer | Owns | Does not own |
+| ----- | ---- | ------------ |
+| **schemas** | Shapes everyone shares (`SessionState`, `NextStep`, agent I/O, `CollectTarget`, …) | LLM calls, DB writes, routing |
+| **engine** | When to call whom; graph progress; map answers → state / `NextStep` | Prompt text, Azure, PMS vendor details |
+| **clinical_ai** (runtime) | `run_*`, prompts, registry lists, tools | Graph topology, HTTP |
+| **pms** (runtime) | Fetch/push behind `PMSProvider` | Clinical reasoning |
 
 ---
 
+## 2. PMS — adapter
+
+```mermaid
+flowchart LR
+  E[engine] --> P[PMSProvider Protocol]
+  P --> N[NoPMSAdapter]
+  P --> M[MedTechAdapter]
+```
+
+Plain I/O, no LLM. Swap adapter via org `pms_config.vendor` — engine stays the same.
+
+---
+
+## 3. Clinical AI — agents
+
+Three peers + helpers. Red flag = Devise + QG with `phase=redflag_screening`, not a 4th agent.
+
+```mermaid
+flowchart TB
+  subgraph peers [Three peers]
+    C[run_classifier]
+    D[run_devise_and_prioritise]
+    Q[run_question_generation]
+  end
+  subgraph helpers [Helpers]
+    N[run_nurse_review_summary_agent]
+    T[translate_to_english]
+  end
+
+  D -->|web_search tool| W[DuckDuckGo]
+  C --> L[llm_client + prompts/]
+  D --> L
+  Q --> L
+  N --> L
+  T --> L
+```
+
+```mermaid
+sequenceDiagram
+  participant E as engine node
+  participant S as schemas
+  participant A as clinical_ai
+
+  E->>S: build Input / context
+  E->>A: run_*(...)
+  A-->>E: Result / TopicCandidate[]
+  E->>S: update SessionState / NextStep
+```
+
+Replace David/Kevin Devise later by swapping `run_devise_and_prioritise` body — keep `list[TopicCandidate]`. No Protocol.

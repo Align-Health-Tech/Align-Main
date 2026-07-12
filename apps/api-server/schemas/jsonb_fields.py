@@ -1,8 +1,4 @@
-"""
-Reusable jsonb shapes.
-Every jsonb-shaped column in this schema is one of these two patterns —
-don't invent a third.
-"""
+"""NarrativeField and CodedField — shared jsonb column shapes."""
 from typing import Literal, Optional
 
 from pydantic import BaseModel

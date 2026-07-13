@@ -50,18 +50,23 @@ body) — keep returning `list[TopicCandidate]`. There is no separate
 
 ### Graph node flow
 
+Clinical intake only (LangGraph). Consent and survey are **router-level** —
+see [ROUTER_SPEC.md](docs/structures/ROUTER_SPEC.md) and [USERFLOW.md](docs/structures/USERFLOW.md).
+
 ```
-patient_registration           (deterministic form)
-  → presenting_complaint_agent (classifier: localised? Y/N)
-      ├─ Yes → localised_detail_agent   (question_gen: body diagram, severity, duration, radiation)
-      └─ No  → non_localised_agent      (question_gen: severity, duration, frequency)
-  → devise_and_prioritise + priority_questions_agent (question_gen, max 4)
-  → devise_and_prioritise(phase=redflag_screening) + redflag question_gen
-  → optional_questions_agent    (devise + question_gen, user can skip)
-  → ice_agent                   (question_gen: ideas/concerns/expectations)
-  → review_node                 (run_nurse_review_summary_agent → ReviewSummaryResult)
-  → optional_survey_node        (deterministic form)
+presenting_complaint           (classifier: localised? Y/N)   ← GRAPH START
+    ├─ Yes → localised_detail
+    └─ No  → non_localised_detail
+  → priority_questions
+  → redflag_screening
+  → optional_questions         (skippable)
+  → ice
+  → review                     (silent; clinician encounter_summary only)
+  → complete                   ← GRAPH END
 ```
+
+Before graph: router serves consent (`NOT_STARTED` → `IN_PROGRESS`).
+After graph: router may serve survey, then final complete.
 
 ---
 
@@ -119,5 +124,7 @@ New teammates: follow **[docs/setup/LOCAL.md](docs/setup/LOCAL.md)** (Docker Pos
 - [Database schema](docs/database/DATABASE.md)
 - [Database RLS](docs/database/RLS.md)
 - [Repository conventions](docs/repository-rule/REPOSITORYRULE.md)
-- [Structure ideation](docs/structures/structure.md)
+- [Structure ideation](docs/structures/STRUCTURE.md)
+- [User flow (graph)](docs/structures/USERFLOW.md)
+- [Router lifecycle spec](docs/structures/ROUTER_SPEC.md)
 

@@ -2,7 +2,7 @@
 
 FastAPI + LangGraph backend for Align. Single Python process: HTTP API, intake orchestration, and Postgres access.
 
-Companion docs: [APISTRUCTURE.md](../../docs/apps/api-server/APISTRUCTURE.md), [DATABASE.md](../../docs/database/DATABASE.md), [RLS.md](../../docs/database/RLS.md), [local setup](../../docs/setup/LOCAL.md), [structure ideation](../../docs/structures/structure.md).
+Companion docs: [APISTRUCTURE.md](../../docs/apps/api-server/APISTRUCTURE.md), [DATABASE.md](../../docs/database/DATABASE.md), [RLS.md](../../docs/database/RLS.md), [local setup](../../docs/setup/LOCAL.md), [USERFLOW](../../docs/structures/USERFLOW.md), [ROUTER_SPEC](../../docs/structures/ROUTER_SPEC.md), [structure ideation](../../docs/structures/STRUCTURE.md).
 
 ---
 
@@ -17,8 +17,9 @@ api-server/
 ├── .env.example            # Template for local DATABASE_URL + Azure OpenAI (copy to .env)
 │
 ├── routers/                # Transport: HTTP routes (scaffold) — no business logic
-├── engine/                 # LangGraph graph + nodes (scaffold; state types live in schemas/)
-│   └── nodes/
+├── engine/                 # LangGraph clinical intake (+ deterministic_forms for router)
+│   ├── nodes/              # Graph nodes only (no consent/survey)
+│   └── deterministic_forms.py  # Consent/survey QuestionFields — router-level, not nodes
 ├── external_systems/
 │   ├── pms/                # Practice-management Protocol + adapters
 │   └── clinical_ai/        # Three peer agents + helpers (see below)
@@ -60,9 +61,10 @@ Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
 
 | Path | Role |
 | ---- | ---- |
-| `routers/` | Request/response parsing and routing; calls into engine / services |
-| `engine/` | LangGraph workflow that drives pre-consult intake (not wired yet) |
-| `engine/nodes/` | Per-phase node logic (will call `clinical_ai.run_*`) |
+| `routers/` | Request/response parsing and routing; consent/survey lifecycle (see ROUTER_SPEC) |
+| `engine/` | LangGraph clinical intake (START=`presenting_complaint` → END=`complete`) |
+| `engine/nodes/` | Per-phase clinical nodes (call `clinical_ai.run_*` when real) |
+| `engine/deterministic_forms.py` | Consent/survey builders for router — never `graph.invoke` |
 | `external_systems/pms/` | PMS fetch/push adapters behind `PMSProvider` |
 | `external_systems/clinical_ai/` | Three peer agents + nurse review / translation helpers |
 | `schemas/` | Shared Pydantic models — see table above |

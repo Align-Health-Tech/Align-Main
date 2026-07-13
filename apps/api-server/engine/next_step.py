@@ -1,0 +1,55 @@
+"""Build NextStep payloads for interrupt / GET rebuild / router forms."""
+from __future__ import annotations
+
+from engine.state_codecs import as_question_fields
+from schemas.question_fields import NextStep, Phase, QuestionField, StepType
+from schemas.session_states import SessionState
+
+
+def step_type_for_phase(phase: Phase) -> StepType:
+    if phase == "consent":
+        return "consent"
+    if phase == "survey":
+        return "survey"
+    return "question_batch"
+
+
+def build_next_step_raw(
+    turn_number: int,
+    questions: list[QuestionField],
+    *,
+    phase: Phase,
+) -> NextStep:
+    """Construct NextStep without a SessionState (e.g. pre-graph consent)."""
+    return NextStep(
+        step_type=step_type_for_phase(phase),
+        phase=phase,
+        turn_number=turn_number,
+        questions=questions,
+    )
+
+
+def build_next_step(
+    state: SessionState,
+    questions: list[QuestionField],
+    *,
+    phase: Phase,
+) -> NextStep:
+    return build_next_step_raw(state.turn_number, questions, phase=phase)
+
+
+def next_step_from_state(state: SessionState) -> NextStep | None:
+    if state.is_session_complete:
+        return NextStep(
+            step_type="complete",
+            # Last in-graph patient phase; survey (if any) is router-level.
+            phase="ice",
+            turn_number=state.turn_number,
+        )
+    if state.awaiting_phase is None or not state.pending_questions:
+        return None
+    return build_next_step(
+        state,
+        as_question_fields(state.pending_questions),
+        phase=state.awaiting_phase,
+    )

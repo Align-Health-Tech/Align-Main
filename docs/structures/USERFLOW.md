@@ -1,0 +1,41 @@
+```mermaid
+flowchart TD
+    R0[Router: consent<br/>Encounter.status=NOT_STARTED<br/>no graph]
+    A2[2. presenting_complaint<br/>run_classifier — GRAPH START]
+    A3a[3a. localised_detail<br/>deterministic UI]
+    A3b[3b. non_localised_detail<br/>run_classifier non_localised_categoriser]
+    A4[4. priority_questions]
+    A5[5. redflag_screening]
+    A6[6. optional_questions<br/>skippable]
+    A7[7. ice]
+    A8[8. review<br/>INTERNAL — dashboard summary<br/>no patient interrupt]
+    A10[10. complete — GRAPH END]
+    R9[Router: survey optional<br/>after is_session_complete<br/>no graph]
+
+    R0 -->|status → IN_PROGRESS<br/>first graph.invoke| A2
+
+    A2 -->|ready=False| B1[clarify Devise+QG → answer]
+    B1 -.->|re-enter| A2
+    A2 -->|LOCALISED| A3a
+    A2 -->|NOT_LOCALISED| A3b
+
+    A3b -->|ready=False| B2[clarify → re-enter]
+    B2 -.-> A3b
+    A3b -->|ready=True| B3[onset / severity / functional]
+    B3 --> A4
+    A3a --> A4
+
+    A4 --> A5 --> A6 --> A7 --> A8
+    A8 -->|writes encounter_summary| A10
+    A10 -.->|router may offer survey| R9
+```
+
+**Graph nodes (9):** `presenting_complaint` · `localised_detail` · `non_localised_detail` · `priority_questions` · `redflag_screening` · `optional_questions` · `ice` · `review` · `complete`
+
+**Router-level (not graph):** consent (before first invoke), survey (after graph complete). Helpers: `engine/deterministic_forms.py`. Spec: [`ROUTER_SPEC.md`](ROUTER_SPEC.md).
+
+**Patient-facing sequence frontend sees:**
+
+1. consent (router) → 2. presenting_complaint (+ clarify) → 3a/3b → 4. priority → 5. redflag → 6. optional → 7. ice → *(silent review)* → 9. survey? (router) → complete
+
+**Not patient-facing:** step 8 `review` — clinician `encounter_summary` only.

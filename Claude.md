@@ -17,7 +17,7 @@ Always **read and strictly follow** the relevant docs under `/docs` before chang
 | RLS roles & policies | [`docs/database/RLS.md`](docs/database/RLS.md) |
 | API surface (target design) | [`docs/apps/api-server/APISTRUCTURE.md`](docs/apps/api-server/APISTRUCTURE.md) |
 | Repo conventions | [`docs/repository-rule/REPOSITORYRULE.md`](docs/repository-rule/REPOSITORYRULE.md) |
-| External-system ideation | [`docs/structures/structure.md`](docs/structures/structure.md) |
+| External-system ideation | [`docs/structures/STRUCTURE.md`](docs/structures/STRUCTURE.md) |
 
 **Rules:**
 

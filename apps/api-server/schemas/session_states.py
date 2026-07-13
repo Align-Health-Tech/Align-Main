@@ -1,11 +1,20 @@
-"""SessionState — LangGraph intake state for one encounter."""
-from typing import Annotated, Literal, Optional
+"""SessionState — LangGraph intake state for one encounter.
+
+Checkpoint storage rule: nested domain shapes are stored as plain dict /
+list[dict] (model_dump), never as nested Pydantic instances. Re-hydrate with
+Model.model_validate(...) only at engine call sites that need typed objects.
+This keeps LangGraph msgpack checkpoints free of unregistered custom types
+(QuestionField, TopicCandidate, NarrativeField, BodyStructureState, …).
+"""
+from __future__ import annotations
+
+from typing import Annotated, Any, Literal, Optional
 
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel
 
 from schemas.jsonb_fields import CodedField, NarrativeField
-from schemas.topic_candidates import TopicCandidate
+from schemas.question_fields import Phase
 
 PresentationCategory = Literal["LOCALISED", "NOT_LOCALISED"]
 Laterality = Literal["left", "right", "bilateral"]
@@ -16,9 +25,12 @@ IntakeFactKind = Literal[
 ]
 IntakeFactSource = Literal["PATIENT_INTAKE", "LILLY_EXTRACTED", "PRACTITIONER_ENTERED"]
 
+# JSON-friendly aliases for checkpointed nested shapes.
+JsonDict = dict[str, Any]
+
 
 class BodyStructureState(BaseModel):
-    """Maps to one `body_structures` row (+ its `radiation_sites` children)."""
+    """Parse helper for one body_structures row — not stored as this type in SessionState."""
 
     region_detail: Optional[CodedField] = None
     sub_region_detail: Optional[CodedField] = None
@@ -30,12 +42,11 @@ class BodyStructureState(BaseModel):
 
 
 class IntakeFactState(BaseModel):
-    """Maps to one `intake_fact_items` row."""
+    """Parse helper for one intake_fact_items row — not stored as this type in SessionState."""
 
     kind: IntakeFactKind
     source: IntakeFactSource
     display: NarrativeField
-    # Flat FHIR coding — same pattern as `flags` (not CodedField / region_detail).
     fhir_system: Optional[str] = None
     fhir_code: Optional[str] = None
     fhir_display: Optional[str] = None
@@ -47,8 +58,10 @@ class SessionState(BaseModel):
     patient_id: str
     organization_id: str
     session_language: str = "en"
+    patient_sex: Optional[str] = None
 
-    # Registration / consent — gates encounters.status NOT_STARTED -> IN_PROGRESS
+    # Consent is router-level (Consent rows + status). Field kept for optional
+    # in-memory bookkeeping if a caller still mirrors acceptances into state.
     consents_accepted: list[str] = []
 
     # Free-form presenting-complaint conversation (classifier reads this)
@@ -56,21 +69,23 @@ class SessionState(BaseModel):
 
     # Classifier output
     presentation_category: Optional[PresentationCategory] = None
+    # non_localised_categoriser bucket (set only on NOT_LOCALISED path)
+    non_localised_category: Optional[str] = None
 
-    # encounters column mapping — narrative jsonb fields
-    chief_complaint: Optional[NarrativeField] = None
-    duration: Optional[NarrativeField] = None
-    persistence: Optional[NarrativeField] = None
-    progression: Optional[NarrativeField] = None
-    onset_circumstance: Optional[NarrativeField] = None
-    self_management: Optional[NarrativeField] = None
-    ice_idea: Optional[NarrativeField] = None
-    ice_concern: Optional[NarrativeField] = None
-    ice_expectation: Optional[NarrativeField] = None
-    character: list[NarrativeField] = []
-    mitigating_factors: list[NarrativeField] = []
-    exacerbating_factors: list[NarrativeField] = []
-    comorbidities: list[NarrativeField] = []
+    # encounters column mapping — narrative jsonb (dict = NarrativeField.model_dump())
+    chief_complaint: Optional[JsonDict] = None
+    duration: Optional[JsonDict] = None
+    persistence: Optional[JsonDict] = None
+    progression: Optional[JsonDict] = None
+    onset_circumstance: Optional[JsonDict] = None
+    self_management: Optional[JsonDict] = None
+    ice_idea: Optional[JsonDict] = None
+    ice_concern: Optional[JsonDict] = None
+    ice_expectation: Optional[JsonDict] = None
+    character: list[JsonDict] = []
+    mitigating_factors: list[JsonDict] = []
+    exacerbating_factors: list[JsonDict] = []
+    comorbidities: list[JsonDict] = []
 
     # encounters column mapping — plain scalars, no translation needed
     severity_score: Optional[int] = None
@@ -79,25 +94,25 @@ class SessionState(BaseModel):
     acc_claim_suspected: bool = False
     acc_can_work: Optional[bool] = None
 
-    # Generated directly in English, one line — no NarrativeField wrapper
+    # Generated directly in English, one line
     encounter_summary: Optional[str] = None
 
-    # body_structures / radiation_sites mapping
-    body_structures: list[BodyStructureState] = []
+    # body_structures / radiation_sites (dict = BodyStructureState.model_dump())
+    body_structures: list[JsonDict] = []
 
-    # Ranked topics from run_devise_and_prioritise(phase, context)
-    prioritised_topics: list[TopicCandidate] = []
+    # Devise output (dict = TopicCandidate.model_dump())
+    prioritised_topics: list[JsonDict] = []
 
     # Topic strings already raised as Flag rows after redflag_screening
-    # answers — dedupe when Devise/redflag re-runs adaptively.
     raised_flag_topics: list[str] = []
 
-    # intake_fact_items mapping
-    intake_facts: list[IntakeFactState] = []
+    # intake_fact_items (dict = IntakeFactState.model_dump())
+    intake_facts: list[JsonDict] = []
 
-    # Progress tracking — logged here even for phases that never produce a
-    # NextStep (e.g. devise_and_prioritise). See schema/question_fields.py
-    # for the patient-facing subset of these values (NextStep.phase).
+    # Active interrupt — list[dict] = QuestionField.model_dump(); also Option-2 resume guard
+    pending_questions: list[JsonDict] = []
+    awaiting_phase: Optional[Phase] = None
+
     completed_phases: list[str] = []
     turn_number: int = 0
     is_session_complete: bool = False

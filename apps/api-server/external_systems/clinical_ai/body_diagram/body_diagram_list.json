@@ -1,0 +1,234 @@
+{
+    "bodydiagrams": [
+      {
+        "file": "Arm Left Back.svg",
+        "groupId": "Group 5",
+        "selectGroupId": "Posterior arm | Image Asset",
+        "title": "ArmLeftBack",
+        "regions": [
+          "Select_LeftHand",
+          "Select_LeftWrist",
+          "Select_LeftForearm",
+          "Select_LeftTricep",
+          "Select_LeftShoulder"
+        ]
+      },
+      {
+        "file": "Arm Left Front.svg",
+        "groupId": "Group 4",
+        "selectGroupId": "Anterior arm | Image Asset",
+        "title": "ArmLeftFront",
+        "regions": [
+          "Select_LeftWrist",
+          "Select_LeftHand",
+          "Select_LeftForearm",
+          "Select_LeftBicep",
+          "Select_LeftShoulder"
+        ]
+      },
+      {
+        "file": "Arm Right Back.svg",
+        "groupId": "Group 3",
+        "selectGroupId": "Posterior LeftArm | Image Asset",
+        "title": "ArmRightBack",
+        "regions": [
+          "Select_RightHand",
+          "Select_RightWrist",
+          "Select_RightForearm",
+          "Select_RightTricep",
+          "Select_RightShoulder"
+        ]
+      },
+      {
+        "file": "Arm Right Front.svg",
+        "groupId": "Group 2",
+        "selectGroupId": "Anterior LeftArm | Image Asset",
+        "title": "ArmRightFront",
+        "regions": [
+          "Select_RightWrist",
+          "Select_RightHand",
+          "Select_RightForearm",
+          "Select_RightBicep",
+          "Select_RightShoulder"
+        ]
+      },
+      {
+        "file": "Face 1.svg",
+        "groupId": "Group 12",
+        "selectGroupId": "Face Image Asset",
+        "title": "Face",
+        "regions": [
+          "Select_Neck",
+          "Select_LeftEar",
+          "Select_RightEar",
+          "Select_Chin",
+          "Select_Mouth",
+          "Select_Nose",
+          "Select_LeftEye",
+          "Select_RightEye",
+          "Select_LeftSide",
+          "Select_RightSide",
+          "Select_Forehead"
+        ]
+      },
+      {
+        "file": "Female Legs Back 1.svg",
+        "groupId": "Group 11",
+        "selectGroupId": "Select Female Leg Back View",
+        "title": "FemaleLegsBack",
+        "regions": [
+          "Select_FemaleLegs_Back_Right_LowerCalf",
+          "Select_FemaleLegs_Back_Left_LowerCalf",
+          "Select_FemaleLegs_Back_Right_Calf",
+          "Select_FemaleLegs_Back_Left_Calf",
+          "Select_FemaleLegs_Back_Right_BackofKnee",
+          "Select_FemaleLegs_Back_Left_BackofKnee",
+          "Select_FemaleLegs_Back_Right_Hamstring",
+          "Select_FemaleLegs_Back_Left_Hamstring"
+        ]
+      },
+      {
+        "file": "Female Legs Front 1.svg",
+        "groupId": "Group 10",
+        "selectGroupId": "Select Front Female Leg",
+        "title": "FemaleLegsFront",
+        "regions": [
+          "Select_FemaleLegs_Front_LeftAnkle",
+          "Select_FemaleLegs_Front_RightAnkle",
+          "Select_FemaleLegs_Front_LeftFoot",
+          "Select_FemaleLegs_Front_RightFoot",
+          "Select_FemaleLegs_Front_LeftShin",
+          "Select_FemaleLegs_Front_RightShin",
+          "Select_FemaleLegs_Front_LeftKnee",
+          "Select_FemaleLegs_Front_RightKnee",
+          "Select_FemaleLegs_Front_Left_InnerThigh",
+          "Select_FemaleLegs_Front_Right_InnerThigh",
+          "Select_FemaleLegs_Front_Left_OuterThigh",
+          "Select_FemaleLegs_Front_Right_OuterThigh"
+        ]
+      },
+      {
+        "file": "Female Torso Back (Labelled).svg",
+        "groupId": "Group 7",
+        "selectGroupId": "Select_Female Torso Back",
+        "title": "FemaleTorsoBack",
+        "regions": [
+          "Select_Female_TorsoBack_Right_Lateral_LowerBack",
+          "Select_Female_TorsoBack_Left_Lateral_LowerBack",
+          "Select_Female_TorsoBack_Right_Lats",
+          "Select_Female_TorsoBack_Left_Lats",
+          "Select_Female_TorsoBack_Right_Medial_LowerBack",
+          "Select_Female_TorsoBack_Left_Medial_LowerBack",
+          "Select_Female_TorsoBack_Right_ShoulderBlade",
+          "Select_Female_TorsoBack_Left_ShoulderBlade",
+          "Select_Female_TorsoBack_Right_Medial_MidBack",
+          "Select_Female_TorsoBack_Left_Medial_MidBack",
+          "Select_Female_TorsoBack_Right_Trapezeum",
+          "Select_Female_TorsoBack_Left_Trapezeum"
+        ]
+      },
+      {
+        "file": "Female Torso Front 1.svg",
+        "groupId": "Group 6",
+        "selectGroupId": "Select Female Torso Front View",
+        "title": "FemaleTorsoFront",
+        "regions": [
+          "Select_Female_TorsoFront_Left_LowerChest",
+          "Select_Female_TorsoFront_Right_LowerChest",
+          "Select_Female_TorsoFront_Left_UpperChest",
+          "Select_Female_TorsoFront_Right_UpperChest",
+          "Select_Female_TorsoFront_Right_RibCage",
+          "Select_Female_TorsoFront_Left_RibCage",
+          "Select_Female_TorsoFront_Epigastrium",
+          "Select_Female_TorsoFront_Umbellical",
+          "Select_Female_TorsoFront_Lower_MiddleQuadrant",
+          "Select_Female_TorsoFront_Left_UpperQuadrant",
+          "Select_Female_TorsoFront_Left_UpperQuadrant_2",
+          "Select_Female_TorsoFront_Left_Flank",
+          "Select_Female_TorsoFront_Left_Flank_2",
+          "Select_Female_TorsoFront_Left_LowerQuadrant",
+          "Select_Female_TorsoFront_Right_LowerQuadrant",
+          "Select_Female_TorsoFront_Middle_Chest"
+        ]
+      },
+      {
+        "file": "Male Legs Back 1.svg",
+        "groupId": "Group 9",
+        "selectGroupId": "Anterio arm | Image Asset",
+        "title": "MaleLegsBack",
+        "regions": [
+          "Select_MaleLegs_Back_Right_LowerCalf",
+          "Select_MaleLegs_Back_Left_LowerCalf",
+          "Select_MaleLegs_Back_Right_Calf",
+          "Select_MaleLegs_Back_Left_Calf",
+          "Select_MaleLegs_Back_Right_BackofKnee",
+          "Select_MaleLegs_Back_Left_BackofKnee",
+          "Select_MaleLegs_Back_Right_HamString",
+          "Select_MaleLegs_Back_Left_HamString"
+        ]
+      },
+      {
+        "file": "Male Legs Front 1.svg",
+        "groupId": "Group 8",
+        "selectGroupId": "Select Male Front View Legs",
+        "title": "MaleLegsFront",
+        "regions": [
+          "Select_MaleLegs_Front_LeftFoot",
+          "Select_MaleLegs_Front_RightFoot",
+          "Select_MaleLegs_Front_LeftAnkle",
+          "Select_MaleLegs_Front_RightAnkle",
+          "Select_MaleLegs_Front_LeftShin",
+          "Select_MaleLegs_Front_RightShin",
+          "Select_MaleLegs_Front_LeftKnee",
+          "Select_MaleLegs_Front_RightKnee",
+          "Select_MaleLegs_Front_Left_InnerThigh",
+          "Select_MaleLegs_Front_Right_InnerThigh",
+          "Select_MaleLegs_Front_Left_OuterThigh",
+          "Select_MaleLegs_Front_Right_OuterThigh"
+        ]
+      },
+      {
+        "file": "Male torso back.svg",
+        "groupId": "Group 1",
+        "selectGroupId": "Select regions",
+        "title": "MaleTorsoBack",
+        "regions": [
+          "Select_Right_Lateral_LowerBack",
+          "Select_Left_Lateral_LowerBack",
+          "Select_Right_Lats",
+          "Select_Left_Lats",
+          "Select_Right_Medial_LowerBack",
+          "Select_Left_Medial_LowerBack",
+          "Select_Right_ShoulderBlade",
+          "Select_Left_ShoulderBlade",
+          "Select_Right_Medial_MidBack",
+          "Select_Left_Medial_MidBack",
+          "Select_Right_Trapezeum",
+          "Select_Left_Trapezeum"
+        ]
+      },
+      {
+        "file": "Torso Front Male (SVG Labelled).svg",
+        "groupId": "Torso Front Male 1",
+        "selectGroupId": null,
+        "title": "MaleTorsoFront",
+        "regions": [
+          "Select_Lower_MiddleQuadrant",
+          "Select_Left_LowerQuadrant",
+          "Select_Right_LowerQuadrant",
+          "Select_Left_Chest",
+          "Select_Right_Chest",
+          "Select_Left_RibCage",
+          "Select_Right_RibCage",
+          "Select_Epigastrium",
+          "Select_Umbellical",
+          "Select_Left_UpperQuadrant",
+          "Select_Right_UpperQuadrant",
+          "Select_Left_Flank",
+          "Select_Right_Flank",
+          "Select_MiddleChest"
+        ]
+      }
+    ]
+  }
+  

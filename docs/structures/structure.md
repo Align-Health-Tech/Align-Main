@@ -17,6 +17,7 @@ flowchart TB
   DB[(Postgres)]
 
   FE --> R --> E
+  R --> DF[deterministic_forms — consent/survey]
   E --> S
   CAI --> S
   R --> S
@@ -29,7 +30,8 @@ flowchart TB
 | Layer | Owns | Does not own |
 | ----- | ---- | ------------ |
 | **schemas** | Shapes everyone shares (`SessionState`, `NextStep`, agent I/O, `CollectTarget`, …) | LLM calls, DB writes, routing |
-| **engine** | When to call whom; graph progress; map answers → state / `NextStep` | Prompt text, Azure, PMS vendor details |
+| **engine** | Clinical graph progress; map answers → state / graph NextSteps | Prompt text, Azure, PMS, consent/survey HTTP lifecycle |
+| **deterministic_forms** (in engine/) | Consent/survey QuestionField builders for router | Graph topology |
 | **clinical_ai** (runtime) | `run_*`, prompts, registry lists, tools | Graph topology, HTTP |
 | **pms** (runtime) | Fetch/push behind `PMSProvider` | Clinical reasoning |
 

@@ -30,6 +30,7 @@ Implemented as thin wrappers in `agents.py` over `llm_client.run_agent` /
 1. **Classifier** — `run_classifier`
 2. **Devise & Prioritise** — `run_devise_and_prioritise` (tools path)
 3. **Question Generation** — `run_question_generation`
+   (`QuestionField.personalization_note` required — do not blind-copy registry options)
 
 Helpers: `run_nurse_review_summary_agent`, `translate_to_english`.
 

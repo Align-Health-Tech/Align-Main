@@ -69,6 +69,8 @@ class SessionState(BaseModel):
 
     # Classifier output
     presentation_category: Optional[PresentationCategory] = None
+    # Presenting-concerns classifier extras (e.g. localisedAnatomySites) — dict
+    presenting_complaint_hint: Optional[JsonDict] = None
     # non_localised_categoriser bucket (set only on NOT_LOCALISED path)
     non_localised_category: Optional[str] = None
 
@@ -111,6 +113,9 @@ class SessionState(BaseModel):
 
     # Active interrupt — list[dict] = QuestionField.model_dump(); also Option-2 resume guard
     pending_questions: list[JsonDict] = []
+    # localised_detail round-1 (body_diagram) Option-2 arm — None until armed
+    pending_diagram_file: Optional[str] = None
+    pending_highlighted_regions: Optional[list[str]] = None
     awaiting_phase: Optional[Phase] = None
 
     completed_phases: list[str] = []

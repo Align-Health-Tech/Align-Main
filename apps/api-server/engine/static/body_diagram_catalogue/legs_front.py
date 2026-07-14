@@ -1,0 +1,298 @@
+"""Front leg diagrams — sex-split."""
+from __future__ import annotations
+
+from engine.static.body_diagram_catalogue.types import PrefillMapping, RegionCoding
+
+PREFILL_MAPPINGS: list[PrefillMapping] = [
+    PrefillMapping(
+        body_part="ankle", side="left", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_LeftAnkle",
+    ),
+    PrefillMapping(
+        body_part="ankle", side="right", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_RightAnkle",
+    ),
+    PrefillMapping(
+        body_part="foot", side="left", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_LeftFoot",
+    ),
+    PrefillMapping(
+        body_part="foot", side="right", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_RightFoot",
+    ),
+    PrefillMapping(
+        body_part="shin", side="left", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_LeftShin",
+    ),
+    PrefillMapping(
+        body_part="shin", side="right", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_RightShin",
+    ),
+    PrefillMapping(
+        body_part="knee", side="left", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_LeftKnee",
+    ),
+    PrefillMapping(
+        body_part="knee", side="right", surface="front", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_RightKnee",
+    ),
+    PrefillMapping(
+        body_part="inner_thigh", side="left", surface="inner", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_Left_InnerThigh",
+    ),
+    PrefillMapping(
+        body_part="inner_thigh", side="right", surface="inner", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_Right_InnerThigh",
+    ),
+    PrefillMapping(
+        body_part="outer_thigh", side="left", surface="outer", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_Left_OuterThigh",
+    ),
+    PrefillMapping(
+        body_part="outer_thigh", side="right", surface="outer", sex_variant="female",
+        diagram_file="Female Legs Front 1.svg", region_id="Select_FemaleLegs_Front_Right_OuterThigh",
+    ),
+    PrefillMapping(
+        body_part="foot", side="left", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_LeftFoot",
+    ),
+    PrefillMapping(
+        body_part="foot", side="right", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_RightFoot",
+    ),
+    PrefillMapping(
+        body_part="ankle", side="left", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_LeftAnkle",
+    ),
+    PrefillMapping(
+        body_part="ankle", side="right", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_RightAnkle",
+    ),
+    PrefillMapping(
+        body_part="shin", side="left", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_LeftShin",
+    ),
+    PrefillMapping(
+        body_part="shin", side="right", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_RightShin",
+    ),
+    PrefillMapping(
+        body_part="knee", side="left", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_LeftKnee",
+    ),
+    PrefillMapping(
+        body_part="knee", side="right", surface="front", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_RightKnee",
+    ),
+    PrefillMapping(
+        body_part="inner_thigh", side="left", surface="inner", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_Left_InnerThigh",
+    ),
+    PrefillMapping(
+        body_part="inner_thigh", side="right", surface="inner", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_Right_InnerThigh",
+    ),
+    PrefillMapping(
+        body_part="outer_thigh", side="left", surface="outer", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_Left_OuterThigh",
+    ),
+    PrefillMapping(
+        body_part="outer_thigh", side="right", surface="outer", sex_variant="male",
+        diagram_file="Male Legs Front 1.svg", region_id="Select_MaleLegs_Front_Right_OuterThigh",
+    ),
+]
+
+REGION_CODINGS: list[RegionCoding] = [
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_LeftAnkle",
+        layman_term="left ankle",
+        anatomical_term="left ankle joint region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_RightAnkle",
+        layman_term="right ankle",
+        anatomical_term="right ankle joint region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_LeftFoot",
+        layman_term="left foot",
+        anatomical_term="left foot region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_RightFoot",
+        layman_term="right foot",
+        anatomical_term="right foot region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_LeftShin",
+        layman_term="left shin",
+        anatomical_term="left anterior leg region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_RightShin",
+        layman_term="right shin",
+        anatomical_term="right anterior leg region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_LeftKnee",
+        layman_term="left knee",
+        anatomical_term="left knee region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_RightKnee",
+        layman_term="right knee",
+        anatomical_term="right knee region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_Left_InnerThigh",
+        layman_term="left inner thigh",
+        anatomical_term="left medial thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_Right_InnerThigh",
+        layman_term="right inner thigh",
+        anatomical_term="right medial thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_Left_OuterThigh",
+        layman_term="left outer thigh",
+        anatomical_term="left lateral thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_FemaleLegs_Front_Right_OuterThigh",
+        layman_term="right outer thigh",
+        anatomical_term="right lateral thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_LeftFoot",
+        layman_term="left foot",
+        anatomical_term="left foot region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_RightFoot",
+        layman_term="right foot",
+        anatomical_term="right foot region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_LeftAnkle",
+        layman_term="left ankle",
+        anatomical_term="left ankle joint region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_RightAnkle",
+        layman_term="right ankle",
+        anatomical_term="right ankle joint region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_LeftShin",
+        layman_term="left shin",
+        anatomical_term="left anterior leg region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_RightShin",
+        layman_term="right shin",
+        anatomical_term="right anterior leg region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_LeftKnee",
+        layman_term="left knee",
+        anatomical_term="left knee region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_RightKnee",
+        layman_term="right knee",
+        anatomical_term="right knee region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_Left_InnerThigh",
+        layman_term="left inner thigh",
+        anatomical_term="left medial thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_Right_InnerThigh",
+        layman_term="right inner thigh",
+        anatomical_term="right medial thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_Left_OuterThigh",
+        layman_term="left outer thigh",
+        anatomical_term="left lateral thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_MaleLegs_Front_Right_OuterThigh",
+        layman_term="right outer thigh",
+        anatomical_term="right lateral thigh region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+]

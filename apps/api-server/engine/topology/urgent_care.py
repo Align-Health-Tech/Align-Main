@@ -1,6 +1,10 @@
-"""Intake graph topology — clinical nodes only (consent/survey are router-level).
+"""Urgent-care intake graph topology — clinical nodes only.
 
-9 nodes: presenting_complaint → … → review (silent) → complete.
+Consent/survey are router-level. 9 nodes: presenting_complaint → …
+→ review (silent) → complete.
+
+This is the URGENT_CARE segment shape specifically — not a generic clinic
+topology. Physio/GP register their own modules when designed.
 """
 from __future__ import annotations
 

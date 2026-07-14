@@ -32,7 +32,7 @@ flowchart TD
 
 **Graph nodes (9):** `presenting_complaint` · `localised_detail` · `non_localised_detail` · `priority_questions` · `redflag_screening` · `optional_questions` · `ice` · `review` · `complete`
 
-**Router-level (not graph):** consent (before first invoke), survey (after graph complete). Helpers: `engine/deterministic_forms.py`. Spec: [`ROUTER_SPEC.md`](ROUTER_SPEC.md).
+**Router-level (not graph):** consent (before first invoke), survey (after graph complete). Helpers: `engine/static/deterministic_forms.py`. Spec: [`ROUTER_SPEC.md`](ROUTER_SPEC.md).
 
 **Patient-facing sequence frontend sees:**
 

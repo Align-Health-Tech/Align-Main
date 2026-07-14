@@ -1,0 +1,298 @@
+"""Back torso diagrams — sex-split. Lats/trapezius mapped to mid_back / shoulder_blade."""
+from __future__ import annotations
+
+from engine.static.body_diagram_catalogue.types import PrefillMapping, RegionCoding
+
+PREFILL_MAPPINGS: list[PrefillMapping] = [
+    PrefillMapping(
+        body_part="lower_back", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_Lateral_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_Lateral_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_Lats",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_Lats",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_Medial_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_Medial_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_ShoulderBlade",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_ShoulderBlade",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_Medial_MidBack",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_Medial_MidBack",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="right", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Right_Trapezeum",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="left", surface="back", sex_variant="female",
+        diagram_file="Female Torso Back (Labelled).svg", region_id="Select_Female_TorsoBack_Left_Trapezeum",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_Lateral_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_Lateral_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_Lats",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_Lats",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_Medial_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="lower_back", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_Medial_LowerBack",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_ShoulderBlade",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_ShoulderBlade",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_Medial_MidBack",
+    ),
+    PrefillMapping(
+        body_part="mid_back", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_Medial_MidBack",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="right", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Right_Trapezeum",
+    ),
+    PrefillMapping(
+        body_part="shoulder_blade", side="left", surface="back", sex_variant="male",
+        diagram_file="Male torso back.svg", region_id="Select_Left_Trapezeum",
+    ),
+]
+
+REGION_CODINGS: list[RegionCoding] = [
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_Lateral_LowerBack",
+        layman_term="right lateral lower back",
+        anatomical_term="right lateral lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_Lateral_LowerBack",
+        layman_term="left lateral lower back",
+        anatomical_term="left lateral lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_Lats",
+        layman_term="right latissimus / mid-back",
+        anatomical_term="right latissimus dorsi region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_Lats",
+        layman_term="left latissimus / mid-back",
+        anatomical_term="left latissimus dorsi region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_Medial_LowerBack",
+        layman_term="right medial lower back",
+        anatomical_term="right medial lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_Medial_LowerBack",
+        layman_term="left medial lower back",
+        anatomical_term="left medial lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_ShoulderBlade",
+        layman_term="right shoulder blade",
+        anatomical_term="right scapular region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_ShoulderBlade",
+        layman_term="left shoulder blade",
+        anatomical_term="left scapular region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_Medial_MidBack",
+        layman_term="right medial mid-back",
+        anatomical_term="right medial thoracic back region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_Medial_MidBack",
+        layman_term="left medial mid-back",
+        anatomical_term="left medial thoracic back region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Right_Trapezeum",
+        layman_term="right trapezius",
+        anatomical_term="right trapezius region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Female_TorsoBack_Left_Trapezeum",
+        layman_term="left trapezius",
+        anatomical_term="left trapezius region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_Lateral_LowerBack",
+        layman_term="right lateral lower back",
+        anatomical_term="right lateral lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_Lateral_LowerBack",
+        layman_term="left lateral lower back",
+        anatomical_term="left lateral lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_Lats",
+        layman_term="right latissimus / mid-back",
+        anatomical_term="right latissimus dorsi region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_Lats",
+        layman_term="left latissimus / mid-back",
+        anatomical_term="left latissimus dorsi region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_Medial_LowerBack",
+        layman_term="right medial lower back",
+        anatomical_term="right medial lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_Medial_LowerBack",
+        layman_term="left medial lower back",
+        anatomical_term="left medial lumbar region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_ShoulderBlade",
+        layman_term="right shoulder blade",
+        anatomical_term="right scapular region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_ShoulderBlade",
+        layman_term="left shoulder blade",
+        anatomical_term="left scapular region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_Medial_MidBack",
+        layman_term="right medial mid-back",
+        anatomical_term="right medial thoracic back region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_Medial_MidBack",
+        layman_term="left medial mid-back",
+        anatomical_term="left medial thoracic back region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+    RegionCoding(
+        region_id="Select_Right_Trapezeum",
+        layman_term="right trapezius",
+        anatomical_term="right trapezius region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="right",
+    ),
+    RegionCoding(
+        region_id="Select_Left_Trapezeum",
+        layman_term="left trapezius",
+        anatomical_term="left trapezius region",
+        fhir_system="http://snomed.info/sct",
+        fhir_code="TODO-SNOMED-LOOKUP",
+        side="left",
+    ),
+]

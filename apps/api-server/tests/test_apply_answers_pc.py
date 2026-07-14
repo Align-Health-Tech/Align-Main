@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.apply_answers import apply_answers
+from engine.helpers.apply_answers import apply_answers
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 
@@ -39,10 +39,14 @@ class TestApplyAnswersPresentingComplaint(unittest.TestCase):
     def test_clarify_appends_messages(self) -> None:
         q = QuestionField(
             id="pc_clarify_1",
-            kind="free_text",
+            kind="single_choice",
             prompt="Where?",
             personalization_note="fake",
             collect_target_id="chief_complaint_clarify",
+            options=[
+                {"value": "body_part", "label": "Body part"},
+                {"value": "Other", "label": "Other"},
+            ],
         )
         state = self._state(
             chief_complaint={"text": "hurts"},
@@ -50,11 +54,11 @@ class TestApplyAnswersPresentingComplaint(unittest.TestCase):
         )
         updates = apply_answers(
             state,
-            {"answers": [{"question_id": "pc_clarify_1", "value": "left knee"}]},
+            {"answers": [{"question_id": "pc_clarify_1", "value": "body_part"}]},
             [q],
         )
         self.assertNotIn("chief_complaint", updates)
-        self.assertIn("left knee", updates["messages"][0]["content"])
+        self.assertIn("body_part", updates["messages"][0]["content"])
         self.assertEqual(updates["turn_number"], 2)
 
 

@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "bash -c 'source venv/bin/activate && uvicorn main:app --reload --port 8000'",
     "build": "echo 'api-server has no JS build step — image built via its own Dockerfile at deploy time' && exit 0",
-    "lint": "bash -c 'source venv/bin/activate && ruff check .'"
+    "lint": "bash -c 'source venv/bin/activate && ruff check .'",
+    "test": "bash -c 'source venv/bin/activate && python -m unittest discover -s tests -p \"test_*.py\"'"
   }
 }

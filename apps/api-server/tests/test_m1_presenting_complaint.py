@@ -3,20 +3,15 @@ from __future__ import annotations
 
 import unittest
 
-from engine.nodes import presenting_complaint as pc_mod
-from engine.nodes import priority_questions as pri_mod
 from engine.runner import SessionRunner
 from schemas.clinical_ai_io import ClassifierResult
 from tests.helpers import answer_pc_free_text, snap_values
+from tests.mock_clinical_ai import MockClinicalAiTestCase
 
 
-class TestM1PresentingComplaint(unittest.TestCase):
-    def setUp(self) -> None:
-        pri_mod.reset_priority_fakes()
-        pc_mod.reset_presenting_complaint_fakes()
-
+class TestM1PresentingComplaint(MockClinicalAiTestCase, unittest.TestCase):
     def test_localised_ready_path(self) -> None:
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, step0 = runner.start()
         self.assertEqual(step0.phase, "presenting_complaint")
 
@@ -24,8 +19,8 @@ class TestM1PresentingComplaint(unittest.TestCase):
             runner, session_id, "sharp pain in my left ankle"
         )
         self.assertEqual(step.phase, "localised_detail")
-        self.assertEqual(pc_mod.fake_classifier_call_count, 1)
-        self.assertEqual(pc_mod.fake_clarify_qg_call_count, 0)
+        self.assertEqual(self.ai.fake_classifier_call_count, 1)
+        self.assertEqual(self.ai.fake_clarify_qg_call_count, 0)
 
         values = snap_values(runner, session_id)
         self.assertEqual(values["presentation_category"], "LOCALISED")
@@ -36,7 +31,7 @@ class TestM1PresentingComplaint(unittest.TestCase):
         )
 
     def test_not_localised_ready_path(self) -> None:
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
 
         step = answer_pc_free_text(
@@ -47,7 +42,7 @@ class TestM1PresentingComplaint(unittest.TestCase):
         self.assertEqual(values["presentation_category"], "NOT_LOCALISED")
 
     def test_clarify_loop_then_ready(self) -> None:
-        pc_mod.set_classifier_script(
+        self.ai.set_classifier_script(
             [
                 ClassifierResult(ready=False, reason="vague"),
                 ClassifierResult(
@@ -55,14 +50,14 @@ class TestM1PresentingComplaint(unittest.TestCase):
                 ),
             ]
         )
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
 
         clarify_step = answer_pc_free_text(runner, session_id, "something hurts")
         self.assertEqual(clarify_step.phase, "presenting_complaint")
         self.assertEqual(clarify_step.questions[0].id, "pc_clarify_1")
-        self.assertEqual(pc_mod.fake_classifier_call_count, 1)
-        self.assertEqual(pc_mod.fake_clarify_qg_call_count, 1)
+        self.assertEqual(self.ai.fake_classifier_call_count, 1)
+        self.assertEqual(self.ai.fake_clarify_qg_call_count, 1)
 
         after = runner.resume(
             session_id,
@@ -70,13 +65,13 @@ class TestM1PresentingComplaint(unittest.TestCase):
                 "answers": [
                     {
                         "question_id": "pc_clarify_1",
-                        "value": "right wrist pain when lifting",
+                        "value": "body_part",
                     },
                 ]
             },
         )
-        self.assertEqual(pc_mod.fake_clarify_qg_call_count, 1)
-        self.assertEqual(pc_mod.fake_classifier_call_count, 2)
+        self.assertEqual(self.ai.fake_clarify_qg_call_count, 1)
+        self.assertEqual(self.ai.fake_classifier_call_count, 2)
         self.assertEqual(after.phase, "localised_detail")
 
         values = snap_values(runner, session_id)
@@ -84,7 +79,7 @@ class TestM1PresentingComplaint(unittest.TestCase):
         self.assertGreaterEqual(len(values.get("messages") or []), 2)
 
     def test_two_clarify_rounds_replace_pending(self) -> None:
-        pc_mod.set_classifier_script(
+        self.ai.set_classifier_script(
             [
                 ClassifierResult(ready=False, reason="vague"),
                 ClassifierResult(ready=False, reason="still vague"),
@@ -93,7 +88,7 @@ class TestM1PresentingComplaint(unittest.TestCase):
                 ),
             ]
         )
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
 
         round1 = answer_pc_free_text(runner, session_id, "something hurts")
@@ -101,11 +96,11 @@ class TestM1PresentingComplaint(unittest.TestCase):
 
         round2 = runner.resume(
             session_id,
-            {"answers": [{"question_id": "pc_clarify_1", "value": "not sure"}]},
+            {"answers": [{"question_id": "pc_clarify_1", "value": "Other"}]},
         )
         self.assertEqual(round2.phase, "presenting_complaint")
         self.assertEqual(round2.questions[0].id, "pc_clarify_2")
-        self.assertEqual(pc_mod.fake_clarify_qg_call_count, 2)
+        self.assertEqual(self.ai.fake_clarify_qg_call_count, 2)
 
         values = snap_values(runner, session_id)
         pending_ids = [q["id"] for q in values["pending_questions"]]
@@ -117,13 +112,13 @@ class TestM1PresentingComplaint(unittest.TestCase):
                 "answers": [
                     {
                         "question_id": "pc_clarify_2",
-                        "value": "right wrist pain when lifting",
+                        "value": "body_part",
                     },
                 ]
             },
         )
-        self.assertEqual(pc_mod.fake_clarify_qg_call_count, 2)
-        self.assertEqual(pc_mod.fake_classifier_call_count, 3)
+        self.assertEqual(self.ai.fake_clarify_qg_call_count, 2)
+        self.assertEqual(self.ai.fake_classifier_call_count, 3)
         self.assertEqual(done.phase, "localised_detail")
 
 

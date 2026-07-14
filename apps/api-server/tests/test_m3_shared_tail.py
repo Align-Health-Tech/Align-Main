@@ -3,16 +3,13 @@ from __future__ import annotations
 
 import unittest
 
-from engine.nodes import optional_questions as opt_mod
-from engine.nodes import presenting_complaint as pc_mod
-from engine.nodes import priority_questions as pri_mod
-from engine.nodes import redflag_screening as rf_mod
 from engine.runner import SessionRunner
 from tests.helpers import (
     answer_localised_detail,
     answer_pc_free_text,
     snap_values,
 )
+from tests.mock_clinical_ai import MockClinicalAiTestCase
 
 
 def _to_priority(runner: SessionRunner, session_id: str):
@@ -20,15 +17,9 @@ def _to_priority(runner: SessionRunner, session_id: str):
     return answer_localised_detail(runner, session_id)
 
 
-class TestM3SharedTail(unittest.TestCase):
-    def setUp(self) -> None:
-        pc_mod.reset_presenting_complaint_fakes()
-        pri_mod.reset_priority_fakes()
-        rf_mod.reset_redflag_fakes()
-        opt_mod.reset_optional_fakes()
-
+class TestM3SharedTail(MockClinicalAiTestCase, unittest.TestCase):
     def test_priority_redflag_optional_to_ice_with_flags(self) -> None:
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
 
         pri = _to_priority(runner, session_id)
@@ -49,7 +40,7 @@ class TestM3SharedTail(unittest.TestCase):
                 ]
             },
         )
-        self.assertEqual(rf_mod.fake_redflag_qg_call_count, 1)
+        self.assertEqual(self.ai.fake_redflag_qg_call_count, 1)
         self.assertEqual(opt.phase, "optional_questions")
 
         values = snap_values(runner, session_id)
@@ -59,7 +50,7 @@ class TestM3SharedTail(unittest.TestCase):
             session_id,
             {"answers": [{"question_id": "opt_sleep", "value": "yes"}]},
         )
-        self.assertEqual(opt_mod.fake_optional_qg_call_count, 1)
+        self.assertEqual(self.ai.fake_optional_qg_call_count, 1)
         self.assertEqual(ice_step.phase, "ice")
         self.assertIn(
             "optional_questions",
@@ -67,7 +58,7 @@ class TestM3SharedTail(unittest.TestCase):
         )
 
     def test_optional_skip_goes_to_ice(self) -> None:
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
         _to_priority(runner, session_id)
         runner.resume(
@@ -92,7 +83,7 @@ class TestM3SharedTail(unittest.TestCase):
         )
 
     def test_redflag_yes_dedupes_topics(self) -> None:
-        runner = SessionRunner()
+        runner = SessionRunner(segment_type="URGENT_CARE")
         session_id, _ = runner.start()
         _to_priority(runner, session_id)
         runner.resume(

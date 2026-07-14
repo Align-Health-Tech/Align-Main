@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import unittest
 
-from engine.deterministic_forms import (
+from engine.helpers.next_step import build_next_step_raw
+from engine.static.deterministic_forms import (
     build_consent_questions,
     build_survey_questions,
 )
-from engine.next_step import build_next_step_raw
 
 
 class TestDeterministicForms(unittest.TestCase):

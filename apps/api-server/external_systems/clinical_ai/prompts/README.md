@@ -17,8 +17,8 @@ prompts/
 | category | phases |
 | -------- | ------ |
 | `classifier` | `presenting_complaint`, `non_localised_categoriser` |
-| `devise_and_prioritise` | `priority_questions`, `optional_questions`, `redflag_screening`, `presenting_complaint_clarify` |
-| `question_generation` | `priority_questions`, `optional_questions`, `redflag_screening`, `ice`, `presenting_complaint_clarify` |
+| `devise_and_prioritise` | `priority_questions`, `optional_questions`, `redflag_screening`, `presenting_complaint_clarify`, `non_localised_clarify` |
+| `question_generation` | `priority_questions`, `optional_questions`, `redflag_screening`, `ice`, `presenting_complaint_clarify`, `non_localised_clarify` |
 | `nurse_review` | `summary` |
 | `translation` | `to_english` |
 
@@ -42,3 +42,14 @@ Red flag screening is Devise + Question Generation with `phase` /
 Current `.md` files are **stubs** (option B) with expected output shape and
 `TODO` links to Align-Pilot-V2 legacy prompts. Replace stub bodies before
 production demos.
+
+## Dual track (M5)
+
+| Track | Azure? | Where |
+| ----- | ------ | ----- |
+| Graph / Option-2 tests | **No** — patch `engine.helpers.agent_bridge.run_*` via `tests/mock_clinical_ai.py` | CI / `npm test` |
+| Prompt smoke | **Yes** — one local Azure call per ported prompt | Manual only; never required in CI |
+
+Order-based classifier scripts use `side_effect=[...]`. Phase/prompt_name
+Devise+QG mocks use `side_effect=function` branching on phase — do not migrate
+those with a flat call-order list.

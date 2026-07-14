@@ -1,36 +1,21 @@
-"""presenting_complaint — Pattern B; free_text gate + fake classifier + clarify loop."""
+"""presenting_complaint — Pattern B; free_text gate + classifier + clarify loop."""
 from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.apply_answers import apply_answers
-from engine.next_step import build_next_step
-from engine.state_codecs import (
+from engine.helpers import agent_bridge
+from engine.helpers.apply_answers import apply_answers
+from engine.helpers.next_step import build_next_step
+from engine.helpers.state_codecs import (
     as_question_fields,
     dump_question_fields,
     dump_topic_candidates,
 )
-from schemas.clinical_ai_io import ClassifierResult
+from schemas.clinical_ai_io import ClassifierInput
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
-from schemas.topic_candidates import TopicCandidate
 
-fake_classifier_call_count = 0
-fake_clarify_qg_call_count = 0
-_classifier_script: list[ClassifierResult] | None = None
-
-
-def reset_presenting_complaint_fakes() -> None:
-    global fake_classifier_call_count, fake_clarify_qg_call_count, _classifier_script
-    fake_classifier_call_count = 0
-    fake_clarify_qg_call_count = 0
-    _classifier_script = None
-
-
-def set_classifier_script(results: list[ClassifierResult]) -> None:
-    """Test helper — successive classifier calls return these results in order."""
-    global _classifier_script
-    _classifier_script = list[ClassifierResult](results)
+_CLARIFY_PHASE = "presenting_complaint_clarify"
 
 
 def _free_text_question() -> QuestionField:
@@ -41,60 +26,6 @@ def _free_text_question() -> QuestionField:
         personalization_note="deterministic",
         collect_target_id="chief_complaint",
     )
-
-
-def _run_fake_classifier(state: SessionState) -> ClassifierResult:
-    global fake_classifier_call_count
-    fake_classifier_call_count += 1
-    if _classifier_script is not None:
-        idx = min(fake_classifier_call_count - 1, len(_classifier_script) - 1)
-        return _classifier_script[idx]
-
-    text = ((state.chief_complaint or {}).get("text") or "").lower()
-    if any(w in text for w in ("wrist", "ankle", "knee", "shoulder", "back")):
-        return ClassifierResult(
-            ready=True, category="LOCALISED", confidence=0.95, reason="body part named"
-        )
-    if any(w in text for w in ("fever", "tired", "fatigue", "unwell")):
-        return ClassifierResult(
-            ready=True,
-            category="NOT_LOCALISED",
-            confidence=0.9,
-            reason="systemic wording",
-        )
-    return ClassifierResult(ready=False, reason="need more detail")
-
-
-def _generate_clarify(
-    _state: SessionState,
-) -> tuple[list[TopicCandidate], list[QuestionField]]:
-    """Make-only helper — fake Devise+QG for presenting_complaint_clarify.
-
-    Each call gets a distinct question id so multi-round clarify tests can
-    prove pending_questions was replaced, not left stale.
-    """
-    global fake_clarify_qg_call_count
-    fake_clarify_qg_call_count += 1
-    n = fake_clarify_qg_call_count
-    topics = [
-        TopicCandidate(
-            topic="location_or_nature",
-            relevance_score=0.85,
-            is_red_flag=False,
-            source="base_reasoning",
-            rationale="fake clarify",
-        )
-    ]
-    questions = [
-        QuestionField(
-            id=f"pc_clarify_{n}",
-            kind="free_text",
-            prompt=f"Clarify round {n}: where exactly, or describe more?",
-            personalization_note="fake clarify for M1",
-            collect_target_id="chief_complaint_clarify",
-        )
-    ]
-    return topics, questions
 
 
 def _mark_completed(state: SessionState) -> list[str]:
@@ -134,7 +65,13 @@ def presenting_complaint(state: SessionState) -> Command:
 
     # --- Stage 2: classify, or clarify then re-enter ---
     if not state.pending_questions:
-        result = _run_fake_classifier(state)
+        result = agent_bridge.run_classifier(
+            ClassifierInput(
+                prompt_name="presenting_complaint",
+                conversation=agent_bridge.conversation_from_state(state),
+                context=agent_bridge.build_agent_context(state),
+            )
+        )
         if result.ready:
             category = result.category or "LOCALISED"
             next_node = (
@@ -145,12 +82,13 @@ def presenting_complaint(state: SessionState) -> Command:
             return Command(
                 update={
                     "presentation_category": category,
+                    "presenting_complaint_hint": result.extra or {},
                     "completed_phases": _mark_completed(state),
                 },
                 goto=next_node,
             )
 
-        topics, questions = _generate_clarify(state)
+        topics, questions = agent_bridge.devise_then_generate(_CLARIFY_PHASE, state)
         return Command(
             update={
                 "prioritised_topics": dump_topic_candidates(topics),

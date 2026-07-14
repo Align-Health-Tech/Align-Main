@@ -86,9 +86,25 @@ Read-only. Covers both "resume after a refresh" and "review a completed session"
 | Tables touched | `Encounter`, `BodyStructure`, `RadiationSite`, `Flag`, `IntakeFactItem`, `PractitionerComment` — all read only |
 
 
+### `POST /clinician/sessions/{id}/complete`
+
+Dashboard “mark as complete” — flips `Encounter.status` from `AWAITING_REVIEW`
+→ `COMPLETED`. Not graph-driven. See [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md).
+
+
+|                |                                                                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Auth           | Practitioner login (Medtech or Entra, To be decided)                                                                            |
+| Role           | `align_app`, `is_patient() = false`                                                                                             |
+| Request        | None (or empty body)                                                                                                            |
+| Response       | `{ session_id: str, status: "COMPLETED" }`                                                                                      |
+| Preconditions  | Current status must be `AWAITING_REVIEW` — otherwise `409` (or equivalent)                                                      |
+| Tables touched | `Encounter` (update `status`)                                                                                                   |
+
+
 ### `POST /clinician/sessions/{id}/comments`
 
-The one write a clinician makes that isn't graph-driven — everything else on this table set gets written by the engine.
+Clinician free-text note — also not graph-driven (alongside mark-complete above).
 
 
 |                |                                                      |

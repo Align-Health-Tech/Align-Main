@@ -2,15 +2,18 @@
 
 Called after interrupt() returns. Does not talk to LangGraph or the LLM —
 only "answer JSON → partial state dict". Pattern E translation lives in
-engine.translate (called from free-text narrative builders here).
+engine.helpers.translate (via agent_bridge.translate_to_english).
+
+Body-diagram resumes use ``{"region_id": "..."}`` (not the QuestionField
+``answers`` list) — routed inside ``apply_answers`` to ``_apply_body_diagram``.
 """
 from __future__ import annotations
 
 from typing import Any
 
-from engine.state_codecs import as_question_fields
-from engine.translate import narrative_dump_free_text, narrative_dump_option
-from schemas.jsonb_fields import CodedField
+from engine.helpers.state_codecs import as_question_fields
+from engine.helpers.translate import narrative_dump_free_text, narrative_dump_option
+from engine.static.body_diagram_catalogue import laterality_for_region_id, resolve_coding
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 
@@ -24,9 +27,14 @@ def apply_answers(
 ) -> dict[str, Any]:
     """Return a partial state update dict from a resume payload.
 
-    Expected answer shape:
+    Expected answer shape (question_batch / consent / survey):
       {"answers": [{"question_id": str, "value": str | bool | list}]}
+
+    Body-diagram shape ``{"region_id": "..."}`` is handled via ``_apply_body_diagram``.
     """
+    if isinstance(answer, dict) and "region_id" in answer:
+        return _apply_body_diagram(state, answer)
+
     typed = (
         questions
         if questions and isinstance(questions[0], QuestionField)
@@ -60,6 +68,33 @@ def apply_answers(
     # priority / optional / survey: turn_number only for current fakes
 
     return updates
+
+
+def _apply_body_diagram(state: SessionState, answer: Any) -> dict[str, Any]:
+    """Handle body_diagram resume: ``{"region_id": "Select_RightAnkle"}``."""
+    payload = answer if isinstance(answer, dict) else {}
+    region_id = payload.get("region_id")
+    if not isinstance(region_id, str) or not region_id.strip():
+        raise ValueError(f"body_diagram answer missing region_id: {answer!r}")
+
+    coding = resolve_coding(region_id)
+    if coding is None:
+        raise ValueError(f"Unrecognised region_id from client: {region_id!r}")
+
+    return {
+        "turn_number": state.turn_number + 1,
+        "body_structures": [
+            {
+                "region_detail": coding.model_dump(),
+                "laterality": laterality_for_region_id(region_id),
+                "severity_score": None,
+                "sub_region_detail": None,
+                "radiation_status": None,
+                "character": [],
+                "radiation_sites": [],
+            }
+        ],
+    }
 
 
 def _apply_consent(
@@ -105,9 +140,8 @@ def _apply_localised_detail(
     questions: list[QuestionField],
     by_id: dict[str, Any],
 ) -> dict[str, Any]:
+    """Round-2 severity/onset — region_detail already set by body_diagram."""
     vals = _values_by_target(questions, by_id)
-    region = vals.get("body_region")
-    laterality = vals.get("laterality")
     severity_raw = vals.get("severity_score")
     onset = vals.get("onset_circumstance")
 
@@ -117,23 +151,10 @@ def _apply_localised_detail(
         severity = int(str(severity_raw))
         updates["severity_score"] = severity
 
-    if region is not None:
-        region_s = str(region)
-        body = {
-            "region_detail": CodedField(
-                layman_term=region_s,
-                anatomical_term=region_s,
-                fhir_system="fake",
-                fhir_code=region_s,
-            ).model_dump(),
-            "laterality": laterality if laterality in ("left", "right", "bilateral") else None,
-            "severity_score": severity,
-            "sub_region_detail": None,
-            "radiation_status": None,
-            "character": [],
-            "radiation_sites": [],
-        }
-        updates["body_structures"] = [body]
+    if severity is not None and state.body_structures:
+        bodies = [dict(b) for b in state.body_structures]
+        bodies[0]["severity_score"] = severity
+        updates["body_structures"] = bodies
 
     if onset is not None and onset != "":
         updates["onset_circumstance"] = narrative_dump_free_text(

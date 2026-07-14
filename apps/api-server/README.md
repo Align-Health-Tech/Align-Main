@@ -63,10 +63,24 @@ Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
 | ---- | ---- |
 | `routers/` | Request/response parsing and routing; consent/survey lifecycle (see ROUTER_SPEC) |
 | `engine/` | LangGraph clinical intake (START=`presenting_complaint` → END=`complete`) |
-| `engine/nodes/` | Per-phase clinical nodes (call `clinical_ai.run_*` when real) |
-| `engine/deterministic_forms.py` | Consent/survey builders for router — never `graph.invoke` |
+| `engine/graph.py` / `runner.py` / `topology/` / `checkpointer.py` | Compile, public API, per-segment edges, MemorySaver |
+| `engine/helpers/` | Shared pure helpers (`next_step`, `apply_answers`, codecs, translate, …) |
+| `engine/static/` | Lookup/reference data outside the graph (forms, body-diagram catalogue) |
+| `engine/nodes/` | Per-phase clinical nodes (via `engine.helpers.agent_bridge` → `clinical_ai.run_*`) |
+| `engine/helpers/agent_bridge.py` | Engine→AI boundary — **CI patches this module** (no Azure in tests) |
 | `external_systems/pms/` | PMS fetch/push adapters behind `PMSProvider` |
 | `external_systems/clinical_ai/` | Three peer agents + nurse review / translation helpers |
+
+### Tests & Azure (M5 dual track)
+
+```bash
+# CI / local graph tests — no Azure credentials required
+npm test
+# or: source venv/bin/activate && python -m unittest discover -s tests -p 'test_*.py'
+```
+
+- **Graph tests** mock `engine.helpers.agent_bridge.run_*` (`tests/mock_clinical_ai.py`). Classifier scripts are order-based (`side_effect=[...]`); Devise/QG are phase-based (`side_effect=fn`).
+- **Prompt smoke** (non-CI): after porting a prompt under `clinical_ai/prompts/`, call the matching `run_*` once against real Azure locally and check output shape/vocab. Do not put Azure keys in CI.
 | `schemas/` | Shared Pydantic models — see table above |
 | `db/` | ORM base, session helpers, and table models |
 | `db/models/` | SQLAlchemy mapped tables aligned with `DATABASE.md` |

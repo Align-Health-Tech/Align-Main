@@ -1,61 +1,27 @@
-"""optional_questions — Pattern C skippable fake Devise+QG batch."""
+"""optional_questions — Pattern C skippable Devise+QG batch."""
 from __future__ import annotations
 
 from typing import Any
 
 from langgraph.types import Command, interrupt
 
-from engine.apply_answers import apply_answers
-from engine.completed_phases import with_completed
-from engine.next_step import build_next_step
-from engine.state_codecs import (
+from engine.helpers import agent_bridge
+from engine.helpers.apply_answers import apply_answers
+from engine.helpers.completed_phases import with_completed
+from engine.helpers.next_step import build_next_step
+from engine.helpers.state_codecs import (
     as_question_fields,
     dump_question_fields,
     dump_topic_candidates,
 )
-from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
-from schemas.topic_candidates import TopicCandidate
 
 _PHASE = "optional_questions"
-
-fake_optional_qg_call_count = 0
-
-
-def reset_optional_fakes() -> None:
-    global fake_optional_qg_call_count
-    fake_optional_qg_call_count = 0
-
-
-def _generate_optional(
-    _state: SessionState,
-) -> tuple[list[TopicCandidate], list[QuestionField]]:
-    global fake_optional_qg_call_count
-    fake_optional_qg_call_count += 1
-    topics = [
-        TopicCandidate(
-            topic="sleep",
-            relevance_score=0.5,
-            is_red_flag=False,
-            source="base_reasoning",
-        )
-    ]
-    questions = [
-        QuestionField(
-            id="opt_sleep",
-            kind="yes_no",
-            prompt="Has this been affecting your sleep?",
-            personalization_note="fake optional",
-            collect_target_id="sleep",
-            required=False,
-        )
-    ]
-    return topics, questions
 
 
 def optional_questions(state: SessionState) -> Command:
     if not state.pending_questions:
-        topics, questions = _generate_optional(state)
+        topics, questions = agent_bridge.devise_then_generate(_PHASE, state)
         return Command(
             update={
                 "prioritised_topics": dump_topic_candidates(topics),

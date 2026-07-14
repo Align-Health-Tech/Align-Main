@@ -36,6 +36,7 @@
 
 - Tables: When possible, make it directly equivalent to the table name.
 - Variables and classes: Use clear, descriptive names that make their purpose obvious. Follow language conventions for naming style: use `snake_case` for Python, `camelCase` for TypeScript, and keep abbreviations or alternative spellings (like `organization_id` vs `organisation_id`) consistent within a project. For IDs and foreign keys, always prefer patterns like `organization_id` unless a strong reason exists to do otherwise. Use names that match existing terminology in the database or codebase when possible.
+- **Private / internal helpers (Python):** A leading `_` means the symbol is **internal-only** — not part of the module’s public surface; callers outside the defining file must not import it. Prefer grouping these at the **bottom** of the file under an `# Internal helpers` section (private, internal helper), so the public API stays readable above. Do not prefix something that is intentionally part of the public contract even if it currently has zero callers (leave a short `# used once …` / deferred-use comment instead).
 
 ---
 

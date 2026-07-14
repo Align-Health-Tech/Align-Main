@@ -2,7 +2,7 @@
 
 `Phase` / `StepType` include `consent` and `survey` even though those are
 **not** LangGraph nodes. Routers construct those NextSteps from
-`engine/deterministic_forms.py`. Every other phase value is produced by a
+`engine/static/deterministic_forms.py`. Every other phase value is produced by a
 graph `interrupt()` (or `complete` for terminal).
 """
 from typing import Literal, Optional
@@ -31,6 +31,7 @@ Phase = Literal[
 StepType = Literal[
     "consent",  # router-constructed
     "question_batch",  # graph interrupt
+    "body_diagram",  # SVG tap — localised_detail round 1
     "survey",  # router-constructed
     "complete",
 ]
@@ -73,3 +74,6 @@ class NextStep(BaseModel):
     phase: Phase
     turn_number: int
     questions: Optional[list[QuestionField]] = None
+    # body_diagram only — which SVG sheet + orange-hint region ids
+    diagram_file: Optional[str] = None
+    highlighted_region_ids: Optional[list[str]] = None

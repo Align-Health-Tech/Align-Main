@@ -17,7 +17,7 @@ from engine.topology import wire_topology
 from schemas.session_states import SessionState
 
 
-def build_graph() -> CompiledStateGraph:
+def build_graph(segment_type: str) -> CompiledStateGraph:
     builder: StateGraph = StateGraph(SessionState)
-    wire_topology(builder)
+    wire_topology(builder, segment_type)
     return builder.compile(checkpointer=build_checkpointer())

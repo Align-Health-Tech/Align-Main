@@ -7,7 +7,7 @@ from uuid import uuid4
 from langgraph.types import Command
 
 from engine.graph import build_graph
-from engine.next_step import next_step_from_state
+from engine.helpers.next_step import next_step_from_state
 from schemas.question_fields import NextStep
 from schemas.session_states import SessionState
 
@@ -15,8 +15,9 @@ __all__ = ["SessionRunner", "NextStep"]
 
 
 class SessionRunner:
-    def __init__(self) -> None:
-        self._graph = build_graph()
+    def __init__(self, *, segment_type: str) -> None:
+        self.segment_type = segment_type
+        self._graph = build_graph(segment_type)
 
     def start(
         self,
@@ -25,6 +26,7 @@ class SessionRunner:
         patient_id: str | None = None,
         organization_id: str | None = None,
         session_language: str = "en",
+        patient_sex: str | None = None,
     ) -> tuple[str, NextStep]:
         sid = session_id or str(uuid4())
         initial = SessionState(
@@ -32,6 +34,7 @@ class SessionRunner:
             patient_id=patient_id or str(uuid4()),
             organization_id=organization_id or str(uuid4()),
             session_language=session_language,
+            patient_sex=patient_sex,
         )
         config = {"configurable": {"thread_id": sid}}
         result = self._graph.invoke(initial, config)

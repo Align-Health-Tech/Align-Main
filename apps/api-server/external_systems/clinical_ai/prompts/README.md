@@ -37,11 +37,12 @@ Helpers: `run_nurse_review_summary_agent`, `translate_to_english`.
 Red flag screening is Devise + Question Generation with `phase` /
 `prompt_name` = `redflag_screening` — not a fourth agent.
 
-## Stub status
+## Port status
 
-Current `.md` files are **stubs** (option B) with expected output shape and
-`TODO` links to Align-Pilot-V2 legacy prompts. Replace stub bodies before
-production demos.
+| Status | Prompts |
+| ------ | ------- |
+| **Ported** (Azure smokeed) | `classifier/presenting_complaint`, `devise_and_prioritise/presenting_complaint_clarify`, `question_generation/presenting_complaint_clarify` |
+| **Still stubs** | Remaining classifier / Devise / QG / nurse_review / translation `.md` files — expected output shape + `TODO` links to Align-Pilot-V2. Replace before production demos. |
 
 ## Dual track (M5)
 

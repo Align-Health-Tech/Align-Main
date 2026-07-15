@@ -14,6 +14,8 @@ from external_systems.clinical_ai.registry import (
 from schemas.clinical_ai_io import (
     ClassifierInput,
     ClassifierResult,
+    EncounterIntakeSupplement,
+    LocalisedAnatomySite,
     ReviewSummaryResult,
     QuestionGenerationInput,
     QuestionGenerationResult,
@@ -26,6 +28,8 @@ __all__ = [
     "get_eligible_targets",
     "ClassifierInput",
     "ClassifierResult",
+    "EncounterIntakeSupplement",
+    "LocalisedAnatomySite",
     "run_classifier",
     "run_devise_and_prioritise",
     "QuestionGenerationInput",

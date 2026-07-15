@@ -8,6 +8,7 @@ from engine.static.body_diagram_catalogue import (
     resolve_prefill_candidates,
 )
 from engine.runner import SessionRunner
+from schemas.clinical_ai_io import LocalisedAnatomySite
 from tests.helpers import (
     answer_body_diagram,
     answer_localised_detail,
@@ -18,30 +19,34 @@ from tests.helpers import (
 from tests.mock_clinical_ai import MockClinicalAiTestCase
 
 
+def _site(
+    body_part: str,
+    side: str,
+    surface: str,
+    confidence: float,
+    *,
+    major_region: str = "unknown",
+    evidence: str = "test",
+) -> LocalisedAnatomySite:
+    return LocalisedAnatomySite(
+        body_part=body_part,
+        side=side,
+        surface=surface,
+        major_region=major_region,
+        confidence=confidence,
+        evidence=evidence,
+    )
+
+
 class TestResolvePrefillCandidates(unittest.TestCase):
     def test_converges_on_highest_confidence_diagram_and_unions_regions(
         self,
     ) -> None:
         # Wrist (0.95) wins Front sheet; hand unions in; tricep (Back) dropped.
         sites = [
-            {
-                "bodyPart": "hand",
-                "side": "right",
-                "surface": "front",
-                "confidence": 0.5,
-            },
-            {
-                "bodyPart": "wrist",
-                "side": "right",
-                "surface": "front",
-                "confidence": 0.95,
-            },
-            {
-                "bodyPart": "tricep",
-                "side": "right",
-                "surface": "back",
-                "confidence": 0.4,
-            },
+            _site("hand", "right", "front", 0.5, major_region="arm"),
+            _site("wrist", "right", "front", 0.95, major_region="arm"),
+            _site("tricep", "right", "back", 0.4, major_region="arm"),
         ]
         prefill = resolve_prefill_candidates(sites, patient_sex=None)
         assert prefill is not None
@@ -52,14 +57,7 @@ class TestResolvePrefillCandidates(unittest.TestCase):
         )
 
     def test_sex_split_ankle(self) -> None:
-        sites = [
-            {
-                "bodyPart": "ankle",
-                "side": "right",
-                "surface": "front",
-                "confidence": 0.9,
-            }
-        ]
+        sites = [_site("ankle", "right", "front", 0.9, major_region="leg")]
         male = resolve_prefill_candidates(sites, patient_sex="male")
         female = resolve_prefill_candidates(sites, patient_sex="female")
         assert male is not None and female is not None
@@ -73,45 +71,21 @@ class TestResolvePrefillCandidates(unittest.TestCase):
         )
 
     def test_new_vocab_body_parts_resolve(self) -> None:
-        """chin / forehead / cheek / upper_abdomen prefill rows (M5 vocab pending)."""
-        cases: list[tuple[dict, str | None, str]] = [
+        """chin / forehead / cheek / upper_abdomen prefill rows."""
+        cases: list[tuple[LocalisedAnatomySite, str | None, str]] = [
+            (_site("chin", "midline", "front", 0.9, major_region="face"), None, "Select_Chin"),
             (
-                {
-                    "bodyPart": "chin",
-                    "side": "midline",
-                    "surface": "front",
-                    "confidence": 0.9,
-                },
-                None,
-                "Select_Chin",
-            ),
-            (
-                {
-                    "bodyPart": "forehead",
-                    "side": "midline",
-                    "surface": "front",
-                    "confidence": 0.9,
-                },
+                _site("forehead", "midline", "front", 0.9, major_region="face"),
                 None,
                 "Select_Forehead",
             ),
             (
-                {
-                    "bodyPart": "cheek",
-                    "side": "left",
-                    "surface": "front",
-                    "confidence": 0.9,
-                },
+                _site("cheek", "left", "front", 0.9, major_region="face"),
                 None,
                 "Select_LeftSide",
             ),
             (
-                {
-                    "bodyPart": "upper_abdomen",
-                    "side": "right",
-                    "surface": "front",
-                    "confidence": 0.9,
-                },
+                _site("upper_abdomen", "right", "front", 0.9, major_region="torso"),
                 "male",
                 "Select_Right_UpperQuadrant",
             ),
@@ -120,6 +94,34 @@ class TestResolvePrefillCandidates(unittest.TestCase):
             prefill = resolve_prefill_candidates([site], patient_sex=sex)
             assert prefill is not None
             self.assertIn(region_id, prefill.highlighted_region_ids)
+
+    def test_unknown_surface_falls_back_to_first_catalogue_hit(self) -> None:
+        """surface=unknown → ignore surface; first PREFILL_MAPPINGS match wins."""
+        # Right wrist: back entry appears before front in arms.PREFILL_MAPPINGS.
+        wrist = resolve_prefill_candidates(
+            [_site("wrist", "right", "unknown", 0.95, major_region="arm")],
+            patient_sex=None,
+        )
+        assert wrist is not None
+        self.assertEqual(wrist.diagram_file, "Arm Right Back.svg")
+        self.assertEqual(wrist.highlighted_region_ids, ["Select_RightWrist"])
+
+        # Tricep is back-only — unknown must still hit that entry, not invent front.
+        tricep = resolve_prefill_candidates(
+            [_site("tricep", "right", "unknown", 0.9, major_region="arm")],
+            patient_sex=None,
+        )
+        assert tricep is not None
+        self.assertEqual(tricep.diagram_file, "Arm Right Back.svg")
+        self.assertEqual(tricep.highlighted_region_ids, ["Select_RightTricep"])
+
+    def test_known_wrong_surface_does_not_fallback(self) -> None:
+        """Exact surface miss with a concrete surface stays None (no inventing)."""
+        prefill = resolve_prefill_candidates(
+            [_site("tricep", "right", "front", 0.9, major_region="arm")],
+            patient_sex=None,
+        )
+        self.assertIsNone(prefill)
 
 
 class TestLocalisedDetailBodyDiagram(MockClinicalAiTestCase, unittest.TestCase):

@@ -69,7 +69,8 @@ class SessionState(BaseModel):
 
     # Classifier output
     presentation_category: Optional[PresentationCategory] = None
-    # Presenting-concerns classifier extras (e.g. localisedAnatomySites) — dict
+    # Presenting-complaint classifier anatomy sites for body-diagram prefill
+    # (dict with localisedAnatomySites list[dict] = LocalisedAnatomySite dumps)
     presenting_complaint_hint: Optional[JsonDict] = None
     # non_localised_categoriser bucket (set only on NOT_LOCALISED path)
     non_localised_category: Optional[str] = None

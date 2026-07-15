@@ -1,7 +1,15 @@
 # Classifier — non-localised categoriser
 
-Categorise into one of: SYSTEMIC, GASTROINTESTINAL, NEUROLOGICAL, ALLERGIC_IMMUNE, DISTRIBUTED_MSK, DERMATOLOGICAL.
+Bucket a NOT_LOCALISED presentation (e.g. SYSTEMIC, GASTROINTESTINAL, …).
 
-Return ClassifierResult (ready/category/confidence/reason/extra).
+Return ClassifierResult (`ready` / `category` / `confidence` / `reason`). Put
+the bucket in `category` when ready.
 
-TODO: port from Align-Pilot-V2 `prompts/non_localised_categorisation/non-localised-categoriser.md`
+**Do not emit** removed fields (`extra`, `nonLocalisedSubCategory`).
+
+**Do not emit** `chiefComplaintSummary` here either — that field is live on
+`ClassifierResult` and is owned by the `presenting_complaint` classifier
+(overwrite into `encounters.chief_complaint` at PC `ready: true`). This phase
+only sets `non_localised_category`; it must not rewrite the chief complaint.
+
+TODO: port from Align-Pilot-V2 non-localised categoriser prompt.

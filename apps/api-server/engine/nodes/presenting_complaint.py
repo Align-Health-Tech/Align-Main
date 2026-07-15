@@ -5,6 +5,7 @@ from langgraph.types import Command, interrupt
 
 from engine.helpers import agent_bridge
 from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply_classifier_result import apply_classifier_result
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
     as_question_fields,
@@ -81,8 +82,7 @@ def presenting_complaint(state: SessionState) -> Command:
             )
             return Command(
                 update={
-                    "presentation_category": category,
-                    "presenting_complaint_hint": result.extra or {},
+                    **apply_classifier_result(state, result),
                     "completed_phases": _mark_completed(state),
                 },
                 goto=next_node,

@@ -3,8 +3,12 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel
 
-# Whether an answer came from a pre-generated option or free-text "Other".
-AnswerSource = Literal["option", "free_text"]
+# Where NarrativeField.text came from.
+# - option: patient tapped a pre-generated choice
+# - free_text: patient typed (incl. "Other" escape)
+# - ai_summary: LLM-authored synthesis (e.g. chief_complaint at classifier
+#   ready:true) — not patient words; dashboard may label accordingly
+AnswerSource = Literal["option", "free_text", "ai_summary"]
 
 
 class NarrativeField(BaseModel):
@@ -19,9 +23,8 @@ class NarrativeField(BaseModel):
 
     text: str
     en_text: Optional[str] = None
-    # None for fields that are never option-driven (chief_complaint,
-    # intake_fact_items.display) — always free-form patient input, so
-    # there's no option/free_text distinction to record there.
+    # Optional for fields that historically omit source (e.g. some ICE /
+    # intake_fact_items.display). Prefer setting source when known.
     source: Optional[AnswerSource] = None
 
 

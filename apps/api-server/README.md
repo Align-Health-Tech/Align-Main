@@ -40,7 +40,7 @@ clinical_ai/
 ├── prompt_loader.py    # load prompts/{category}/{phase}.md
 ├── registry.py         # PRIORITY/OPTIONAL target lists + REDFLAG_SUBCATEGORIES
 ├── tools.py            # DuckDuckGo web_search (Devise)
-└── prompts/            # stub .md prompts (see prompts/README.md)
+└── prompts/            # phase prompts — see prompts/README.md (PC ported; others stub)
 ```
 
 Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,

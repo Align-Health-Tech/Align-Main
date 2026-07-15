@@ -12,6 +12,7 @@ from engine.static.body_diagram_catalogue.types import (
     Surface,
     SexVariant,
 )
+from schemas.clinical_ai_io import LocalisedAnatomySite
 from schemas.jsonb_fields import CodedField
 
 from . import arms, face, legs_back, legs_front, torso_back, torso_front
@@ -60,26 +61,23 @@ class DiagramPrefill(BaseModel):
 
 
 def resolve_prefill_candidates(
-    sites: list[dict],
+    sites: list[LocalisedAnatomySite],
     patient_sex: Optional[str],
 ) -> Optional[DiagramPrefill]:
     """Multi-site prefill: converge on highest-confidence diagram, union region_ids.
 
-    `sites` items: {"bodyPart", "side", "surface", "confidence", ...} per
-    localisedAnatomySites. Convergence: pick diagram_file from the highest-
-    confidence site that resolves; union region_ids from every other site that
-    resolves to the *same* diagram_file; drop sites that map to a different sheet.
+    Convergence: pick diagram_file from the highest-confidence site that
+    resolves; union region_ids from every other site that resolves to the
+    *same* diagram_file; drop sites that map to a different sheet.
     """
-    resolved: list[tuple[dict, PrefillMapping]] = []
+    resolved: list[tuple[LocalisedAnatomySite, PrefillMapping]] = []
     for site in sites:
-        side_raw = site.get("side", "unknown")
-        surface_raw = site.get("surface", "unknown")
-        if side_raw not in _SIDES or surface_raw not in _SURFACES:
+        if site.side not in _SIDES or site.surface not in _SURFACES:
             continue
         row = _resolve_prefill(
-            body_part=str(site.get("bodyPart", "")),
-            side=side_raw,  # type: ignore[arg-type]
-            surface=surface_raw,  # type: ignore[arg-type]
+            body_part=site.body_part,
+            side=site.side,  # type: ignore[arg-type]
+            surface=site.surface,  # type: ignore[arg-type]
             patient_sex=patient_sex,
         )
         if row is not None:
@@ -88,7 +86,7 @@ def resolve_prefill_candidates(
     if not resolved:
         return None
 
-    resolved.sort(key=lambda pair: float(pair[0].get("confidence", 0.0)), reverse=True)
+    resolved.sort(key=lambda pair: float(pair[0].confidence), reverse=True)
     target_diagram = resolved[0][1].diagram_file
 
     region_ids = [
@@ -142,12 +140,48 @@ def _resolve_prefill(
     surface: Surface,
     patient_sex: Optional[str],
 ) -> Optional[PrefillMapping]:
-    """Single-site lookup — used by resolve_prefill_candidates()."""
+    """Single-site lookup — used by resolve_prefill_candidates().
+
+    1. Exact match on body_part + side + surface + sex_variant.
+    2. If surface is ``unknown`` and exact match fails, match body_part +
+       side + sex_variant only (first PREFILL_MAPPINGS hit).
+    3. Otherwise None.
+    """
     sex_variant: SexVariant = (
         patient_sex if patient_sex in ("male", "female") else None
     )
+    exact = _find_prefill(
+        body_part=body_part,
+        side=side,
+        surface=surface,
+        sex_variant=sex_variant,
+        ignore_surface=False,
+    )
+    if exact is not None:
+        return exact
+    if surface == "unknown":
+        return _find_prefill(
+            body_part=body_part,
+            side=side,
+            surface=surface,
+            sex_variant=sex_variant,
+            ignore_surface=True,
+        )
+    return None
+
+
+def _find_prefill(
+    *,
+    body_part: str,
+    side: Side,
+    surface: Surface,
+    sex_variant: SexVariant,
+    ignore_surface: bool,
+) -> Optional[PrefillMapping]:
     for row in PREFILL_MAPPINGS:
-        if row.body_part != body_part or row.side != side or row.surface != surface:
+        if row.body_part != body_part or row.side != side:
+            continue
+        if not ignore_surface and row.surface != surface:
             continue
         if row.sex_variant is not None and row.sex_variant != sex_variant:
             continue

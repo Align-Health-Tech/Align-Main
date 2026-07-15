@@ -27,8 +27,16 @@ class TestM1PresentingComplaint(MockClinicalAiTestCase, unittest.TestCase):
         self.assertIn("presenting_complaint", values["completed_phases"])
         self.assertEqual(
             values["chief_complaint"]["text"],
-            "sharp pain in my left ankle",
+            "Patient presents with: sharp pain in my left ankle",
         )
+        self.assertEqual(values["chief_complaint"]["source"], "ai_summary")
+        first_msg = values["messages"][0]
+        first_content = (
+            first_msg["content"]
+            if isinstance(first_msg, dict)
+            else getattr(first_msg, "content", None)
+        )
+        self.assertEqual(first_content, "sharp pain in my left ankle")
 
     def test_not_localised_ready_path(self) -> None:
         runner = SessionRunner(segment_type="URGENT_CARE")
@@ -46,7 +54,14 @@ class TestM1PresentingComplaint(MockClinicalAiTestCase, unittest.TestCase):
             [
                 ClassifierResult(ready=False, reason="vague"),
                 ClassifierResult(
-                    ready=True, category="LOCALISED", confidence=0.9, reason="ok"
+                    ready=True,
+                    category="LOCALISED",
+                    confidence=0.9,
+                    reason="ok",
+                    chief_complaint_summary=(
+                        "Patient reports pain in a body part after clarifying "
+                        "a vague initial complaint."
+                    ),
                 ),
             ]
         )
@@ -77,6 +92,19 @@ class TestM1PresentingComplaint(MockClinicalAiTestCase, unittest.TestCase):
         values = snap_values(runner, session_id)
         self.assertEqual(values["presentation_category"], "LOCALISED")
         self.assertGreaterEqual(len(values.get("messages") or []), 2)
+        first_msg = values["messages"][0]
+        first_content = (
+            first_msg["content"]
+            if isinstance(first_msg, dict)
+            else getattr(first_msg, "content", None)
+        )
+        self.assertEqual(first_content, "something hurts")
+        self.assertEqual(
+            values["chief_complaint"]["text"],
+            "Patient reports pain in a body part after clarifying "
+            "a vague initial complaint.",
+        )
+        self.assertEqual(values["chief_complaint"]["source"], "ai_summary")
 
     def test_two_clarify_rounds_replace_pending(self) -> None:
         self.ai.set_classifier_script(
@@ -84,7 +112,14 @@ class TestM1PresentingComplaint(MockClinicalAiTestCase, unittest.TestCase):
                 ClassifierResult(ready=False, reason="vague"),
                 ClassifierResult(ready=False, reason="still vague"),
                 ClassifierResult(
-                    ready=True, category="LOCALISED", confidence=0.92, reason="ok"
+                    ready=True,
+                    category="LOCALISED",
+                    confidence=0.92,
+                    reason="ok",
+                    chief_complaint_summary=(
+                        "Patient reports a body-part problem after two "
+                        "clarification rounds."
+                    ),
                 ),
             ]
         )

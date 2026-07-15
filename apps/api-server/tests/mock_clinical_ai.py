@@ -13,6 +13,7 @@ from unittest.mock import patch
 from schemas.clinical_ai_io import (
     ClassifierInput,
     ClassifierResult,
+    LocalisedAnatomySite,
     QuestionGenerationInput,
     QuestionGenerationResult,
     ReviewSummaryResult,
@@ -230,15 +231,17 @@ class MockClinicalAiTestCase:
 
 
 def _heuristic_pc_classifier(input: ClassifierInput) -> ClassifierResult:
-    text = ""
+    raw = ""
     cc = (input.context or {}).get("chief_complaint") or {}
     if isinstance(cc, dict):
-        text = (cc.get("text") or "").lower()
-    if not text:
+        raw = str(cc.get("text") or "")
+    if not raw:
         for msg in input.conversation or []:
             if isinstance(msg, dict) and msg.get("role") == "user":
-                text = str(msg.get("content") or "").lower()
+                raw = str(msg.get("content") or "")
                 break
+    text = raw.lower()
+    summary = f"Patient presents with: {raw}" if raw else None
 
     if any(w in text for w in ("wrist", "ankle", "knee", "shoulder", "back")):
         return ClassifierResult(
@@ -246,7 +249,8 @@ def _heuristic_pc_classifier(input: ClassifierInput) -> ClassifierResult:
             category="LOCALISED",
             confidence=0.95,
             reason="body part named",
-            extra={"localisedAnatomySites": _fake_localised_sites(text)},
+            chief_complaint_summary=summary,
+            localised_anatomy_sites=_fake_localised_sites(text),
         )
     if any(w in text for w in ("fever", "tired", "fatigue", "unwell")):
         return ClassifierResult(
@@ -254,33 +258,34 @@ def _heuristic_pc_classifier(input: ClassifierInput) -> ClassifierResult:
             category="NOT_LOCALISED",
             confidence=0.9,
             reason="systemic wording",
+            chief_complaint_summary=summary,
         )
     return ClassifierResult(ready=False, reason="need more detail")
 
 
-def _fake_localised_sites(text: str) -> list[dict]:
+def _fake_localised_sites(text: str) -> list[LocalisedAnatomySite]:
     if "wrist" in text:
         side = "left" if "left" in text else "right"
         return [
-            {
-                "bodyPart": "wrist",
-                "side": side,
-                "surface": "front",
-                "majorRegion": "arm",
-                "confidence": 0.95,
-                "evidence": "mock",
-            }
+            LocalisedAnatomySite(
+                body_part="wrist",
+                side=side,
+                surface="front",
+                major_region="arm",
+                confidence=0.95,
+                evidence="mock",
+            )
         ]
     if "ankle" in text:
         side = "left" if "left" in text else "right"
         return [
-            {
-                "bodyPart": "ankle",
-                "side": side,
-                "surface": "front",
-                "majorRegion": "leg",
-                "confidence": 0.9,
-                "evidence": "mock",
-            }
+            LocalisedAnatomySite(
+                body_part="ankle",
+                side=side,
+                surface="front",
+                major_region="leg",
+                confidence=0.9,
+                evidence="mock",
+            )
         ]
     return []

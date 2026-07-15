@@ -1,0 +1,390 @@
+=== presenting_complaint_clarify Devise+QG Azure smoke ===
+
+--- case: wrist_ambiguous (localised wrist → ambiguous) ---
+input: 'it hurts sometimes'
+classifier:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.12,
+  "reason": "Presenting complaint is too vague to route; no body site or non-localised symptom pattern identified.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+devise topics:
+[
+  {
+    "topic": "pain_location",
+    "relevance_score": 0.99,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "The complaint states pain but gives no body site at all; identifying where it hurts is the key missing detail needed to decide LOCALISED vs NOT_LOCALISED."
+  },
+  {
+    "topic": "systemic_vs_focal",
+    "relevance_score": 0.72,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "If the pain is not confined to one body area and is more generalised or all-over, routing may be non-localised; this distinction is currently absent."
+  },
+  {
+    "topic": "intermittent_pattern",
+    "relevance_score": 0.34,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "The phrase 'sometimes' suggests an intermittent pattern, but timing alone is less important than site for routing; it may help if location remains unclear."
+  }
+]
+qg questions:
+[
+  {
+    "id": "pc_clarify_1",
+    "kind": "single_choice",
+    "prompt": "Where does it hurt mainly?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "face",
+        "label": "Face",
+        "en_label": null
+      },
+      {
+        "value": "arm",
+        "label": "Arm",
+        "en_label": null
+      },
+      {
+        "value": "leg",
+        "label": "Leg",
+        "en_label": null
+      },
+      {
+        "value": "torso",
+        "label": "Torso (chest/stomach/back)",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Type where it hurts",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "The patient said 'it hurts sometimes' without naming any body site, so body region is the most useful first clarification."
+  },
+  {
+    "id": "pc_clarify_2",
+    "kind": "single_choice",
+    "prompt": "Is it mainly in one spot or more all over?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "one_spot",
+        "label": "Mainly one spot",
+        "en_label": null
+      },
+      {
+        "value": "more_than_one_area",
+        "label": "In more than one area",
+        "en_label": null
+      },
+      {
+        "value": "all_over",
+        "label": "More all over",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "Because the complaint does not say whether the pain is focal or general, these options help separate one-area pain from more widespread pain."
+  },
+  {
+    "id": "pc_clarify_3",
+    "kind": "single_choice",
+    "prompt": "When you say it happens sometimes, which fits best?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "comes_and_goes_same_day",
+        "label": "Comes and goes the same day",
+        "en_label": null
+      },
+      {
+        "value": "some_days_not_others",
+        "label": "Some days but not others",
+        "en_label": null
+      },
+      {
+        "value": "constant_with_flareups",
+        "label": "Always there but worse at times",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "The patient's wording 'sometimes' suggests an intermittent pattern, so these answer choices reflect common ways patients describe that."
+  }
+]
+validate_qg_questions: OK
+allow_other absent on 'pc_clarify_1': OK
+en_prompt/en_label null on 'pc_clarify_1': OK
+allow_other absent on 'pc_clarify_2': OK
+en_prompt/en_label null on 'pc_clarify_2': OK
+allow_other absent on 'pc_clarify_3': OK
+en_prompt/en_label null on 'pc_clarify_3': OK
+
+--- case: fever_ambiguous (systemic fever → vague unwell) ---
+input: 'I feel a bit off'
+classifier:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.18,
+  "reason": "Too vague to route; no focal body site or clear systemic symptom pattern has been described yet.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+devise topics:
+[
+  {
+    "topic": "systemic_vs_focal",
+    "relevance_score": 0.98,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "\"Feel a bit off\" is nonspecific and does not indicate whether symptoms are affecting a particular body part or are general/whole-body, which is the key routing gap."
+  },
+  {
+    "topic": "dominant_symptom_or_body_site",
+    "relevance_score": 0.93,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Need the main symptom or body area, if any, because no focal complaint is named and routing cannot determine LOCALISED without a primary site."
+  },
+  {
+    "topic": "onset_timing",
+    "relevance_score": 0.62,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Timing may help interpret whether this is an acute general illness versus a more defined focal problem, though it is secondary to establishing focal vs general pattern."
+  }
+]
+qg questions:
+[
+  {
+    "id": "pc_clarify_1",
+    "kind": "single_choice",
+    "prompt": "Is this mainly a general feeling, or mainly one symptom or body area?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "general_feeling",
+        "label": "A general feeling of being unwell",
+        "en_label": null
+      },
+      {
+        "value": "one_symptom",
+        "label": "Mainly one symptom",
+        "en_label": null
+      },
+      {
+        "value": "one_body_area",
+        "label": "Mainly one body area",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "The patient said only \"I feel a bit off,\" which is nonspecific. These options help separate a whole-body/general concern from a focal symptom or body area without assuming details they did not mention."
+  },
+  {
+    "id": "pc_clarify_2",
+    "kind": "single_choice",
+    "prompt": "If there is one main body area, where is it mainly?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "face",
+        "label": "Face",
+        "en_label": null
+      },
+      {
+        "value": "arm",
+        "label": "Arm",
+        "en_label": null
+      },
+      {
+        "value": "leg",
+        "label": "Leg",
+        "en_label": null
+      },
+      {
+        "value": "torso",
+        "label": "Torso (chest/stomach/back)",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Type where it is",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "Because no body site was named, this uses broad body-region choices that can quickly resolve whether there is a focal area if the patient meant one."
+  },
+  {
+    "id": "pc_clarify_3",
+    "kind": "single_choice",
+    "prompt": "When did this start?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "today",
+        "label": "Today",
+        "en_label": null
+      },
+      {
+        "value": "last_few_days",
+        "label": "In the last few days",
+        "en_label": null
+      },
+      {
+        "value": "more_than_week",
+        "label": "More than a week ago",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "The patient gave no timing. Simple onset choices may help interpret whether this is a recent general illness or a longer-standing problem, while staying broad and patient-friendly."
+  }
+]
+validate_qg_questions: OK
+allow_other absent on 'pc_clarify_1': OK
+en_prompt/en_label null on 'pc_clarify_1': OK
+allow_other absent on 'pc_clarify_2': OK
+en_prompt/en_label null on 'pc_clarify_2': OK
+allow_other absent on 'pc_clarify_3': OK
+en_prompt/en_label null on 'pc_clarify_3': OK
+
+--- case: vague_hurts (same as slice-1 vague) ---
+input: 'something hurts'
+classifier:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.12,
+  "reason": "Presenting complaint is too vague to route; no body site or systemic pattern identified.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+devise topics:
+[
+  {
+    "topic": "body_site_location",
+    "relevance_score": 0.99,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "The complaint only states that something hurts, with no body region or site identified; body location is the key missing detail needed to decide LOCALISED vs NOT_LOCALISED."
+  },
+  {
+    "topic": "focal_vs_whole_body",
+    "relevance_score": 0.88,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "It is unclear whether the pain is in one specific area or is generalised across the body, which directly blocks routing between localised and non-localised presentations."
+  },
+  {
+    "topic": "primary_vs_multiple_sites",
+    "relevance_score": 0.74,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "If more than one area hurts, identifying whether there is one main site versus several separate painful areas would help determine whether this should route as a focal complaint or a broader non-localised pattern."
+  }
+]
+qg questions:
+[
+  {
+    "id": "pc_clarify_1",
+    "kind": "single_choice",
+    "prompt": "Where is the pain mainly?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "face",
+        "label": "Face",
+        "en_label": null
+      },
+      {
+        "value": "arm",
+        "label": "Arm",
+        "en_label": null
+      },
+      {
+        "value": "leg",
+        "label": "Leg",
+        "en_label": null
+      },
+      {
+        "value": "torso",
+        "label": "Torso (chest/stomach/back)",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Type where it hurts",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "chief_complaint_clarify",
+    "personalization_note": "The patient only said that something hurts, without naming any body region. These options aim to quickly capture the main site so routing can continue without another round of clarification."
+  }
+]
+validate_qg_questions: OK
+allow_other absent on 'pc_clarify_1': OK
+en_prompt/en_label null on 'pc_clarify_1': OK
+--- re-classify after tap 'Arm' ---
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.62,
+  "reason": "Broad arm region named; need more specific location within the arm and side before confident routing/extraction.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+reclassify: REJECTED — expected ready=true after Arm tap
+
+done; failures=1

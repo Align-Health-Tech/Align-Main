@@ -8,14 +8,21 @@ from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_body_diagram_next_step, build_next_step
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
 from engine.static.body_diagram_catalogue import resolve_prefill_candidates
+from schemas.clinical_ai_io import LocalisedAnatomySite
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
 _PHASE = "localised_detail"
 
 
-def _generate_detail_questions(_state: SessionState) -> list[QuestionField]:
+def _generate_detail_questions(state: SessionState) -> list[QuestionField]:
     """Round 2 — no region/laterality MCQs (those come from SVG region_id)."""
+    onset_default: str | None = None
+    if isinstance(state.onset_circumstance, dict):
+        text = state.onset_circumstance.get("text")
+        if isinstance(text, str) and text.strip():
+            onset_default = text
+
     return [
         QuestionField(
             id="loc_severity",
@@ -33,14 +40,20 @@ def _generate_detail_questions(_state: SessionState) -> list[QuestionField]:
             prompt="How did this start?",
             personalization_note="deterministic",
             collect_target_id="onset_circumstance",
+            default_value=onset_default,
         ),
     ]
 
 
 def _arm_body_diagram(state: SessionState) -> Command:
-    sites = (state.presenting_complaint_hint or {}).get("localisedAnatomySites") or []
-    if not isinstance(sites, list):
-        sites = []
+    raw_sites = (state.presenting_complaint_hint or {}).get(
+        "localisedAnatomySites"
+    ) or []
+    sites: list[LocalisedAnatomySite] = []
+    if isinstance(raw_sites, list):
+        for item in raw_sites:
+            if isinstance(item, dict):
+                sites.append(LocalisedAnatomySite.model_validate(item))
     prefill = resolve_prefill_candidates(sites, state.patient_sex)
     return Command(
         update={

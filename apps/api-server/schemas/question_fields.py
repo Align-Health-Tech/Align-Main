@@ -56,10 +56,11 @@ class QuestionField(BaseModel):
     id: str
     kind: QuestionKind
     prompt: str
-    en_prompt: Optional[str] = None
+    en_prompt: Optional[str] = None  # only set when session_language != "en"
     options: Optional[list[QuestionOption]] = None
-    allow_other: bool = False
     required: bool = True
+    # Prefill the frontend input; patient may accept as-is or edit before submit.
+    default_value: Optional[str] = None
     # Which SessionState field this answer ultimately populates — lets the
     # engine route an incoming answer without the frontend knowing anything
     # about internal state shape.

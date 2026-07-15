@@ -27,7 +27,8 @@ class Encounter(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     presentation_category: Mapped[PresentationCategory | None] = mapped_column(
         String, nullable=True
     )
-    # jsonb: {text} or {text, en_text}
+    # jsonb: {text, source} or {text, en_text, source};
+    # source = "option"|"free_text"|"ai_summary"
     chief_complaint: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     # jsonb: {text, source} or {text, en_text, source}; source = "option"|"free_text"
     duration: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

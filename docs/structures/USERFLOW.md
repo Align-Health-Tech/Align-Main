@@ -16,8 +16,8 @@ flowchart TD
 
     A2 -->|ready=False| B1[clarify Devise+QG → answer]
     B1 -.->|re-enter| A2
-    A2 -->|LOCALISED| A3a
-    A2 -->|NOT_LOCALISED| A3b
+    A2 -->|ready=True LOCALISED<br/>chief_complaint ← ai_summary| A3a
+    A2 -->|ready=True NOT_LOCALISED<br/>chief_complaint ← ai_summary| A3b
 
     A3b -->|ready=False| B2[clarify → re-enter]
     B2 -.-> A3b
@@ -37,5 +37,7 @@ flowchart TD
 **Patient-facing sequence frontend sees:**
 
 1. consent (router) → 2. presenting_complaint (+ clarify) → 3a/3b → 4. priority → 5. redflag → 6. optional → 7. ice → *(silent review)* → 9. survey? (router) → complete
+
+**`presenting_complaint` / `chief_complaint`:** Stage 1 stores the patient's free-text answer (`source: "free_text"`). On classifier `ready: true`, `apply_classifier_result` overwrites `chief_complaint` with `chiefComplaintSummary` (`source: "ai_summary"`). Original patient wording stays recoverable in session `messages` (no separate DB column).
 
 **Not patient-facing:** step 8 `review` — clinician `encounter_summary` only.

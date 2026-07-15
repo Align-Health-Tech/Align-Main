@@ -23,11 +23,6 @@
 
   Same rule for shared mappings between vocabularies (e.g. session phase → `CollectPhase`): put the named alias and the map in one schema module (`schemas/collect_targets.py`), not as a private dict inside an agent.
 
-**TypeScript:**
-
-- Strict mode on
-- Types for API calls come from `packages/generated-types` — if you're hand-writing an interface that matches a backend response, you're duplicating a source of truth that will drift; regenerate instead
-
 **Both:** no `console.log`/`print` debug statements left in merged code. No commented-out code blocks — delete it, git remembers.
 
 ---

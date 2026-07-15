@@ -124,8 +124,18 @@ def _already_known_ids(state: SessionState) -> list[str]:
     known: list[str] = []
     if state.onset_circumstance is not None:
         known.append("onset_circumstance")
+    if state.character:
+        known.append("symptom_characteristics")
     if state.comorbidities:
         known.append("comorbidities")
+    if state.self_management is not None:
+        known.append("self_management")
+    if state.weight_change is not None:
+        known.append("weight_change")
+    if state.exacerbating_factors:
+        known.append("exacerbating_factors")
+    if state.mitigating_factors:
+        known.append("mitigating_factors")
     for fact in state.intake_facts or []:
         if isinstance(fact, dict) and fact.get("kind"):
             # soft map — Devise filters by collect target id; kinds are coarse

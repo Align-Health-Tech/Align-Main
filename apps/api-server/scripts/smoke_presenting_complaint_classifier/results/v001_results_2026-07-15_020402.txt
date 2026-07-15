@@ -1,0 +1,72 @@
+=== presenting_complaint classifier Azure smoke ===
+
+--- case: localised_wrist ---
+input: 'sharp pain in my right wrist'
+context keys: ['already_known_ids', 'chief_complaint', 'completed_phases', 'functional_impact_score', 'non_localised_category', 'patient_sex', 'presentation_category', 'raised_flag_topics', 'session_language', 'severity_score'] | chief_complaint: {'text': 'sharp pain in my right wrist', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.97,
+  "reason": "Clear focal complaint with extractable unilateral anatomy site.",
+  "chiefComplaintSummary": "Patient reports sharp pain in the right wrist.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "right",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.99,
+      "evidence": "right wrist"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": null,
+    "duration": null,
+    "character": [
+      "sharp"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": null,
+    "weightChange": null,
+    "accClaimSuspected": null,
+    "accCanWork": null
+  }
+}
+chiefComplaintSummary: Patient reports sharp pain in the right wrist.
+prefill: {'diagram_file': 'Arm Right Back.svg', 'highlighted_region_ids': ['Select_RightWrist']}
+
+--- case: systemic_fever ---
+input: 'fever and feeling generally unwell'
+context keys: ['already_known_ids', 'chief_complaint', 'completed_phases', 'functional_impact_score', 'non_localised_category', 'patient_sex', 'presentation_category', 'raised_flag_topics', 'session_language', 'severity_score'] | chief_complaint: {'text': 'fever and feeling generally unwell', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": true,
+  "category": "NOT_LOCALISED",
+  "confidence": 0.97,
+  "reason": "Non-focal systemic presentation without a primary body site.",
+  "chiefComplaintSummary": "Patient reports fever and feeling generally unwell, without a focal body site.",
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+chiefComplaintSummary: Patient reports fever and feeling generally unwell, without a focal body site.
+
+--- case: vague_hurts ---
+input: 'something hurts'
+context keys: ['already_known_ids', 'chief_complaint', 'completed_phases', 'functional_impact_score', 'non_localised_category', 'patient_sex', 'presentation_category', 'raised_flag_topics', 'session_language', 'severity_score'] | chief_complaint: {'text': 'something hurts', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.08,
+  "reason": "Presenting complaint is too vague to determine whether symptoms are localised or non-localised.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+
+done; failures=0

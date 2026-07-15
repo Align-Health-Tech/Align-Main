@@ -3,10 +3,9 @@
 ## Purpose
 
 Turn Devise clarification **topics** into patient-facing `QuestionField`s for
-the presenting-complaint chat loop (`ready: false` path). Adapted from Align-
-Pilot-V2 `presenting-concerns-clarifier-options.md` — same option rules, but
-you also write the question prompt (the classifier no longer emits
-`clarifyingQuestions` text).
+the presenting-complaint chat loop (`ready: false` path). Same option rules
+as the clarifier contract — you also write the question prompt (the classifier
+no longer emits clarifying question text).
 
 ## Role
 

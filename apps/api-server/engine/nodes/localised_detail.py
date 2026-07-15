@@ -8,6 +8,10 @@ from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_body_diagram_next_step, build_next_step
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
 from engine.static.body_diagram_catalogue import resolve_prefill_candidates
+from engine.static.onset_timing import (
+    ONSET_TIMING_OPTIONS,
+    onset_timing_default,
+)
 from schemas.clinical_ai_io import LocalisedAnatomySite
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
@@ -20,8 +24,8 @@ def _generate_detail_questions(state: SessionState) -> list[QuestionField]:
     onset_default: str | None = None
     if isinstance(state.onset_circumstance, dict):
         text = state.onset_circumstance.get("text")
-        if isinstance(text, str) and text.strip():
-            onset_default = text
+        if isinstance(text, str):
+            onset_default = onset_timing_default(text)
 
     return [
         QuestionField(
@@ -36,10 +40,11 @@ def _generate_detail_questions(state: SessionState) -> list[QuestionField]:
         ),
         QuestionField(
             id="loc_onset",
-            kind="free_text",
-            prompt="How did this start?",
+            kind="single_choice",
+            prompt="When did this start?",
             personalization_note="deterministic",
             collect_target_id="onset_circumstance",
+            options=list(ONSET_TIMING_OPTIONS),
             default_value=onset_default,
         ),
     ]

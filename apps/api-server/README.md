@@ -2,7 +2,7 @@
 
 FastAPI + LangGraph backend for Align. Single Python process: HTTP API, intake orchestration, and Postgres access.
 
-Companion docs: [APISTRUCTURE.md](../../docs/apps/api-server/APISTRUCTURE.md), [DATABASE.md](../../docs/database/DATABASE.md), [RLS.md](../../docs/database/RLS.md), [local setup](../../docs/setup/LOCAL.md), [USERFLOW](../../docs/structures/USERFLOW.md), [ROUTER_SPEC](../../docs/structures/ROUTER_SPEC.md), [structure ideation](../../docs/structures/STRUCTURE.md).
+Companion docs: [APISTRUCTURE.md](../../docs/apps/api-server/APISTRUCTURE.md), [ENGINE_NODES.md](../../docs/apps/api-server/ENGINE_NODES.md), [DATABASE.md](../../docs/database/DATABASE.md), [RLS.md](../../docs/database/RLS.md), [local setup](../../docs/setup/LOCAL.md), [USERFLOW](../../docs/structures/USERFLOW.md), [ROUTER_SPEC](../../docs/structures/ROUTER_SPEC.md), [structure ideation](../../docs/structures/STRUCTURE.md).
 
 ---
 
@@ -40,7 +40,7 @@ clinical_ai/
 ├── prompt_loader.py    # load prompts/{category}/{phase}.md
 ├── registry.py         # PRIORITY/OPTIONAL target lists + REDFLAG_SUBCATEGORIES
 ├── tools.py            # DuckDuckGo web_search (Devise)
-└── prompts/            # phase prompts — see prompts/README.md (PC ported; others stub)
+└── prompts/            # phase prompts — see prompts/README.md (PC + NL categoriser/clarify ported; rest stub)
 ```
 
 Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,

@@ -1,0 +1,145 @@
+=== non_localised_categoriser Azure smoke ===
+
+--- case 1: clear_systemic ---
+input: 'fever and body aches, no other symptoms'
+{
+  "ready": true,
+  "category": "SYSTEMIC",
+  "confidence": 0.93,
+  "reason": "Fever with whole-body aches and no primary localised site is most consistent with SYSTEMIC. Considered DISTRIBUTED_MSK due to body aches, but fever makes a constitutional/systemic presentation the better fit.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+case1: OK
+apply: {'non_localised_category': 'SYSTEMIC'}
+
+--- case 2: ambiguous_systemic_vs_gi ---
+input: 'feel unwell and my stomach hurts a bit'
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.63,
+  "reason": "Could be SYSTEMIC or GASTROINTESTINAL — feeling unwell suggests constitutional symptoms, but it is unclear whether nausea, vomiting, or diarrhoea are present to support GASTROINTESTINAL.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+ready=false: OK (reason should name candidate buckets)
+devise topics:
+[
+  {
+    "topic": "gi_vomiting_diarrhoea",
+    "relevance_score": 0.96,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Most useful discriminator for vague unwellness with stomach pain; separates GASTROINTESTINAL from broader SYSTEMIC causes."
+  },
+  {
+    "topic": "has_fever",
+    "relevance_score": 0.82,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Helps distinguish SYSTEMIC illness from isolated mild gastrointestinal discomfort when the complaint is non-localised."
+  },
+  {
+    "topic": "rash_widespread",
+    "relevance_score": 0.41,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Checks for a skin-feature explanation and helps separate DERMATOLOGICAL from SYSTEMIC/GASTROINTESTINAL presentations."
+  }
+]
+qg questions:
+[
+  {
+    "id": "nl_clarify_1",
+    "kind": "single_choice",
+    "prompt": "Have you been vomiting or had diarrhoea?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "Patient reports feeling unwell with some stomach pain; asking about vomiting or diarrhoea helps separate gastrointestinal causes from broader systemic illness."
+  },
+  {
+    "id": "nl_clarify_2",
+    "kind": "single_choice",
+    "prompt": "Have you had a fever or felt feverish?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "For vague unwellness with mild stomach discomfort, fever is a useful discriminator for systemic illness versus isolated mild gastrointestinal symptoms."
+  },
+  {
+    "id": "nl_clarify_3",
+    "kind": "single_choice",
+    "prompt": "Have you noticed a rash on a large area of your body?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "Because the presentation is non-localised, asking about a widespread rash helps distinguish a skin-related presentation from systemic or gastrointestinal causes."
+  }
+]
+validate_qg_questions: OK
+en_prompt/en_label null on nl_clarify_1: OK
+en_prompt/en_label null on nl_clarify_2: OK
+en_prompt/en_label null on nl_clarify_3: OK
+
+--- case 3: max-3-rounds force-commit (analysis) ---
+SessionState has no non_localised_clarify_rounds (or equivalent) counter today. Each ready=false → clarify → re-enter is a round, but the engine does not count them or force-commit after 3. The prompt documents the rule; enforcement needs a new state field (and node increment) before it is implementable.
+
+done; failures=0

@@ -66,6 +66,8 @@ def build_agent_context(state: SessionState) -> dict:
         "chief_complaint": state.chief_complaint,
         "presentation_category": state.presentation_category,
         "non_localised_category": state.non_localised_category,
+        "non_localised_clarify_rounds": state.non_localised_clarify_rounds,
+        "non_localised_category_lean": state.non_localised_category_lean,
         "session_language": state.session_language,
         "raised_flag_topics": list(state.raised_flag_topics),
         "completed_phases": list(state.completed_phases),

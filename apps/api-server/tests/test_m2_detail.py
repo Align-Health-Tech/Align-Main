@@ -30,7 +30,8 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         values = snap_values(runner, session_id)
         self.assertIn("localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 7)
-        self.assertEqual(values["onset_circumstance"]["text"], "twisted it yesterday")
+        self.assertEqual(values["onset_circumstance"]["text"], "Within 48 hours")
+        self.assertEqual(values["onset_circumstance"]["source"], "option")
         self.assertEqual(len(values["body_structures"]), 1)
         body = values["body_structures"][0]
         self.assertEqual(body["region_detail"]["layman_term"], "right wrist")
@@ -58,14 +59,20 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         self.assertIn("non_localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 5)
         self.assertEqual(values["functional_impact_score"], 4)
-        self.assertEqual(values["onset_circumstance"]["text"], "started last week")
+        self.assertEqual(values["onset_circumstance"]["text"], "Within 1 week")
+        self.assertEqual(values["onset_circumstance"]["source"], "option")
 
     def test_non_localised_clarify_then_details(self) -> None:
         self.ai.set_nl_classifier_script(
             [
-                ClassifierResult(ready=False, reason="unclear"),
                 ClassifierResult(
-                    ready=True, category="INFECTIOUS", confidence=0.88
+                    ready=False,
+                    category="SYSTEMIC",
+                    reason="unclear",
+                    confidence=0.5,
+                ),
+                ClassifierResult(
+                    ready=True, category="SYSTEMIC", confidence=0.88
                 ),
             ]
         )
@@ -97,7 +104,8 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         )
 
         values = snap_values(runner, session_id)
-        self.assertEqual(values["non_localised_category"], "INFECTIOUS")
+        self.assertEqual(values["non_localised_category"], "SYSTEMIC")
+        self.assertEqual(values["non_localised_clarify_rounds"], 1)
 
         done = answer_nl_details(runner, session_id)
         self.assertEqual(done.phase, "priority_questions")

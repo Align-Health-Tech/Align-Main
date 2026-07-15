@@ -13,6 +13,7 @@ from typing import Any
 
 from engine.helpers.state_codecs import as_question_fields
 from engine.helpers.translate import narrative_dump_free_text, narrative_dump_option
+from engine.static.onset_timing import onset_timing_label
 from engine.static.body_diagram_catalogue import laterality_for_region_id, resolve_coding
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
@@ -157,8 +158,8 @@ def _apply_localised_detail(
         updates["body_structures"] = bodies
 
     if onset is not None and onset != "":
-        updates["onset_circumstance"] = narrative_dump_free_text(
-            str(onset), session_language=state.session_language
+        updates["onset_circumstance"] = narrative_dump_option(
+            onset_timing_label(str(onset))
         )
 
     return updates
@@ -176,8 +177,8 @@ def _apply_non_localised_detail(
     updates: dict[str, Any] = {}
     onset = vals.get("onset_circumstance")
     if onset is not None and onset != "":
-        updates["onset_circumstance"] = narrative_dump_free_text(
-            str(onset), session_language=state.session_language
+        updates["onset_circumstance"] = narrative_dump_option(
+            onset_timing_label(str(onset))
         )
     sev = vals.get("severity_score")
     if sev is not None and str(sev).isdigit():

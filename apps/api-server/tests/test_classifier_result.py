@@ -205,6 +205,32 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
         self.assertEqual(updates["chief_complaint"]["en_text"], summary)
         self.assertEqual(updates["chief_complaint"]["source"], "ai_summary")
 
+    def test_non_localised_categoriser_sets_bucket_not_presentation(self) -> None:
+        state = SessionState(
+            session_id="s",
+            patient_id="p",
+            organization_id="o",
+            presentation_category="NOT_LOCALISED",
+            chief_complaint={
+                "text": "Fever and malaise.",
+                "source": "ai_summary",
+            },
+        )
+        result = ClassifierResult(
+            ready=True,
+            category="SYSTEMIC",
+            confidence=0.91,
+            reason="fever + malaise",
+            # If a model wrongly echoed PC fields, still must not apply them here.
+            chief_complaint_summary="SHOULD_NOT_APPLY",
+        )
+        updates = apply_classifier_result(
+            state, result, prompt_name="non_localised_categoriser"
+        )
+        self.assertEqual(updates, {"non_localised_category": "SYSTEMIC"})
+        self.assertNotIn("presentation_category", updates)
+        self.assertNotIn("chief_complaint", updates)
+
 
 class TestAlreadyKnownFromSupplement(unittest.TestCase):
     def test_backfill_excludes_registry_targets(self) -> None:

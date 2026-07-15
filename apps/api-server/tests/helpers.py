@@ -31,7 +31,7 @@ def answer_localised_detail_questions(
         {
             "answers": [
                 {"question_id": "loc_severity", "value": "7"},
-                {"question_id": "loc_onset", "value": "twisted it yesterday"},
+                {"question_id": "loc_onset", "value": "WITHIN_48_HOURS"},
             ]
         },
     )
@@ -50,7 +50,7 @@ def answer_nl_details(runner: SessionRunner, session_id: str) -> NextStep:
         session_id,
         {
             "answers": [
-                {"question_id": "nl_onset", "value": "started last week"},
+                {"question_id": "nl_onset", "value": "WITHIN_1_WEEK"},
                 {"question_id": "nl_severity", "value": "5"},
                 {"question_id": "nl_functional", "value": "4"},
             ]

@@ -158,7 +158,8 @@ class TestLocalisedDetailBodyDiagram(MockClinicalAiTestCase, unittest.TestCase):
         values = snap_values(runner, session_id)
         self.assertIn("localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 7)
-        self.assertEqual(values["onset_circumstance"]["text"], "twisted it yesterday")
+        self.assertEqual(values["onset_circumstance"]["text"], "Within 48 hours")
+        self.assertEqual(values["onset_circumstance"]["source"], "option")
         self.assertEqual(
             values["body_structures"][0]["region_detail"], expected.model_dump()
         )

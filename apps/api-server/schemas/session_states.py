@@ -74,6 +74,11 @@ class SessionState(BaseModel):
     presenting_complaint_hint: Optional[JsonDict] = None
     # non_localised_categoriser bucket (set only on NOT_LOCALISED path)
     non_localised_category: Optional[str] = None
+    # How many NL clarify batches have been enqueued (hard-stop at 3).
+    non_localised_clarify_rounds: int = 0
+    # Best-fit lean from the latest ready:false categoriser result (category
+    # field when not ready). Used for code-level force-commit after 3 rounds.
+    non_localised_category_lean: Optional[str] = None
 
     # encounters column mapping — narrative jsonb (dict = NarrativeField.model_dump())
     chief_complaint: Optional[JsonDict] = None

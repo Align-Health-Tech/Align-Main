@@ -28,14 +28,23 @@ _NARRATIVE_SCALAR_FIELDS = (
 def apply_classifier_result(
     state: SessionState,
     result: ClassifierResult,
+    *,
+    prompt_name: str = "presenting_complaint",
 ) -> dict[str, Any]:
     """Map a ready classifier result into SessionState update fields.
 
-    Sets ``presentation_category``, overwrites ``chief_complaint`` from
-    ``chief_complaint_summary`` when present, stores anatomy sites on
-    ``presenting_complaint_hint``, and backfills encounter fields from
-    ``encounter_intake_supplement`` (only keys the model actually set).
+    Branches on ``prompt_name``:
+
+    - ``presenting_complaint`` — sets ``presentation_category``, may overwrite
+      ``chief_complaint`` from summary, stores anatomy hint + intake supplement.
+    - ``non_localised_categoriser`` — sets ``non_localised_category`` only
+      (must not clobber ``presentation_category`` with a 6-bucket label).
     """
+    if prompt_name == "non_localised_categoriser":
+        return {
+            "non_localised_category": result.category or "SYSTEMIC",
+        }
+
     category = result.category or "LOCALISED"
     updates: dict[str, Any] = {
         "presentation_category": category,

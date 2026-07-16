@@ -5,7 +5,11 @@ optional / redflag pools — not a DI container. It owns:
 
 - ``PRIORITY_TARGETS`` / ``OPTIONAL_TARGETS`` — collect targets with clinical
   hints, sex/locality gates, free-text policy
-- ``REDFLAG_SUBCATEGORIES`` — ABCDE-style red-flag topic labels for Devise
+- ``REDFLAG_TARGETS`` — ABCDE-style red-flag rows (`subcategory` +
+  `clinical_hint`) for Devise; not locality-filtered
+- ``REDFLAG_SUBCATEGORIES`` — derived closed label list from ``REDFLAG_TARGETS``
+- ``normalize_redflag_subcategory`` — clamp Devise topics onto that set
+  (unknown → ``OTHER``)
 - ``get_eligible_targets`` — filter a collect phase by sex + presentation
 - ``targets_for_session_phase`` — map graph/QG phase names
   (e.g. ``priority_questions``) onto those filtered targets
@@ -17,6 +21,7 @@ from typing import Optional
 
 from schemas.collect_targets import SESSION_TO_COLLECT_PHASE, CollectTarget
 from schemas.literals import CollectPhase, RedFlagSubcategory
+from schemas.redflag_targets import RedFlagTarget
 
 
 PRIORITY_TARGETS: list[CollectTarget] = [
@@ -158,16 +163,70 @@ OPTIONAL_TARGETS: list[CollectTarget] = [
     ),
 ]
 
-# Always-valid pool for run_devise_and_prioritise(phase="redflag_screening", ...).
-# IMMUNISATION_STATUS is banned in optional — deliberately not listed anywhere here.
-REDFLAG_SUBCATEGORIES: list[RedFlagSubcategory] = [
-    "AIRWAY",
-    "BREATHING",
-    "CIRCULATION",
-    "DISABILITY",
-    "TEMPERATURE",
-    "OTHER",
+# Always-valid pool for run_devise_and_prioritise(phase="redflag_screening").
+# Full list every time — NOT filtered by presentation_category (LOCALISED /
+# NOT_LOCALISED) or sex. Safety screening applies the same way on both paths.
+# IMMUNISATION_STATUS is banned in optional — deliberately not listed here.
+REDFLAG_TARGETS: list[RedFlagTarget] = [
+    RedFlagTarget(
+        subcategory="AIRWAY",
+        clinical_hint=(
+            "Difficulty swallowing, drooling, voice change, stridor concern."
+        ),
+    ),
+    RedFlagTarget(
+        subcategory="BREATHING",
+        clinical_hint=(
+            "Shortness of breath at rest or on exertion, unable to finish a "
+            "sentence, severe wheeze."
+        ),
+    ),
+    RedFlagTarget(
+        subcategory="CIRCULATION",
+        clinical_hint=(
+            "Feeling faint, dizzy on standing, chest pressure, shock concern, "
+            "or new cold/pale/blue/numb/very painful limb/hand/foot."
+        ),
+    ),
+    RedFlagTarget(
+        subcategory="DISABILITY",
+        clinical_hint=(
+            "Confusion, drowsiness, limb weakness, sudden vision or speech "
+            "changes, new loss of sensation/function."
+        ),
+    ),
+    RedFlagTarget(
+        subcategory="TEMPERATURE",
+        clinical_hint=(
+            "High fever with systemic concern, rigors when relevant."
+        ),
+    ),
+    RedFlagTarget(
+        subcategory="OTHER",
+        clinical_hint=(
+            "Serious concern that fits none of the above — not a last-resort "
+            "dump for weak signals."
+        ),
+    ),
 ]
+
+REDFLAG_SUBCATEGORIES: list[RedFlagSubcategory] = [
+    t.subcategory for t in REDFLAG_TARGETS
+]
+
+_REDFLAG_BY_KEY: dict[str, RedFlagSubcategory] = {
+    s.casefold(): s for s in REDFLAG_SUBCATEGORIES
+}
+
+
+def normalize_redflag_subcategory(topic: str) -> RedFlagSubcategory:
+    """Clamp a Devise topic onto the closed 6-label set.
+
+    Case-insensitive exact match on ``REDFLAG_SUBCATEGORIES``. Anything else
+    (hallucinated labels, free-text concerns) maps to ``OTHER``.
+    """
+    key = (topic or "").strip().casefold()
+    return _REDFLAG_BY_KEY.get(key, "OTHER")
 
 
 def _applies_locality(

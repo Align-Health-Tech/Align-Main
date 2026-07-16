@@ -38,7 +38,7 @@ clinical_ai/
 ├── agents.py           # thin run_* wrappers (+ private Devise parse types)
 ├── llm_client.py       # Azure chat; run_agent / run_agent_with_tools
 ├── prompt_loader.py    # load prompts/{category}/{phase}.md
-├── registry.py         # PRIORITY/OPTIONAL target lists + REDFLAG_SUBCATEGORIES
+├── registry.py         # PRIORITY/OPTIONAL targets + REDFLAG_TARGETS
 ├── tools.py            # DuckDuckGo web_search (Devise)
 └── prompts/            # phase prompts — see prompts/README.md (PC + NL categoriser/clarify ported; rest stub)
 ```

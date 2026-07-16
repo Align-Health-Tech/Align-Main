@@ -1,0 +1,117 @@
+=== redflag_screening Azure smoke ===
+
+--- case1_ordinary_wrist ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Twisted it playing tennis yesterday', 'character': ['Sharp']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "CIRCULATION",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Twisted swollen bruised wrist after sport; for a limb injury it is important to know if the hand has become newly cold, pale/blue, numb, or much more painful, which could suggest impaired blood flow or pressure effects."
+  },
+  {
+    "topic": "DISABILITY",
+    "relevance_score": 0.74,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Acute wrist injury with sharp pain on movement; confirm any new loss of sensation or inability to move/use the hand or fingers, as this matters for possible nerve or significant structural injury."
+  }
+]
+case1_ordinary_wrist tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_circulation_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist playing tennis, has your hand become cold, pale or blue, numb, or much more painful than before?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "Anchored to the patient's wrist injury after tennis with swelling and bruising; asks about observable hand changes from the circulation rationale."
+  },
+  {
+    "id": "rf_disability_1",
+    "kind": "yes_no",
+    "prompt": "Since this wrist injury, have you lost feeling in your hand or fingers, or been unable to move or use them normally?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "Anchored to the acute sharp wrist injury; checks for new sensory loss or inability to move/use the hand or fingers from the disability rationale."
+  }
+]
+
+--- case2_chest_tightness_in_priority ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Fall onto outstretched hand yesterday', 'character': ['Sharp at the wrist; also mild chest tightness when climbing stairs (mentioned during priority)']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "BREATHING",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "web_search",
+    "rationale": "He mentioned chest tightness when climbing stairs during intake; for this presentation the nurse should know if this is accompanied by breathlessness or breathing difficulty on light exertion or at rest."
+  },
+  {
+    "topic": "CIRCULATION",
+    "relevance_score": 0.79,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Exertional chest tightness can signal a cardiac/circulatory problem, so it is important to confirm symptoms like chest pressure or feeling faint. Wrist trauma after a fall also makes it relevant to check for a newly cold, pale, blue, numb, or very painful hand."
+  }
+]
+case2_chest_tightness_in_priority tool_loop: {'tool_choice': 'auto', 'tool_call_count': 1, 'tool_calls': [{'name': 'web_search', 'args': {'query': 'NZ urgent care red flags exertional chest tightness climbing stairs shortness of breath chest pressure faintness yes no screening'}}]}
+qg questions:
+[
+  {
+    "id": "rf_breathing_1",
+    "kind": "yes_no",
+    "prompt": "With the chest tightness you mentioned when climbing stairs, do you also get short of breath during light activity or while resting?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "BREATHING",
+    "personalization_note": "Anchored to his reported chest tightness on exertion; asks about accompanying breathlessness during light exertion or at rest from the Devise rationale."
+  },
+  {
+    "id": "rf_circulation_1",
+    "kind": "yes_no",
+    "prompt": "Since the fall, has your injured hand become cold, pale or blue, numb, or much more painful than expected?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "Anchored to the swollen wrist after a fall onto an outstretched hand; checks for hand circulation or nerve warning features from the Devise rationale."
+  }
+]
+case ABC bias OK: ['BREATHING', 'CIRCULATION']
+
+--- case3_unremarkable_bruise ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Bumped coffee table yesterday', 'character': ['Mild ache']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[]
+case3_unremarkable_bruise tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[]
+
+=== search-bias summary ===
+case2 (redflag, uncertain safety) tool_call_count=1; priority_questions historic smokes typically tool_call_count=0 under auto tool_choice (see smoke_priority_questions results).
+
+failures=0

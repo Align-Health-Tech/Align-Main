@@ -188,6 +188,43 @@ class TestValidateQgQuestions(unittest.TestCase):
     def test_nl_clarify_accepts_valid(self) -> None:
         validate_qg_questions("non_localised_clarify", [_nl_ok()])
 
+    def test_redflag_allows_empty(self) -> None:
+        validate_qg_questions("redflag_screening", [])
+
+    def test_redflag_rejects_non_yes_no(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_qg_questions(
+                "redflag_screening",
+                [
+                    QuestionField(
+                        id="rf_bad",
+                        kind="single_choice",
+                        prompt="Any chest pain?",
+                        personalization_note="t",
+                        collect_target_id="CIRCULATION",
+                        options=[
+                            QuestionOption(value="Yes", label="Yes"),
+                            QuestionOption(value="No", label="No"),
+                        ],
+                    )
+                ],
+            )
+        self.assertIn("yes_no", str(ctx.exception))
+
+    def test_redflag_accepts_yes_no(self) -> None:
+        validate_qg_questions(
+            "redflag_screening",
+            [
+                QuestionField(
+                    id="rf_circulation_1",
+                    kind="yes_no",
+                    prompt="Does your hand feel colder than usual?",
+                    personalization_note="t",
+                    collect_target_id="CIRCULATION",
+                )
+            ],
+        )
+
 
 class TestDeviseThenGenerateValidates(MockClinicalAiTestCase, unittest.TestCase):
     def test_bad_qg_output_raises_through_bridge(self) -> None:

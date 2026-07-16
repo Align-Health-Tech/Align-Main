@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 
 from external_systems.clinical_ai.llm_client import run_agent, run_agent_with_tools
 from external_systems.clinical_ai.registry import (
-    REDFLAG_SUBCATEGORIES,
+    REDFLAG_TARGETS,
+    normalize_redflag_subcategory,
     targets_for_session_phase,
 )
 from external_systems.clinical_ai.tools import web_search
@@ -105,6 +106,7 @@ def translate_to_english(
 
 # Fields Devise may see — never example_prompt / suggested_options (QG-only).
 _DEVISE_TARGET_FIELDS = {"id", "category", "clinical_hint"}
+_DEVISE_REDFLAG_FIELDS = {"subcategory", "clinical_hint"}
 
 
 class _DeviseCandidate(BaseModel):
@@ -129,7 +131,9 @@ def _get_candidate_pool(phase: str, context: dict) -> list[dict]:
         return [t.model_dump(include=_DEVISE_TARGET_FIELDS) for t in targets]
 
     if phase == "redflag_screening":
-        return [{"subcategory": s} for s in REDFLAG_SUBCATEGORIES]
+        return [
+            t.model_dump(include=_DEVISE_REDFLAG_FIELDS) for t in REDFLAG_TARGETS
+        ]
 
     return []
 
@@ -154,13 +158,18 @@ def run_devise_and_prioritise(
         tool_choice=tool_choice,
     )
     is_red_flag = phase == "redflag_screening"
-    return [
-        TopicCandidate(
-            topic=c.topic,
-            relevance_score=c.relevance_score,
-            is_red_flag=is_red_flag,
-            source=c.source,
-            rationale=c.rationale,
+    out: list[TopicCandidate] = []
+    for c in raw.candidates:
+        topic = c.topic
+        if is_red_flag:
+            topic = normalize_redflag_subcategory(c.topic)
+        out.append(
+            TopicCandidate(
+                topic=topic,
+                relevance_score=c.relevance_score,
+                is_red_flag=is_red_flag,
+                source=c.source,
+                rationale=c.rationale,
+            )
         )
-        for c in raw.candidates
-    ]
+    return out

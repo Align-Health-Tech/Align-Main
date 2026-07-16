@@ -1,12 +1,16 @@
 """Per-phase QuestionField constraints after QG (fail loudly on LLM drift).
 
-Registered phases always run (including placeholders that currently no-op).
+Registered phases always run. Some phases allow an empty question list
+(e.g. redflag when Devise found nothing above the floor).
 """
 from __future__ import annotations
 
 from schemas.question_fields import QuestionField
 
 _NL_CLARIFY_VALUES = ("Yes", "No", "I don't know")
+
+# Phases where zero questions is a valid QG outcome.
+_ALLOW_EMPTY_QUESTIONS = frozenset({"redflag_screening"})
 
 
 def validate_qg_questions(phase: str, questions: list[QuestionField]) -> None:
@@ -15,6 +19,8 @@ def validate_qg_questions(phase: str, questions: list[QuestionField]) -> None:
     if validator is None:
         return
     if not questions:
+        if phase in _ALLOW_EMPTY_QUESTIONS:
+            return
         raise ValueError(
             f"QG phase {phase!r}: expected at least one question, got none"
         )
@@ -79,6 +85,14 @@ def _validate_priority_questions(phase: str, q: QuestionField) -> None:
         )
 
 
+def _validate_redflag_screening(phase: str, q: QuestionField) -> None:
+    if q.kind != "yes_no":
+        raise ValueError(
+            f"QG phase {phase!r} question {q.id!r}: "
+            f"kind must be 'yes_no', got {q.kind!r}"
+        )
+
+
 def _validate_placeholder(_phase: str, _q: QuestionField) -> None:
     """No-op until this phase's prompt contract is ported."""
 
@@ -87,8 +101,8 @@ _VALIDATORS = {
     "presenting_complaint_clarify": _validate_presenting_complaint_clarify,
     "non_localised_clarify": _validate_non_localised_clarify,
     "priority_questions": _validate_priority_questions,
+    "redflag_screening": _validate_redflag_screening,
     # Placeholders — tighten when Devise/QG prompts for these phases ship.
-    "redflag_screening": _validate_placeholder,
     "optional_questions": _validate_placeholder,
     "ice": _validate_placeholder,
 }

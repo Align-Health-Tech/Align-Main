@@ -41,7 +41,7 @@ Red flag screening is Devise + Question Generation with `phase` /
 
 | Status | Prompts |
 | ------ | ------- |
-| **Ported** (Azure smokeed) | `classifier/presenting_complaint`, `devise_and_prioritise/presenting_complaint_clarify`, `question_generation/presenting_complaint_clarify`, `classifier/non_localised_categoriser`, `devise_and_prioritise/non_localised_clarify`, `question_generation/non_localised_clarify` |
+| **Ported** (Azure smokeed) | `classifier/presenting_complaint`, `devise_and_prioritise/presenting_complaint_clarify`, `question_generation/presenting_complaint_clarify`, `classifier/non_localised_categoriser`, `devise_and_prioritise/non_localised_clarify`, `question_generation/non_localised_clarify`, `devise_and_prioritise/priority_questions`, `question_generation/priority_questions` |
 | **Still stubs** | Remaining Devise / QG / nurse_review / translation `.md` files — expected output shape + `TODO` links to Align-Pilot-V2. Replace before production demos. |
 
 ## Dual track (M5)

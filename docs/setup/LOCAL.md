@@ -67,13 +67,17 @@ alembic upgrade head
 Expected chain:
 
 ```
-base → 859d69d120fc (initial schema) → rls_roles_policies_001 (RLS)
+base → 859d69d120fc (initial schema)
+     → rls_roles_policies_001 (RLS)
+     → add_intake_fact_display_001
+     → summary_str_laterality_ck_001
+     → intake_patient_scope_meds_001 (patient-scoped intake facts + encounter_medication)
 ```
 
 Check:
 
 ```bash
-alembic current   # should show rls_roles_policies_001 (head)
+alembic current   # should show intake_patient_scope_meds_001 (head)
 ```
 
 **Do not** `alembic revision --autogenerate` for RLS — that migration is hand-written (`alembic/versions/rls_roles_and_policies.py`).

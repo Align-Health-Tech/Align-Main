@@ -8,22 +8,19 @@ This keeps LangGraph msgpack checkpoints free of unregistered custom types
 """
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal, Optional
+from typing import Annotated, Any, Optional
 
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel
 
 from schemas.jsonb_fields import CodedField, NarrativeField
-from schemas.question_fields import Phase
-
-PresentationCategory = Literal["LOCALISED", "NOT_LOCALISED"]
-Laterality = Literal["left", "right", "bilateral"]
-
-IntakeFactKind = Literal[
-    "ALLERGY", "MEDICATION", "CONDITION", "PROCEDURE", "IMMUNIZATION",
-    "FAMILY_HISTORY", "SOCIAL_HISTORY", "VITAL_SIGN", "OTHER_OBSERVATION",
-]
-IntakeFactSource = Literal["PATIENT_INTAKE", "LILLY_EXTRACTED", "PRACTITIONER_ENTERED"]
+from schemas.literals import (
+    IntakeFactKind,
+    IntakeFactSource,
+    Laterality,
+    Phase,
+    PresentationCategory,
+)
 
 # JSON-friendly aliases for checkpointed nested shapes.
 JsonDict = dict[str, Any]
@@ -94,6 +91,8 @@ class SessionState(BaseModel):
     mitigating_factors: list[JsonDict] = []
     exacerbating_factors: list[JsonDict] = []
     comorbidities: list[JsonDict] = []
+    # Meds for this visit's symptoms (NarrativeField dumps). Not intake_facts.
+    encounter_medication: list[JsonDict] = []
 
     # encounters column mapping — plain scalars, no translation needed
     severity_score: Optional[int] = None
@@ -101,6 +100,7 @@ class SessionState(BaseModel):
     weight_change: Optional[str] = None
     acc_claim_suspected: bool = False
     acc_can_work: Optional[bool] = None
+    pregnancy_possible: Optional[bool] = None
 
     # Generated directly in English, one line
     encounter_summary: Optional[str] = None

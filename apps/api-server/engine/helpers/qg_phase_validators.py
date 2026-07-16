@@ -1,6 +1,6 @@
 """Per-phase QuestionField constraints after QG (fail loudly on LLM drift).
 
-Only phases with confirmed rules are registered. Unknown phases skip validation.
+Registered phases always run (including placeholders that currently no-op).
 """
 from __future__ import annotations
 
@@ -59,7 +59,36 @@ def _validate_non_localised_clarify(phase: str, q: QuestionField) -> None:
         )
 
 
+def _validate_priority_questions(phase: str, q: QuestionField) -> None:
+    """Comorbidities multi_choice: require 'None of these', ban 'Other'."""
+    tid = (q.collect_target_id or q.id or "").casefold()
+    if tid != "comorbidities" and "comorbid" not in tid:
+        return
+    if q.kind != "multi_choice":
+        return
+    values = [o.value for o in (q.options or [])]
+    if "Other" in values:
+        raise ValueError(
+            f"QG phase {phase!r} question {q.id!r}: "
+            f"comorbidities must not use 'Other'; got values={values!r}"
+        )
+    if "None of these" not in values:
+        raise ValueError(
+            f"QG phase {phase!r} question {q.id!r}: "
+            f"comorbidities must include 'None of these'; got values={values!r}"
+        )
+
+
+def _validate_placeholder(_phase: str, _q: QuestionField) -> None:
+    """No-op until this phase's prompt contract is ported."""
+
+
 _VALIDATORS = {
     "presenting_complaint_clarify": _validate_presenting_complaint_clarify,
     "non_localised_clarify": _validate_non_localised_clarify,
+    "priority_questions": _validate_priority_questions,
+    # Placeholders — tighten when Devise/QG prompts for these phases ship.
+    "redflag_screening": _validate_placeholder,
+    "optional_questions": _validate_placeholder,
+    "ice": _validate_placeholder,
 }

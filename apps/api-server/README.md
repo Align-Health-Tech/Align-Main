@@ -50,8 +50,9 @@ Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
 
 | Module | Role |
 | ------ | ---- |
+| `literals.py` | Shared `Literal` vocabularies (import from here only) |
 | `clinical_ai_io.py` | Classifier / QG / `ReviewSummaryResult` / `TranslationResult` |
-| `collect_targets.py` | `CollectTarget`, `CollectPhase`, `SESSION_TO_COLLECT_PHASE`, `RedFlagSubcategory` |
+| `collect_targets.py` | `CollectTarget` + `SESSION_TO_COLLECT_PHASE` |
 | `topic_candidates.py` | Devise output + `SessionState.prioritised_topics` |
 | `question_fields.py` | `QuestionField`, `NextStep` (frontend envelope) |
 | `session_states.py` | LangGraph `SessionState` (+ body/intake nested shapes) |
@@ -64,7 +65,7 @@ Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
 | `routers/` | Request/response parsing and routing; consent/survey lifecycle (see ROUTER_SPEC) |
 | `engine/` | LangGraph clinical intake (START=`presenting_complaint` → END=`complete`) |
 | `engine/graph.py` / `runner.py` / `topology/` / `checkpointer.py` | Compile, public API, per-segment edges, MemorySaver |
-| `engine/helpers/` | Shared pure helpers (`next_step`, `apply_answers`, codecs, translate, …) |
+| `engine/helpers/` | Shared helpers (`next_step`, `apply/`, codecs, translate, …) |
 | `engine/static/` | Lookup/reference data outside the graph (forms, body-diagram catalogue) |
 | `engine/nodes/` | Per-phase clinical nodes (via `engine.helpers.agent_bridge` → `clinical_ai.run_*`) |
 | `engine/helpers/agent_bridge.py` | Engine→AI boundary — **CI patches this module** (no Azure in tests) |

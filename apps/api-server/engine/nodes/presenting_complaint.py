@@ -4,8 +4,9 @@ from __future__ import annotations
 from langgraph.types import Command, interrupt
 
 from engine.helpers import agent_bridge
-from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply import apply_answers
 from engine.helpers.apply_classifier_result import apply_classifier_result
+from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
     as_question_fields,
@@ -27,13 +28,6 @@ def _free_text_question() -> QuestionField:
         personalization_note="deterministic",
         collect_target_id="chief_complaint",
     )
-
-
-def _mark_completed(state: SessionState) -> list[str]:
-    completed = list(state.completed_phases)
-    if "presenting_complaint" not in completed:
-        completed.append("presenting_complaint")
-    return completed
 
 
 def presenting_complaint(state: SessionState) -> Command:
@@ -83,7 +77,7 @@ def presenting_complaint(state: SessionState) -> Command:
             return Command(
                 update={
                     **apply_classifier_result(state, result),
-                    "completed_phases": _mark_completed(state),
+                    "completed_phases": with_completed(state, "presenting_complaint"),
                 },
                 goto=next_node,
             )

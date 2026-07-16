@@ -60,9 +60,27 @@
 
 ---
 
-## 4. `encounters`, `body_structures`, `radiation_sites`, `flags`, `intake_fact_items`
+## 3b. `intake_fact_items`
 
-The core encounter-scoped group — all clinical detail for one session.
+Patient-scoped persistent facts (same linkage pattern as `patients` §2 — **not**
+direct `encounter_id` match). `encounter_id` on the row is nullable provenance
+only; patient-role access resolves via:
+
+`patient_id = (SELECT patient_id FROM encounters WHERE id = current_encounter_id())`.
+
+
+| Role                       | Operation  | Scope                                                                                                                                          |
+| -------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `align_app` (practitioner) | Read/write | Any intake fact in own organization                                                                                                            |
+| `align_app` (patient)      | Read/write | Only facts for the patient of their current encounter (QR token → encounter → `patient_id`)                                                    |
+| `align_admin`              | Read       | Any organization                                                                                                                               |
+
+
+---
+
+## 4. `encounters`, `body_structures`, `radiation_sites`, `flags`
+
+The core encounter-scoped group — clinical detail for one session.
 
 
 | Role                       | Operation  | Scope                                                                                                                                  |

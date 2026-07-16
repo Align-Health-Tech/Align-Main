@@ -1,0 +1,459 @@
+=== comorbidities stripped-hints frequency probe ===
+
+QG temperature=0.4 runs_per_condition=5
+stripped: clinical_hint, example_prompt, suggested_options
+
+classifier ready=False category=None
+chiefComplaintSummary: None
+supplement comorbidities: None
+
+===== A_wrist_eliquis_heart =====
+known_collect_values: {}
+chief_complaint: {'text': "Hurt my wrist yesterday after a fall, still swollen and bruised. I'm on Eliquis (apixaban) for a heart condition.", 'source': 'free_text'}
+--- A_wrist_eliquis_heart run 1/5 ---
+comorbidities options: ['Heart condition', 'Diabetes', 'High blood pressure', 'Bleeding problem', 'None of these']
+--- A_wrist_eliquis_heart run 2/5 ---
+comorbidities options: ['Heart condition', 'Diabetes', 'High blood pressure', 'Bleeding disorder', 'None of these']
+--- A_wrist_eliquis_heart run 3/5 ---
+comorbidities options: ['Heart condition', 'Diabetes', 'High blood pressure', 'Bleeding disorder', 'None of these']
+--- A_wrist_eliquis_heart run 4/5 ---
+comorbidities options: ['Heart condition', 'Diabetes', 'High blood pressure', 'Blood thinner use', 'None of these']
+--- A_wrist_eliquis_heart run 5/5 ---
+comorbidities options: ['Heart condition', 'Bleeding or clotting condition', 'Diabetes', 'Kidney disease', 'None of these']
+A_wrist_eliquis_heart frequency: {
+  "n_runs": 5,
+  "option_frequency": {
+    "Heart condition": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Diabetes": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "None of these": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "High blood pressure": {
+      "count": 4,
+      "rate": 0.8
+    },
+    "Bleeding disorder": {
+      "count": 2,
+      "rate": 0.4
+    },
+    "Bleeding problem": {
+      "count": 1,
+      "rate": 0.2
+    },
+    "Blood thinner use": {
+      "count": 1,
+      "rate": 0.2
+    },
+    "Bleeding or clotting condition": {
+      "count": 1,
+      "rate": 0.2
+    },
+    "Kidney disease": {
+      "count": 1,
+      "rate": 0.2
+    }
+  },
+  "kidney_in_list_rate": 0.2,
+  "heart_in_list_rate": 1.0,
+  "novel_options_frequency": {
+    "Heart condition": 5,
+    "Bleeding disorder": 2,
+    "Bleeding problem": 1,
+    "Blood thinner use": 1,
+    "Bleeding or clotting condition": 1,
+    "Kidney disease": 1
+  },
+  "per_run_options": [
+    [
+      "Heart condition",
+      "Diabetes",
+      "High blood pressure",
+      "Bleeding problem",
+      "None of these"
+    ],
+    [
+      "Heart condition",
+      "Diabetes",
+      "High blood pressure",
+      "Bleeding disorder",
+      "None of these"
+    ],
+    [
+      "Heart condition",
+      "Diabetes",
+      "High blood pressure",
+      "Bleeding disorder",
+      "None of these"
+    ],
+    [
+      "Heart condition",
+      "Diabetes",
+      "High blood pressure",
+      "Blood thinner use",
+      "None of these"
+    ],
+    [
+      "Heart condition",
+      "Bleeding or clotting condition",
+      "Diabetes",
+      "Kidney disease",
+      "None of these"
+    ]
+  ]
+}
+classifier ready=True category=LOCALISED
+chiefComplaintSummary: Patient injured their wrist in a fall yesterday and it remains swollen and bruised.
+supplement comorbidities: None
+
+===== B_wrist_no_heart =====
+known_collect_values: {'onset_circumstance': 'Fell and hurt wrist.', 'character': ['swollen', 'bruised']}
+chief_complaint: {'text': 'Patient injured their wrist in a fall yesterday and it remains swollen and bruised', 'source': 'ai_summary'}
+--- B_wrist_no_heart run 1/5 ---
+comorbidities options: ['Diabetes', 'Asthma', 'Heart disease', 'High blood pressure', 'None of these']
+--- B_wrist_no_heart run 2/5 ---
+comorbidities options: ['Diabetes', 'Heart disease', 'Asthma', 'High blood pressure', 'None of these']
+--- B_wrist_no_heart run 3/5 ---
+comorbidities options: ['Diabetes', 'Heart disease', 'Asthma', 'High blood pressure', 'None of these']
+--- B_wrist_no_heart run 4/5 ---
+comorbidities options: ['Diabetes', 'High blood pressure', 'Heart disease', 'Asthma', 'None of these']
+--- B_wrist_no_heart run 5/5 ---
+comorbidities options: ['Diabetes', 'Heart disease', 'Asthma', 'High blood pressure', 'None of these']
+B_wrist_no_heart frequency: {
+  "n_runs": 5,
+  "option_frequency": {
+    "Diabetes": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Asthma": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Heart disease": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "High blood pressure": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "None of these": {
+      "count": 5,
+      "rate": 1.0
+    }
+  },
+  "kidney_in_list_rate": 0.0,
+  "heart_in_list_rate": 1.0,
+  "novel_options_frequency": {
+    "Heart disease": 5
+  },
+  "per_run_options": [
+    [
+      "Diabetes",
+      "Asthma",
+      "Heart disease",
+      "High blood pressure",
+      "None of these"
+    ],
+    [
+      "Diabetes",
+      "Heart disease",
+      "Asthma",
+      "High blood pressure",
+      "None of these"
+    ],
+    [
+      "Diabetes",
+      "Heart disease",
+      "Asthma",
+      "High blood pressure",
+      "None of these"
+    ],
+    [
+      "Diabetes",
+      "High blood pressure",
+      "Heart disease",
+      "Asthma",
+      "None of these"
+    ],
+    [
+      "Diabetes",
+      "Heart disease",
+      "Asthma",
+      "High blood pressure",
+      "None of these"
+    ]
+  ]
+}
+classifier ready=True category=NOT_LOCALISED
+chiefComplaintSummary: Patient reports a sore throat and feeling run down for the past few days.
+supplement comorbidities: None
+
+===== C_sore_throat_no_heart =====
+known_collect_values: {'onset_circumstance': 'Came on over a few days.', 'character': ['sore throat', 'run down']}
+chief_complaint: {'text': 'Patient reports a sore throat and feeling run down for the past few days', 'source': 'ai_summary'}
+--- C_sore_throat_no_heart run 1/5 ---
+comorbidities options: ['Asthma', 'Diabetes', 'Heart disease', 'Low immunity', 'None of these']
+--- C_sore_throat_no_heart run 2/5 ---
+comorbidities options: ['Asthma', 'Diabetes', 'Heart condition', 'Low immunity', 'None of these']
+--- C_sore_throat_no_heart run 3/5 ---
+comorbidities options: ['Asthma', 'Diabetes', 'Heart disease', 'Low immunity', 'None of these']
+--- C_sore_throat_no_heart run 4/5 ---
+comorbidities options: ['Asthma', 'Diabetes', 'Heart disease', 'Low immunity', 'None of these']
+--- C_sore_throat_no_heart run 5/5 ---
+comorbidities options: ['Asthma', 'Diabetes', 'Heart condition', 'Low immunity', 'None of these']
+C_sore_throat_no_heart frequency: {
+  "n_runs": 5,
+  "option_frequency": {
+    "Asthma": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Diabetes": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Low immunity": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "None of these": {
+      "count": 5,
+      "rate": 1.0
+    },
+    "Heart disease": {
+      "count": 3,
+      "rate": 0.6
+    },
+    "Heart condition": {
+      "count": 2,
+      "rate": 0.4
+    }
+  },
+  "kidney_in_list_rate": 0.0,
+  "heart_in_list_rate": 1.0,
+  "novel_options_frequency": {
+    "Low immunity": 5,
+    "Heart disease": 3,
+    "Heart condition": 2
+  },
+  "per_run_options": [
+    [
+      "Asthma",
+      "Diabetes",
+      "Heart disease",
+      "Low immunity",
+      "None of these"
+    ],
+    [
+      "Asthma",
+      "Diabetes",
+      "Heart condition",
+      "Low immunity",
+      "None of these"
+    ],
+    [
+      "Asthma",
+      "Diabetes",
+      "Heart disease",
+      "Low immunity",
+      "None of these"
+    ],
+    [
+      "Asthma",
+      "Diabetes",
+      "Heart disease",
+      "Low immunity",
+      "None of these"
+    ],
+    [
+      "Asthma",
+      "Diabetes",
+      "Heart condition",
+      "Low immunity",
+      "None of these"
+    ]
+  ]
+}
+
+===== SUMMARY (raw rates, no model self-explanation) =====
+{
+  "A_wrist_eliquis_heart": {
+    "kidney_rate": 0.2,
+    "heart_rate": 1.0,
+    "novel": {
+      "Heart condition": 5,
+      "Bleeding disorder": 2,
+      "Bleeding problem": 1,
+      "Blood thinner use": 1,
+      "Bleeding or clotting condition": 1,
+      "Kidney disease": 1
+    },
+    "top_options": [
+      [
+        "Heart condition",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Diabetes",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "None of these",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "High blood pressure",
+        {
+          "count": 4,
+          "rate": 0.8
+        }
+      ],
+      [
+        "Bleeding disorder",
+        {
+          "count": 2,
+          "rate": 0.4
+        }
+      ],
+      [
+        "Bleeding problem",
+        {
+          "count": 1,
+          "rate": 0.2
+        }
+      ],
+      [
+        "Blood thinner use",
+        {
+          "count": 1,
+          "rate": 0.2
+        }
+      ],
+      [
+        "Bleeding or clotting condition",
+        {
+          "count": 1,
+          "rate": 0.2
+        }
+      ]
+    ]
+  },
+  "B_wrist_no_heart": {
+    "kidney_rate": 0.0,
+    "heart_rate": 1.0,
+    "novel": {
+      "Heart disease": 5
+    },
+    "top_options": [
+      [
+        "Diabetes",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Asthma",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Heart disease",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "High blood pressure",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "None of these",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ]
+    ]
+  },
+  "C_sore_throat_no_heart": {
+    "kidney_rate": 0.0,
+    "heart_rate": 1.0,
+    "novel": {
+      "Low immunity": 5,
+      "Heart disease": 3,
+      "Heart condition": 2
+    },
+    "top_options": [
+      [
+        "Asthma",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Diabetes",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Low immunity",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "None of these",
+        {
+          "count": 5,
+          "rate": 1.0
+        }
+      ],
+      [
+        "Heart disease",
+        {
+          "count": 3,
+          "rate": 0.6
+        }
+      ],
+      [
+        "Heart condition",
+        {
+          "count": 2,
+          "rate": 0.4
+        }
+      ]
+    ]
+  }
+}
+
+Interpretation cues (automatic): {'kidney_appears_when_heart_context': 0.2, 'kidney_when_wrist_no_heart': 0, 'kidney_when_sore_throat': 0, 'context_gated_kidney': True, 'kidney_regardless_of_context': False}
+
+done; exploratory (exit 0)

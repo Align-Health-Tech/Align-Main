@@ -7,21 +7,21 @@
 - Type hints everywhere; Pydantic models for anything crossing a boundary (API request/response, LangGraph state, provider interfaces)
 - No bare `except:` — catch what you expect, let the rest surface
 - `black` + `ruff` — for pretty code and strict code convention checks
-- **Named `Literal` aliases, not inline.** Do not put `Literal["…"]` (or `Optional[Literal["…"]]`) directly on a field, parameter, or return type. Define a module-level alias first, then reference it:
+- **Named `Literal` aliases, not inline.** Do not put `Literal["…"]` (or `Optional[Literal["…"]]`) directly on a field, parameter, or return type. Define a named alias in **`schemas/literals.py`** (the single source of truth for shared vocabularies), then import it:
 
   ```python
   # good
-  FreeTextPolicy = Literal["avoid", "optional_other"]
+  from schemas.literals import FreeTextPolicy
 
   class CollectTarget(BaseModel):
       free_text_policy: Optional[FreeTextPolicy] = None
 
-  # bad
+  # bad — inline, or redefined outside schemas/literals.py
   class CollectTarget(BaseModel):
       free_text_policy: Optional[Literal["avoid", "optional_other"]] = None
   ```
 
-  Same rule for shared mappings between vocabularies (e.g. session phase → `CollectPhase`): put the named alias and the map in one schema module (`schemas/collect_targets.py`), not as a private dict inside an agent.
+  Shared mappings between vocabularies (e.g. session phase → `CollectPhase`) stay next to the model that uses them (`schemas/collect_targets.py`); the `Literal` alias itself always lives in `schemas/literals.py`.
 
 **Both:** no `console.log`/`print` debug statements left in merged code. No commented-out code blocks — delete it, git remembers.
 

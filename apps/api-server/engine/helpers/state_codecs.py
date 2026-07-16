@@ -24,10 +24,5 @@ def dump_question_fields(questions: list[QuestionField]) -> list[dict[str, Any]]
     return [q.model_dump() for q in questions]
 
 
-# Re-hydrate TopicCandidate list after Devise writes prioritised_topics as dicts
-def as_topic_candidates(raw: list[dict[str, Any]]) -> list[TopicCandidate]:
-    return [TopicCandidate.model_validate(item) for item in raw]
-
-
 def dump_topic_candidates(topics: list[TopicCandidate]) -> list[dict[str, Any]]:
     return [t.model_dump() for t in topics]

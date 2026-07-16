@@ -46,8 +46,8 @@ that resolve the **ambiguity named in the latest classifier `reason`**
 - **Never re-ask** something already answered in `chief_complaint` /
   conversation / known intake fields.
 - Topics must be answerable as **presence/absence** of a category-
-  distinguishing feature (QG will force Yes / No / I don't know). Do **not**
-  invent free-text symptom-description topics.
+  distinguishing feature. Do **not** invent free-text symptom-description
+  topics.
 - Useful topic families (adapt; no patient-facing wording here):
   - fever / hot-and-shivery → SYSTEMIC
   - vomiting / diarrhoea / bowel change → GASTROINTESTINAL

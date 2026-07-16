@@ -6,7 +6,7 @@ from typing import Any
 from langgraph.types import Command, interrupt
 
 from engine.helpers import agent_bridge
-from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply import apply_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (

@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from engine.helpers.state_codecs import as_question_fields
-from schemas.question_fields import NextStep, Phase, QuestionField, StepType
+from schemas.literals import Phase, StepType
+from schemas.question_fields import NextStep, QuestionField
 from schemas.session_states import SessionState
 
 

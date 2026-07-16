@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Sequence, TypeVar
+from typing import Any, Optional, Sequence, TypeVar
 
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
@@ -16,6 +16,25 @@ from external_systems.clinical_ai.prompt_loader import load_prompt
 load_dotenv()
 
 T = TypeVar("T", bound=BaseModel)
+
+# Last tool-loop telemetry (smoke / local probes). Not a production API contract.
+_last_tool_loop: dict[str, Any] = {
+    "tool_choice": None,
+    "tool_calls": [],  # [{name, args}, ...]
+}
+
+
+def get_last_tool_loop() -> dict[str, Any]:
+    """Snapshot of the most recent ``chat_with_tools_then_structured`` loop."""
+    return {
+        "tool_choice": _last_tool_loop.get("tool_choice"),
+        "tool_calls": list(_last_tool_loop.get("tool_calls") or []),
+    }
+
+
+def reset_last_tool_loop() -> None:
+    _last_tool_loop["tool_choice"] = None
+    _last_tool_loop["tool_calls"] = []
 
 
 def get_model(*, temperature: float = 0) -> AzureChatOpenAI:
@@ -72,11 +91,22 @@ def chat_with_tools_then_structured(
     *,
     max_tool_rounds: int = 3,
     temperature: float = 0,
+    tool_choice: Optional[str | dict[str, Any] | bool] = None,
 ) -> T:
-    """Tool loop (e.g. web_search), then structured output for the final answer."""
+    """Tool loop (e.g. web_search), then structured output for the final answer.
+
+    ``tool_choice`` defaults to model auto (None). Pass a tool name (e.g.
+    ``\"web_search\"``) only for rare plumbing checks — not habitual smokes.
+    """
+    reset_last_tool_loop()
+    _last_tool_loop["tool_choice"] = "auto" if tool_choice is None else tool_choice
+
     base = get_model(temperature=temperature)
     tool_map = {t.name: t for t in tools}
-    bound = base.bind_tools(list(tools))
+    bind_kwargs: dict[str, Any] = {}
+    if tool_choice is not None:
+        bind_kwargs["tool_choice"] = tool_choice
+    bound = base.bind_tools(list(tools), **bind_kwargs)
 
     messages: list[BaseMessage] = [
         SystemMessage(content=system),
@@ -92,6 +122,7 @@ def chat_with_tools_then_structured(
         for call in tool_calls:
             name = call["name"]
             args = call.get("args") or {}
+            _last_tool_loop["tool_calls"].append({"name": name, "args": args})
             tool = tool_map.get(name)
             if tool is None:
                 observation = f"Unknown tool: {name}"
@@ -143,6 +174,7 @@ def run_agent_with_tools(
     tools: Sequence[BaseTool],
     *,
     temperature: float = 0,
+    tool_choice: Optional[str | dict[str, Any] | bool] = None,
 ) -> T:
     """Same as run_agent, but allows tool calls (Devise + web_search)."""
     system = load_prompt(category, phase)
@@ -153,4 +185,5 @@ def run_agent_with_tools(
         user,
         tools=tools,
         temperature=temperature,
+        tool_choice=tool_choice,
     )

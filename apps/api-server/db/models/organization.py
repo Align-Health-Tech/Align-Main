@@ -1,18 +1,15 @@
 """Organization — FHIR: Organization. See docs/database/DATABASE.md."""
-from typing import Literal
+from typing import get_args
 
 from sqlalchemy import Enum, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
-SegmentType = Literal["PHYSIO", "URGENT_CARE", "GP"]
+from schemas.literals import SegmentType
 
 # Only real Postgres ENUM in the schema — fixed three segments.
-segment_type_enum = Enum(
-    "PHYSIO", "URGENT_CARE", "GP", name="segment_type_enum"
-)
+segment_type_enum = Enum(*get_args(SegmentType), name="segment_type_enum")
 
 
 class Organization(Base, UUIDPrimaryKeyMixin, TimestampMixin):

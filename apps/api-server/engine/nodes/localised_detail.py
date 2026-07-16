@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply import apply_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_body_diagram_next_step, build_next_step
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields

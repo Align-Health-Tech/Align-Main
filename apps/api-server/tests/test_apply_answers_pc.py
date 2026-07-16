@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply import apply_answers
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 

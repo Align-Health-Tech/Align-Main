@@ -1,0 +1,1030 @@
+=== priority_questions Azure smoke ===
+
+--- case 1: three_known_targets_prefill ---
+classifier:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.97,
+  "reason": "Clear focal wrist injury with extractable anatomy site; allergy detail does not affect routing.",
+  "chiefComplaintSummary": "Patient twisted their wrist playing tennis yesterday and now has sharp wrist pain.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "unknown",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.9,
+      "evidence": "twisted my wrist"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": "Twisted it playing tennis.",
+    "duration": "since yesterday",
+    "character": [
+      "sharp"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": null,
+    "weightChange": null,
+    "accClaimSuspected": true,
+    "accCanWork": null
+  }
+}
+apply keys: ['acc_claim_suspected', 'character', 'chief_complaint', 'duration', 'onset_circumstance', 'presentation_category', 'presenting_complaint_hint']
+known_collect_values: {'onset_circumstance': 'Twisted it playing tennis.', 'character': ['Sharp'], 'allergy': 'penicillin'}
+devise topics:
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.86,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Acute painful wrist injury — what has been taken or applied for symptom relief is a high-value current gap and can affect assessment and next steps."
+  },
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.8,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Mechanism is central for a localised injury; although already backfilled, confirming the twist during tennis remains clinically important."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.72,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Pain quality is partly known as sharp, but confirming and refining persistence/tenderness pattern still helps characterise the wrist injury."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.46,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Background conditions are lower priority than injury details but still useful if relevant to healing, bleeding risk, or musculoskeletal history."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.28,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Allergy is already known and is lower-value than current symptom gaps for this presentation, though confirmation may still be useful."
+  }
+]
+qg questions:
+[
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "What have you taken or used for your wrist since this started?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Paracetamol",
+        "label": "Paracetamol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen or Nurofen",
+        "label": "Ibuprofen or Nurofen",
+        "en_label": null
+      },
+      {
+        "value": "Ice pack",
+        "label": "Ice pack",
+        "en_label": null
+      },
+      {
+        "value": "Bandage or wrist support",
+        "label": "Bandage or wrist support",
+        "en_label": null
+      },
+      {
+        "value": "Nothing yet",
+        "label": "Nothing yet",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "This is tailored to a recent painful wrist injury and asks only about things used for this problem, not usual medicines."
+  },
+  {
+    "id": "onset_circumstance",
+    "kind": "multi_choice",
+    "prompt": "How did your wrist injury happen?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "I twisted it playing sport",
+        "label": "I twisted it playing sport",
+        "en_label": null
+      },
+      {
+        "value": "I fell onto it",
+        "label": "I fell onto it",
+        "en_label": null
+      },
+      {
+        "value": "I knocked or bumped it",
+        "label": "I knocked or bumped it",
+        "en_label": null
+      },
+      {
+        "value": "It started without an injury",
+        "label": "It started without an injury",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "I twisted it playing sport"
+    ],
+    "collect_target_id": "onset_circumstance",
+    "personalization_note": "The patient already described twisting the wrist during tennis, so this confirms the injury mechanism with an editable prefilled answer."
+  },
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "How does your wrist pain feel?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Sharp",
+        "label": "Sharp",
+        "en_label": null
+      },
+      {
+        "value": "Dull ache",
+        "label": "Dull ache",
+        "en_label": null
+      },
+      {
+        "value": "Throbbing",
+        "label": "Throbbing",
+        "en_label": null
+      },
+      {
+        "value": "Tender to touch",
+        "label": "Tender to touch",
+        "en_label": null
+      },
+      {
+        "value": "Comes and goes",
+        "label": "Comes and goes",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Sharp"
+    ],
+    "collect_target_id": "character",
+    "personalization_note": "The patient already mentioned sharp wrist pain, so this confirms that and checks for other pain features that fit this injury."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Do you have any long-term health conditions being treated at the moment?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "Asthma",
+        "label": "Asthma",
+        "en_label": null
+      },
+      {
+        "value": "Arthritis or joint problems",
+        "label": "Arthritis or joint problems",
+        "en_label": null
+      },
+      {
+        "value": "Bleeding or blood clotting problem",
+        "label": "Bleeding or blood clotting problem",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "comorbidities",
+    "personalization_note": "For a wrist injury, a few background conditions can be relevant to pain, healing, or bruising, so this uses a short context-fit list."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Medicines"
+    ],
+    "collect_target_id": "allergy",
+    "personalization_note": "An allergy to penicillin is already recorded, so this keeps the question editable while prefilling the closest matching option."
+  }
+]
+case1 all 3 targets prefilled OK: [{'target': 'onset_circumstance', 'id': 'onset_circumstance', 'default_value': None, 'default_values': ['I twisted it playing sport']}, {'target': 'character', 'id': 'character', 'default_value': None, 'default_values': ['Sharp']}, {'target': 'allergy', 'id': 'allergy', 'default_value': None, 'default_values': ['Medicines']}]
+WARN: allergy: natural phrasing equals old example_prompt 'Do you have any allergies?' (not treated as bank echo)
+
+--- case 2: minimal_no_prefill ---
+classifier:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.52,
+  "reason": "Broad wrist region named without side; need laterality and whether one wrist or both to route confidently.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+WARN: classifier ready=false — applying partial / skipping supplement
+apply keys: ['presentation_category', 'presenting_complaint_hint']
+known_collect_values: {}
+devise topics:
+[
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.95,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Localised wrist pain makes mechanism of onset the highest-value gap; injury context such as fall, twist, or direct impact most strongly guides urgency and next questioning."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.86,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Pain quality, persistence, tenderness, and movement-related features are key descriptors for a wrist complaint and help narrow the clinical picture."
+  },
+  {
+    "topic": "medication",
+    "relevance_score": 0.52,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Knowing what has already been taken or tried for this episode is useful, but less important than onset mechanism and symptom character."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.38,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Relevant background conditions may affect injury risk, healing, or management, though they are secondary to the acute wrist history."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.27,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Helpful for treatment safety if medicines are considered, but lower priority for initial intake of wrist pain."
+  }
+]
+qg questions:
+[
+  {
+    "id": "onset_circumstance",
+    "kind": "multi_choice",
+    "prompt": "How did your wrist pain start?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "I fell on it",
+        "label": "I fell on it",
+        "en_label": null
+      },
+      {
+        "value": "I twisted it",
+        "label": "I twisted it",
+        "en_label": null
+      },
+      {
+        "value": "I knocked or bumped it",
+        "label": "I knocked or bumped it",
+        "en_label": null
+      },
+      {
+        "value": "It started after repeated use",
+        "label": "It started after repeated use",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "onset_circumstance",
+    "personalization_note": "Wrist pain is often best understood by how it began, so this asks about a clear injury or strain mechanism first."
+  },
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "What is your wrist pain like?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Sharp",
+        "label": "Sharp",
+        "en_label": null
+      },
+      {
+        "value": "Dull ache",
+        "label": "Dull ache",
+        "en_label": null
+      },
+      {
+        "value": "Tender to touch",
+        "label": "Tender to touch",
+        "en_label": null
+      },
+      {
+        "value": "Worse when I move it",
+        "label": "Worse when I move it",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "character",
+    "personalization_note": "For a sore wrist, the pain quality and whether movement or touch makes it worse helps describe the problem in simple terms."
+  },
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "Have you taken or used anything for your wrist pain today or recently?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Paracetamol",
+        "label": "Paracetamol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen or Nurofen",
+        "label": "Ibuprofen or Nurofen",
+        "en_label": null
+      },
+      {
+        "value": "Pain relief gel or cream",
+        "label": "Pain relief gel or cream",
+        "en_label": null
+      },
+      {
+        "value": "Nothing yet",
+        "label": "Nothing yet",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "This is tailored to wrist pain and asks only about things used for this problem, such as common pain relief or topical treatments."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Do you have any of these long-term health conditions?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "Arthritis",
+        "label": "Arthritis",
+        "en_label": null
+      },
+      {
+        "value": "Osteoporosis",
+        "label": "Osteoporosis",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "comorbidities",
+    "personalization_note": "For wrist pain, a few long-term conditions can be relevant to injury risk or recovery, so this keeps the list short and focused."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "allergy",
+    "personalization_note": "Allergy information is lower priority for wrist pain, but it is still useful to confirm in case treatment is needed."
+  }
+]
+case2: no spurious prefills OK
+eligible pool ids: ['allergy', 'character', 'comorbidities', 'medication', 'onset_circumstance']
+WARN: allergy: natural phrasing equals old example_prompt 'Do you have any allergies?' (not treated as bank echo)
+
+--- case 3: female_pregnancy_eligible ---
+classifier:
+{
+  "ready": true,
+  "category": "NOT_LOCALISED",
+  "confidence": 0.93,
+  "reason": "Mixed focal throat symptom with general systemic malaise; body-diagram routing is not appropriate.",
+  "chiefComplaintSummary": "Patient reports a sore throat and feeling run down.",
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+apply keys: ['chief_complaint', 'presentation_category', 'presenting_complaint_hint']
+eligible pool (female, NOT_LOCALISED ): ['allergy', 'character', 'comorbidities', 'medication', 'pregnancy']
+devise topics:
+[
+  {
+    "topic": "character",
+    "relevance_score": 0.92,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Main symptom is sore throat with fatigue; symptom quality and persistence are the highest-value current gaps."
+  },
+  {
+    "topic": "medication",
+    "relevance_score": 0.74,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Helpful to know what has already been taken or tried for this episode and whether it has helped."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.58,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Relevant background conditions may affect infection risk, severity, and management."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.44,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Lower priority than symptom clarification, but relevant if medicines may be considered for this visit."
+  },
+  {
+    "topic": "pregnancy",
+    "relevance_score": 0.33,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Potentially relevant background factor in a female patient, though less urgent than current symptom details."
+  }
+]
+qg questions:
+[
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "What is your sore throat like?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "It is there all the time",
+        "label": "It is there all the time",
+        "en_label": null
+      },
+      {
+        "value": "It comes and goes",
+        "label": "It comes and goes",
+        "en_label": null
+      },
+      {
+        "value": "It hurts more when I swallow",
+        "label": "It hurts more when I swallow",
+        "en_label": null
+      },
+      {
+        "value": "It feels scratchy or irritated",
+        "label": "It feels scratchy or irritated",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "character",
+    "personalization_note": "The main gap is how the sore throat feels and whether it is constant or comes and goes."
+  },
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "What have you taken or used for this sore throat or for feeling run down?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Paracetamol",
+        "label": "Paracetamol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen",
+        "label": "Ibuprofen",
+        "en_label": null
+      },
+      {
+        "value": "Throat lozenges or throat spray",
+        "label": "Throat lozenges or throat spray",
+        "en_label": null
+      },
+      {
+        "value": "Antibiotics",
+        "label": "Antibiotics",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "It helps to know what has already been tried for this episode of sore throat and fatigue."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Do you have any of these long-term health conditions?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Asthma or COPD",
+        "label": "Asthma or COPD",
+        "en_label": null
+      },
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "Low immunity or immune system treatment",
+        "label": "Low immunity or immune system treatment",
+        "en_label": null
+      },
+      {
+        "value": "Heart disease",
+        "label": "Heart disease",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "comorbidities",
+    "personalization_note": "Long-term health conditions can be relevant background for a sore throat and feeling unwell."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "allergy",
+    "personalization_note": "Allergy information is useful to confirm in case medicines are discussed for this visit."
+  },
+  {
+    "id": "pregnancy",
+    "kind": "yes_no",
+    "prompt": "Is there any chance you could be pregnant?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "pregnancy",
+    "personalization_note": "Pregnancy is a relevant background question for this visit because the patient is female and treatment choices may differ."
+  }
+]
+WARN: allergy: natural phrasing equals old example_prompt 'Do you have any allergies?' (not treated as bank echo)
+pregnancy in devise: True in QG: True
+case3: pregnancy question present OK
+
+--- case 4: wrist_eliquis_search_auto ---
+classifier:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.95,
+  "reason": "Clear focal wrist injury after a fall with extractable anatomy site.",
+  "chiefComplaintSummary": "Patient injured a wrist in a fall yesterday and it remains swollen and bruised. They also report taking Eliquis (apixaban) for a heart condition.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "unknown",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.9,
+      "evidence": "Hurt my wrist yesterday after a fall"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": "Fell and injured wrist.",
+    "duration": "since yesterday",
+    "character": [
+      "swollen",
+      "bruised"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": [
+      "heart condition"
+    ],
+    "weightChange": null,
+    "accClaimSuspected": true,
+    "accCanWork": null
+  }
+}
+apply keys: ['acc_claim_suspected', 'character', 'chief_complaint', 'comorbidities', 'duration', 'onset_circumstance', 'presentation_category', 'presenting_complaint_hint']
+known_collect_values: {'onset_circumstance': 'Fell and injured wrist.', 'character': ['swollen', 'bruised'], 'comorbidities': ['heart condition']}
+case4 tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+devise topics:
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.95,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Highest-value gap: recent injury with swelling/bruising and known apixaban use makes current symptom-treatment medicines especially relevant."
+  },
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.82,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Mechanism is partly known from backfill, but confirming the fall details remains important for wrist injury assessment."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.76,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Swollen and bruised are known, but confirming pain/tenderness and persistence would better characterise the injury."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.52,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "A heart condition is already backfilled; still worth confirmation because background illness may affect management, but lower priority than injury-specific gaps."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.34,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Useful background information for possible treatment planning, though less urgent than mechanism, symptom details, and current medicines."
+  }
+]
+devise ranking brief: [{'topic': 'medication', 'score': 0.95, 'source': 'base_reasoning', 'rationale': 'Highest-value gap: recent injury with swelling/bruising and known apixaban use makes current symptom-treatment medicines especially relevant.'}, {'topic': 'onset_circumstance', 'score': 0.82, 'source': 'base_reasoning', 'rationale': 'Mechanism is partly known from backfill, but confirming the fall details remains important for wrist injury assessment.'}, {'topic': 'character', 'score': 0.76, 'source': 'base_reasoning', 'rationale': 'Swollen and bruised are known, but confirming pain/tenderness and persistence would better characterise the injury.'}, {'topic': 'comorbidities', 'score': 0.52, 'source': 'base_reasoning', 'rationale': 'A heart condition is already backfilled; still worth confirmation because background illness may affect management, but lower priority than injury-specific gaps.'}, {'topic': 'allergy', 'score': 0.34, 'source': 'base_reasoning', 'rationale': 'Useful background information for possible treatment planning, though less urgent than mechanism, symptom details, and current medicines.'}]
+qg questions:
+[
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "Have you taken or used anything for your wrist since the injury?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Paracetamol",
+        "label": "Paracetamol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen or Nurofen",
+        "label": "Ibuprofen or Nurofen",
+        "en_label": null
+      },
+      {
+        "value": "Ice or cold pack",
+        "label": "Ice or cold pack",
+        "en_label": null
+      },
+      {
+        "value": "Bandage or support",
+        "label": "Bandage or support",
+        "en_label": null
+      },
+      {
+        "value": "Nothing",
+        "label": "Nothing",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "This asks about treatment used for the injured wrist today, which is especially relevant because the wrist is still swollen and bruised."
+  },
+  {
+    "id": "onset_circumstance",
+    "kind": "multi_choice",
+    "prompt": "How did you hurt your wrist?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "I fell onto it",
+        "label": "I fell onto it",
+        "en_label": null
+      },
+      {
+        "value": "I twisted it",
+        "label": "I twisted it",
+        "en_label": null
+      },
+      {
+        "value": "I bumped or hit it",
+        "label": "I bumped or hit it",
+        "en_label": null
+      },
+      {
+        "value": "It started after using it a lot",
+        "label": "It started after using it a lot",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "I fell onto it"
+    ],
+    "collect_target_id": "onset_circumstance",
+    "personalization_note": "A fall is already noted, so this confirms the injury mechanism in simple terms and lets the patient correct it if needed."
+  },
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "What is your wrist like now?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Painful",
+        "label": "Painful",
+        "en_label": null
+      },
+      {
+        "value": "Tender to touch",
+        "label": "Tender to touch",
+        "en_label": null
+      },
+      {
+        "value": "Swollen",
+        "label": "Swollen",
+        "en_label": null
+      },
+      {
+        "value": "Bruised",
+        "label": "Bruised",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Swollen",
+      "Bruised"
+    ],
+    "collect_target_id": "character",
+    "personalization_note": "Swelling and bruising are already known, and this confirms those details while checking for pain or tenderness as part of the wrist injury picture."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Do you have any of these long-term health conditions?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Heart condition",
+        "label": "Heart condition",
+        "en_label": null
+      },
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "Kidney disease",
+        "label": "Kidney disease",
+        "en_label": null
+      },
+      {
+        "value": "Bleeding disorder",
+        "label": "Bleeding disorder",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Heart condition"
+    ],
+    "collect_target_id": "comorbidities",
+    "personalization_note": "A heart condition is already mentioned, so this confirms relevant long-term conditions in an editable way."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "Latex",
+        "label": "Latex",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "allergy",
+    "personalization_note": "This is a brief background check for this visit, kept lower priority than the injury-specific questions."
+  }
+]
+WARN: allergy: natural phrasing equals old example_prompt 'Do you have any allergies?' (not treated as bank echo)
+case4 ranking notes: {'searched_naturally': False, 'medication_rank_index': 0, 'comorbidities_rank_index': 3, 'self_reported_web_search': False}
+case4: no tool call under auto — model judged search unnecessary; ranking still reviewed above for reasonableness
+
+done; failures=0

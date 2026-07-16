@@ -1,18 +1,12 @@
 """AuditLog + LillyAiInteraction. See docs/database/DATABASE.md."""
 import uuid
-from typing import Literal
 
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, CreatedAtMixin, TimestampMixin, UUIDPrimaryKeyMixin
-
-ActorKind = Literal["PATIENT", "PRACTITIONER", "AI", "SYSTEM"]
-
-AiOperation = Literal[
-    "INTAKE_CLASSIFY", "REDFLAG_DETECT", "PRECONSULT_SUMMARY", "QUESTION_GENERATION"
-]
+from schemas.literals import ActorKind, AiOperation
 
 
 class AuditLog(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):

@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Optional
 
 from external_systems.clinical_ai import agents as _agents
-from external_systems.clinical_ai.registry import get_eligible_targets
+from external_systems.clinical_ai.registry import targets_for_session_phase
 from engine.helpers.qg_phase_validators import validate_qg_questions
 from schemas.clinical_ai_io import (
     ClassifierInput,
@@ -18,7 +18,6 @@ from schemas.clinical_ai_io import (
     ReviewSummaryResult,
     TranslationResult,
 )
-from schemas.collect_targets import SESSION_TO_COLLECT_PHASE
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 from schemas.topic_candidates import TopicCandidate
@@ -39,8 +38,15 @@ def run_classifier(input: ClassifierInput) -> ClassifierResult:
     return _agents.run_classifier(input)
 
 
-def run_devise_and_prioritise(phase: str, context: dict) -> list[TopicCandidate]:
-    return _agents.run_devise_and_prioritise(phase, context)
+def run_devise_and_prioritise(
+    phase: str,
+    context: dict,
+    *,
+    tool_choice: Optional[str] = None,
+) -> list[TopicCandidate]:
+    return _agents.run_devise_and_prioritise(
+        phase, context, tool_choice=tool_choice
+    )
 
 
 def run_question_generation(input: QuestionGenerationInput) -> QuestionGenerationResult:
@@ -61,7 +67,9 @@ def translate_to_english(
 def build_agent_context(state: SessionState) -> dict:
     """Shared context blob for Classifier / Devise / QG / nurse review."""
     return {
-        "already_known_ids": _already_known_ids(state),
+        # Target id → known text(s) for QG default_value / default_values.
+        # Presence of a target id as a key means already known (prefill-and-confirm).
+        "known_collect_values": _known_collect_values(state),
         "patient_sex": state.patient_sex,
         "chief_complaint": state.chief_complaint,
         "presentation_category": state.presentation_category,
@@ -99,10 +107,15 @@ def devise_then_generate(
     state: SessionState,
     *,
     max_questions: Optional[int] = None,
+    tool_choice: Optional[str] = None,
 ) -> tuple[list[TopicCandidate], list[QuestionField]]:
-    """Pattern C — Devise then Question Generation for one session phase."""
+    """Pattern C — Devise then Question Generation for one session phase.
+
+    ``tool_choice`` is forwarded to Devise only (default auto). Used by rare
+    local plumbing checks — production nodes omit it.
+    """
     context = build_agent_context(state)
-    topics = run_devise_and_prioritise(phase, context)
+    topics = run_devise_and_prioritise(phase, context, tool_choice=tool_choice)
     eligible = _eligible_for_phase(phase, context)
     result = run_question_generation(
         QuestionGenerationInput(
@@ -122,36 +135,68 @@ def devise_then_generate(
 # ---------------------------------------------------------------------------
 
 
-def _already_known_ids(state: SessionState) -> list[str]:
-    known: list[str] = []
-    if state.onset_circumstance is not None:
-        known.append("onset_circumstance")
+def _narrative_text(field: object) -> Optional[str]:
+    if isinstance(field, dict):
+        text = field.get("text")
+        return str(text) if text is not None else None
+    return None
+
+
+def _known_collect_values(state: SessionState) -> dict[str, object]:
+    """Plain values QG uses to populate default_value / default_values.
+
+    Keys are registry collect-target ids (1:1 with SessionState field names
+    where applicable). Presence of a key means the target is already known.
+    """
+    out: dict[str, object] = {}
+    onset = _narrative_text(state.onset_circumstance)
+    if onset:
+        out["onset_circumstance"] = onset
     if state.character:
-        known.append("symptom_characteristics")
+        chars = [t for c in state.character if (t := _narrative_text(c))]
+        if chars:
+            out["character"] = chars
     if state.comorbidities:
-        known.append("comorbidities")
+        comorb = [t for c in state.comorbidities if (t := _narrative_text(c))]
+        if comorb:
+            out["comorbidities"] = comorb
     if state.self_management is not None:
-        known.append("self_management")
+        sm = _narrative_text(state.self_management)
+        if sm:
+            out["self_management"] = sm
     if state.weight_change is not None:
-        known.append("weight_change")
+        out["weight_change"] = state.weight_change
     if state.exacerbating_factors:
-        known.append("exacerbating_factors")
+        ex = [t for c in state.exacerbating_factors if (t := _narrative_text(c))]
+        if ex:
+            out["exacerbating_factors"] = ex
     if state.mitigating_factors:
-        known.append("mitigating_factors")
+        mi = [t for c in state.mitigating_factors if (t := _narrative_text(c))]
+        if mi:
+            out["mitigating_factors"] = mi
+    if state.encounter_medication:
+        meds = [t for c in state.encounter_medication if (t := _narrative_text(c))]
+        if meds:
+            out["medication"] = meds
+    if state.pregnancy_possible is not None:
+        out["pregnancy"] = state.pregnancy_possible
     for fact in state.intake_facts or []:
-        if isinstance(fact, dict) and fact.get("kind"):
-            # soft map — Devise filters by collect target id; kinds are coarse
-            kind = str(fact["kind"]).lower()
-            if "medication" in kind and "medication" not in known:
-                known.append("medication")
-            if "allergy" in kind and "allergy" not in known:
-                known.append("allergy")
-    return known
+        if not isinstance(fact, dict) or not fact.get("kind"):
+            continue
+        kind = str(fact["kind"]).lower()
+        display = fact.get("display")
+        text = _narrative_text(display) if display is not None else None
+        if not text:
+            continue
+        # Usual/ongoing allergy only — medication prefill uses encounter_medication.
+        if "allergy" in kind and "allergy" not in out:
+            out["allergy"] = text
+    return out
 
 
 def _eligible_for_phase(phase: str, context: dict) -> list:
-    collect_phase = SESSION_TO_COLLECT_PHASE.get(phase)
-    if collect_phase is None:
-        return []
-    already = set(context.get("already_known_ids") or [])
-    return get_eligible_targets(collect_phase, already, context.get("patient_sex"))
+    return targets_for_session_phase(
+        phase,
+        context.get("patient_sex"),
+        context.get("presentation_category"),
+    )

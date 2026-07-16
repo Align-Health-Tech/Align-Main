@@ -1,15 +1,13 @@
 """Patient — FHIR: Patient. See docs/database/DATABASE.md."""
 import uuid
 from datetime import date, datetime
-from typing import Literal
 
 from sqlalchemy import Date, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
-PatientKind = Literal["GUEST", "REGISTERED", "DEMO"]
+from schemas.literals import PatientKind
 
 
 class Patient(Base, UUIDPrimaryKeyMixin, TimestampMixin):

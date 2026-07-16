@@ -1,0 +1,606 @@
+=== QG stripped-hints exploratory probe ===
+
+Registry topic ids still passed. Stripped from B only: clinical_hint, example_prompt, suggested_options.
+Note: Devise already excludes example_prompt/suggested_options; this probe targets QG option invention.
+
+classifier:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.97,
+  "reason": "Clear focal wrist injury after a fall with extractable anatomy site.",
+  "chiefComplaintSummary": "Patient injured a wrist in a fall yesterday and it remains swollen and bruised. They also report taking Eliquis (apixaban) for a heart condition.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "unknown",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.9,
+      "evidence": "Hurt my wrist yesterday after a fall"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": "Fell and injured wrist yesterday.",
+    "duration": "since yesterday",
+    "character": [
+      "swollen",
+      "bruised"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": "CONSTANT",
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": [
+      "heart condition"
+    ],
+    "weightChange": null,
+    "accClaimSuspected": true,
+    "accCanWork": null
+  }
+}
+apply keys: ['acc_claim_suspected', 'character', 'chief_complaint', 'comorbidities', 'duration', 'onset_circumstance', 'persistence', 'presentation_category', 'presenting_complaint_hint']
+known_collect_values: {'onset_circumstance': 'Fell and injured wrist yesterday.', 'character': ['swollen', 'bruised'], 'comorbidities': ['heart condition']}
+
+devise topics (shared input to both QG runs):
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.92,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Current symptom treatment is the main unresolved gap after wrist injury; useful to know what has been taken or applied for this problem, while apixaban is background context rather than this target."
+  },
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.84,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Fall is already backfilled, but confirming mechanism details remains high value for a localised wrist injury."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.78,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Swelling and bruising are known, but further symptom character such as pain, tenderness, and persistence still helps prioritise assessment."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.52,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Heart condition is already known; confirmation still has some relevance but is lower priority than injury-specific gaps."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.34,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Useful background safety information, but lower yield than immediate injury details and current symptom-treatment gaps."
+  }
+]
+
+--- A_qg_full_registry_hints ---
+eligible_targets fields present: ['clinical_hint', 'example_prompt', 'free_text_policy', 'suggested_options']
+sample eligible[0]: {'id': 'medication', 'category': 'MEDICATION_MANAGEMENT', 'phase': 'priority', 'clinical_hint': 'Meds for current symptoms only (OTC or prescribed for this visit). Usual/ongoing meds are a separate patient-scoped fact (deferred).', 'example_prompt': 'Are you taking any medicines for your current symptoms?', 'suggested_options': ['Panadol', 'Ibuprofen', 'Voltaren', 'Other'], 'free_text_policy': 'optional_other', 'requires_patient_sex': None}
+qg reason: I prioritised the injury-specific questions first because they are most relevant to a wrist injury after a fall, while still confirming known details that were already provided. I also included lower-priority background questions because there is no question cap in this batch.
+qg questions:
+[
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "What have you taken or used for this wrist injury?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Panadol",
+        "label": "Panadol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen",
+        "label": "Ibuprofen",
+        "en_label": null
+      },
+      {
+        "value": "Voltaren",
+        "label": "Voltaren",
+        "en_label": null
+      },
+      {
+        "value": "Nothing",
+        "label": "Nothing",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "They have a recent wrist injury, so it helps to confirm what they have used for this problem rather than their usual medicines."
+  },
+  {
+    "id": "onset_circumstance",
+    "kind": "multi_choice",
+    "prompt": "How did you hurt your wrist?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "I fell down",
+        "label": "I fell down",
+        "en_label": null
+      },
+      {
+        "value": "I twisted it",
+        "label": "I twisted it",
+        "en_label": null
+      },
+      {
+        "value": "I bumped it",
+        "label": "I bumped it",
+        "en_label": null
+      },
+      {
+        "value": "It came on by itself",
+        "label": "It came on by itself",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "I fell down"
+    ],
+    "collect_target_id": "onset_circumstance",
+    "personalization_note": "They already said the wrist was injured in a fall yesterday, so this confirms how it happened."
+  },
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "How does your wrist feel now?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Sharp pain",
+        "label": "Sharp pain",
+        "en_label": null
+      },
+      {
+        "value": "Dull ache",
+        "label": "Dull ache",
+        "en_label": null
+      },
+      {
+        "value": "Throbbing",
+        "label": "Throbbing",
+        "en_label": null
+      },
+      {
+        "value": "Tender to touch",
+        "label": "Tender to touch",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Other"
+    ],
+    "collect_target_id": "character",
+    "personalization_note": "Swelling and bruising are already known, so this asks about the feeling in the wrist now and keeps the answer editable."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Are you being treated for any long-term health conditions?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "High blood pressure",
+        "label": "High blood pressure",
+        "en_label": null
+      },
+      {
+        "value": "Asthma",
+        "label": "Asthma",
+        "en_label": null
+      },
+      {
+        "value": "Heart conditions",
+        "label": "Heart conditions",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Heart conditions"
+    ],
+    "collect_target_id": "comorbidities",
+    "personalization_note": "A heart condition is already mentioned, so this confirms that background health information in a simple way."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "Insects or stings",
+        "label": "Insects or stings",
+        "en_label": null
+      },
+      {
+        "value": "Latex",
+        "label": "Latex",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "allergy",
+    "personalization_note": "No allergy information is known yet, so this checks for any allergies as part of the priority set."
+  }
+]
+A_qg_full_registry_hints options brief: [{'id': 'medication', 'collect_target_id': 'medication', 'kind': 'multi_choice', 'prompt': 'What have you taken or used for this wrist injury?', 'option_values': ['Panadol', 'Ibuprofen', 'Voltaren', 'Nothing', 'Other'], 'default_value': None, 'default_values': None}, {'id': 'onset_circumstance', 'collect_target_id': 'onset_circumstance', 'kind': 'multi_choice', 'prompt': 'How did you hurt your wrist?', 'option_values': ['I fell down', 'I twisted it', 'I bumped it', 'It came on by itself', 'Other'], 'default_value': None, 'default_values': ['I fell down']}, {'id': 'character', 'collect_target_id': 'character', 'kind': 'multi_choice', 'prompt': 'How does your wrist feel now?', 'option_values': ['Sharp pain', 'Dull ache', 'Throbbing', 'Tender to touch', 'Other'], 'default_value': None, 'default_values': ['Other']}, {'id': 'comorbidities', 'collect_target_id': 'comorbidities', 'kind': 'multi_choice', 'prompt': 'Are you being treated for any long-term health conditions?', 'option_values': ['Diabetes', 'High blood pressure', 'Asthma', 'Heart conditions', 'None of these'], 'default_value': None, 'default_values': ['Heart conditions']}, {'id': 'allergy', 'collect_target_id': 'allergy', 'kind': 'multi_choice', 'prompt': 'Do you have any allergies?', 'option_values': ['Medicines', 'Food', 'Insects or stings', 'Latex', 'No allergies', 'Other'], 'default_value': None, 'default_values': None}]
+
+--- B_qg_ids_only_no_suggestions ---
+eligible_targets fields present: ['free_text_policy']
+sample eligible[0]: {'id': 'medication', 'category': 'MEDICATION_MANAGEMENT', 'phase': 'priority', 'clinical_hint': None, 'example_prompt': None, 'suggested_options': None, 'free_text_policy': 'optional_other', 'requires_patient_sex': None}
+qg reason: I prioritised the main remaining gaps for a wrist injury: what was used for this problem, how the injury happened, how it feels now, then key background checks. Known details were kept as editable prefilled answers so they can be confirmed or changed.
+qg questions:
+[
+  {
+    "id": "medication",
+    "kind": "multi_choice",
+    "prompt": "What have you used for this wrist problem?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Panadol",
+        "label": "Panadol",
+        "en_label": null
+      },
+      {
+        "value": "Ibuprofen",
+        "label": "Ibuprofen",
+        "en_label": null
+      },
+      {
+        "value": "Voltaren",
+        "label": "Voltaren",
+        "en_label": null
+      },
+      {
+        "value": "Nothing yet",
+        "label": "Nothing yet",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "medication",
+    "personalization_note": "This asks about treatment used for the injured wrist today or since the fall, not usual medicines like Eliquis."
+  },
+  {
+    "id": "onset_circumstance",
+    "kind": "multi_choice",
+    "prompt": "How did you hurt your wrist?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "I fell down",
+        "label": "I fell down",
+        "en_label": null
+      },
+      {
+        "value": "I twisted it",
+        "label": "I twisted it",
+        "en_label": null
+      },
+      {
+        "value": "I landed on my hand",
+        "label": "I landed on my hand",
+        "en_label": null
+      },
+      {
+        "value": "I bumped it",
+        "label": "I bumped it",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "I fell down"
+    ],
+    "collect_target_id": "onset_circumstance",
+    "personalization_note": "The story already mentions a fall yesterday, so this confirms the injury mechanism in simple terms."
+  },
+  {
+    "id": "character",
+    "kind": "multi_choice",
+    "prompt": "What is your wrist like now?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Painful",
+        "label": "Painful",
+        "en_label": null
+      },
+      {
+        "value": "Swollen",
+        "label": "Swollen",
+        "en_label": null
+      },
+      {
+        "value": "Bruised",
+        "label": "Bruised",
+        "en_label": null
+      },
+      {
+        "value": "Tender to touch",
+        "label": "Tender to touch",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Swollen",
+      "Bruised"
+    ],
+    "collect_target_id": "character",
+    "personalization_note": "Swelling and bruising are already known, so these are prefilled and the patient can add how the wrist feels now."
+  },
+  {
+    "id": "comorbidities",
+    "kind": "multi_choice",
+    "prompt": "Do you have any long-term health conditions?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Heart condition",
+        "label": "Heart condition",
+        "en_label": null
+      },
+      {
+        "value": "Diabetes",
+        "label": "Diabetes",
+        "en_label": null
+      },
+      {
+        "value": "Asthma or lung disease",
+        "label": "Asthma or lung disease",
+        "en_label": null
+      },
+      {
+        "value": "Kidney disease",
+        "label": "Kidney disease",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": [
+      "Heart condition"
+    ],
+    "collect_target_id": "comorbidities",
+    "personalization_note": "A heart condition is already mentioned, so this is prefilled to confirm that background history."
+  },
+  {
+    "id": "allergy",
+    "kind": "multi_choice",
+    "prompt": "Do you have any allergies?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Medicines",
+        "label": "Medicines",
+        "en_label": null
+      },
+      {
+        "value": "Food",
+        "label": "Food",
+        "en_label": null
+      },
+      {
+        "value": "No allergies",
+        "label": "No allergies",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "allergy",
+    "personalization_note": "This is a brief background safety check because no allergy information is recorded yet."
+  }
+]
+B_qg_ids_only_no_suggestions options brief: [{'id': 'medication', 'collect_target_id': 'medication', 'kind': 'multi_choice', 'prompt': 'What have you used for this wrist problem?', 'option_values': ['Panadol', 'Ibuprofen', 'Voltaren', 'Nothing yet', 'Other'], 'default_value': None, 'default_values': None}, {'id': 'onset_circumstance', 'collect_target_id': 'onset_circumstance', 'kind': 'multi_choice', 'prompt': 'How did you hurt your wrist?', 'option_values': ['I fell down', 'I twisted it', 'I landed on my hand', 'I bumped it', 'Other'], 'default_value': None, 'default_values': ['I fell down']}, {'id': 'character', 'collect_target_id': 'character', 'kind': 'multi_choice', 'prompt': 'What is your wrist like now?', 'option_values': ['Painful', 'Swollen', 'Bruised', 'Tender to touch', 'Other'], 'default_value': None, 'default_values': ['Swollen', 'Bruised']}, {'id': 'comorbidities', 'collect_target_id': 'comorbidities', 'kind': 'multi_choice', 'prompt': 'Do you have any long-term health conditions?', 'option_values': ['Heart condition', 'Diabetes', 'Asthma or lung disease', 'Kidney disease', 'None of these'], 'default_value': None, 'default_values': ['Heart condition']}, {'id': 'allergy', 'collect_target_id': 'allergy', 'kind': 'multi_choice', 'prompt': 'Do you have any allergies?', 'option_values': ['Medicines', 'Food', 'No allergies', 'Other'], 'default_value': None, 'default_values': None}]
+
+--- comparison notes (human) ---
+[
+  {
+    "target": "allergy",
+    "full_options": [
+      "Medicines",
+      "Food",
+      "Insects or stings",
+      "Latex",
+      "No allergies",
+      "Other"
+    ],
+    "stripped_options": [
+      "Medicines",
+      "Food",
+      "No allergies",
+      "Other"
+    ],
+    "options_identical": false,
+    "full_prompt": "Do you have any allergies?",
+    "stripped_prompt": "Do you have any allergies?",
+    "prompt_identical": true
+  },
+  {
+    "target": "character",
+    "full_options": [
+      "Sharp pain",
+      "Dull ache",
+      "Throbbing",
+      "Tender to touch",
+      "Other"
+    ],
+    "stripped_options": [
+      "Painful",
+      "Swollen",
+      "Bruised",
+      "Tender to touch",
+      "Other"
+    ],
+    "options_identical": false,
+    "full_prompt": "How does your wrist feel now?",
+    "stripped_prompt": "What is your wrist like now?",
+    "prompt_identical": false
+  },
+  {
+    "target": "comorbidities",
+    "full_options": [
+      "Diabetes",
+      "High blood pressure",
+      "Asthma",
+      "Heart conditions",
+      "None of these"
+    ],
+    "stripped_options": [
+      "Heart condition",
+      "Diabetes",
+      "Asthma or lung disease",
+      "Kidney disease",
+      "None of these"
+    ],
+    "options_identical": false,
+    "full_prompt": "Are you being treated for any long-term health conditions?",
+    "stripped_prompt": "Do you have any long-term health conditions?",
+    "prompt_identical": false
+  },
+  {
+    "target": "medication",
+    "full_options": [
+      "Panadol",
+      "Ibuprofen",
+      "Voltaren",
+      "Nothing",
+      "Other"
+    ],
+    "stripped_options": [
+      "Panadol",
+      "Ibuprofen",
+      "Voltaren",
+      "Nothing yet",
+      "Other"
+    ],
+    "options_identical": false,
+    "full_prompt": "What have you taken or used for this wrist injury?",
+    "stripped_prompt": "What have you used for this wrist problem?",
+    "prompt_identical": false
+  },
+  {
+    "target": "onset_circumstance",
+    "full_options": [
+      "I fell down",
+      "I twisted it",
+      "I bumped it",
+      "It came on by itself",
+      "Other"
+    ],
+    "stripped_options": [
+      "I fell down",
+      "I twisted it",
+      "I landed on my hand",
+      "I bumped it",
+      "Other"
+    ],
+    "options_identical": false,
+    "full_prompt": "How did you hurt your wrist?",
+    "stripped_prompt": "How did you hurt your wrist?",
+    "prompt_identical": true
+  }
+]
+Interpretation: does stripping suggested_options/example_prompt yield more tailored options (e.g. anticoagulant-aware meds), or does the model still converge on the same Panadol/Ibuprofen-style lists from prior knowledge / prompt examples?
+
+done; exploratory (exit 0)

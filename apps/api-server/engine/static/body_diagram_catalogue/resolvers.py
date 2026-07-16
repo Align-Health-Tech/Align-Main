@@ -1,26 +1,23 @@
 """Prefill + coding resolvers over the combined catalogue lists."""
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Optional, get_args
 
 from pydantic import BaseModel
 
 from engine.static.body_diagram_catalogue.types import (
     PrefillMapping,
     RegionCoding,
-    Side,
-    Surface,
     SexVariant,
 )
 from schemas.clinical_ai_io import LocalisedAnatomySite
 from schemas.jsonb_fields import CodedField
+from schemas.literals import Laterality, Side, Surface
 
 from . import arms, face, legs_back, legs_front, torso_back, torso_front
 
-Laterality = Literal["left", "right", "bilateral"]
-
-_SIDES = frozenset({"left", "right", "both", "midline", "unknown"})
-_SURFACES = frozenset({"front", "back", "inner", "outer", "unknown"})
+_SIDES = frozenset(get_args(Side))
+_SURFACES = frozenset(get_args(Surface))
 
 PREFILL_MAPPINGS: list[PrefillMapping] = [
     *arms.PREFILL_MAPPINGS,

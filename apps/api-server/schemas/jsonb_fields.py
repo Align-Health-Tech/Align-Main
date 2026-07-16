@@ -1,14 +1,12 @@
-"""NarrativeField and CodedField — shared jsonb column shapes."""
-from typing import Literal, Optional
+"""NarrativeField and CodedField — shared jsonb column shapes.
+
+``AnswerSource`` lives in ``schemas.literals``.
+"""
+from typing import Optional
 
 from pydantic import BaseModel
 
-# Where NarrativeField.text came from.
-# - option: patient tapped a pre-generated choice
-# - free_text: patient typed (incl. "Other" escape)
-# - ai_summary: LLM-authored synthesis (e.g. chief_complaint at classifier
-#   ready:true) — not patient words; dashboard may label accordingly
-AnswerSource = Literal["option", "free_text", "ai_summary"]
+from schemas.literals import AnswerSource
 
 
 class NarrativeField(BaseModel):

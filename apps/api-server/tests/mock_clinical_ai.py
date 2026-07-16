@@ -34,15 +34,11 @@ class ClinicalAiMock:
         self.nl_classifier_calls = 0
         self.clarify_qg_calls = 0
         self.nl_clarify_qg_calls = 0
-        self.devise_calls_by_phase: dict[str, int] = defaultdict(int)
         self.qg_calls_by_phase: dict[str, int] = defaultdict(int)
         self.nurse_calls = 0
         self.translate_calls = 0
         self._pc_script: list[ClassifierResult] | None = None
         self._nl_script: list[ClassifierResult] | None = None
-
-    def reset(self) -> None:
-        self.__init__()
 
     def set_classifier_script(self, results: list[ClassifierResult]) -> None:
         self._pc_script = list(results)
@@ -110,9 +106,8 @@ class ClinicalAiMock:
         raise ValueError(f"unexpected classifier prompt_name: {input.prompt_name!r}")
 
     def run_devise_and_prioritise(
-        self, phase: str, context: dict
+        self, phase: str, context: dict, **_kwargs: object
     ) -> list[TopicCandidate]:
-        self.devise_calls_by_phase[phase] += 1
         return list(TOPICS_BY_PHASE.get(phase, []))
 
     def run_question_generation(

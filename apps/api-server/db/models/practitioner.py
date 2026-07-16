@@ -1,14 +1,12 @@
 """Practitioner + PractitionerComment. See docs/database/DATABASE.md."""
 import uuid
-from typing import Literal
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
-PractitionerRole = Literal["DOCTOR", "NURSE", "GP", "PHYSICIAN", "RECEPTIONIST"]
+from schemas.literals import PractitionerRole
 
 
 class Practitioner(Base, UUIDPrimaryKeyMixin, TimestampMixin):

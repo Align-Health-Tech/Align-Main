@@ -1,9 +1,12 @@
-"""TopicCandidate — Devise output / SessionState.prioritised_topics row."""
-from typing import Literal, Optional
+"""TopicCandidate — Devise output / SessionState.prioritised_topics row.
+
+``TopicSource`` lives in ``schemas.literals``.
+"""
+from typing import Optional
 
 from pydantic import BaseModel
 
-TopicSource = Literal["web_search", "base_reasoning"]
+from schemas.literals import TopicSource
 
 
 class TopicCandidate(BaseModel):

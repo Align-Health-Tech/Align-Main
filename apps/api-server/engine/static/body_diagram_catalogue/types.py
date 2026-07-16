@@ -1,13 +1,12 @@
-"""Shared types for the body diagram catalogue package."""
-from __future__ import annotations
+"""Shared types for the body diagram catalogue package.
 
-from typing import Literal, Optional
+``Side`` / ``Surface`` / ``SexVariant`` live in ``schemas.literals``.
+"""
+from __future__ import annotations
 
 from pydantic import BaseModel
 
-Side = Literal["left", "right", "both", "midline", "unknown"]
-Surface = Literal["front", "back", "inner", "outer", "unknown"]
-SexVariant = Optional[Literal["male", "female"]]  # None = unisex diagram
+from schemas.literals import Side, Surface, SexVariant
 
 
 class PrefillMapping(BaseModel):

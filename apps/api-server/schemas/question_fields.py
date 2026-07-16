@@ -4,46 +4,14 @@
 **not** LangGraph nodes. Routers construct those NextSteps from
 `engine/static/deterministic_forms.py`. Every other phase value is produced by a
 graph `interrupt()` (or `complete` for terminal).
+
+Literal vocabularies live in ``schemas.literals``.
 """
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
-# Which phase produced a given NextStep. Distinct from step_type —
-# several different phases share the same step_type (e.g. priority_questions,
-# redflag_screening, and ice are all "question_batch").
-# Internal-only graph steps (review nurse summary) never appear here; they
-# may still show up in SessionState.completed_phases as plain strings.
-Phase = Literal[
-    "consent",  # router-constructed (deterministic_forms)
-    "presenting_complaint",
-    "localised_detail",
-    "non_localised_detail",
-    "priority_questions",
-    "redflag_screening",
-    "optional_questions",
-    "ice",
-    "survey",  # router-constructed (deterministic_forms)
-]
-
-
-# What the frontend must render for this NextStep.
-StepType = Literal[
-    "consent",  # router-constructed
-    "question_batch",  # graph interrupt
-    "body_diagram",  # SVG tap — localised_detail round 1
-    "survey",  # router-constructed
-    "complete",
-]
-
-# What kind of UI control a single question needs.
-QuestionKind = Literal[
-    "single_choice",
-    "multi_choice",
-    "yes_no",
-    "consent_accept",
-    "free_text",
-]
+from schemas.literals import Phase, QuestionKind, StepType
 
 
 class QuestionOption(BaseModel):
@@ -59,8 +27,12 @@ class QuestionField(BaseModel):
     en_prompt: Optional[str] = None  # only set when session_language != "en"
     options: Optional[list[QuestionOption]] = None
     required: bool = True
-    # Prefill the frontend input; patient may accept as-is or edit before submit.
+    # Prefill for single-value kinds (single_choice / yes_no / free_text).
+    # Patient may accept as-is or edit before submit.
     default_value: Optional[str] = None
+    # Prefill for multi_choice — list of pre-selected option values.
+    # Kept separate from default_value: kind already discriminates shape.
+    default_values: Optional[list[str]] = None
     # Which SessionState field this answer ultimately populates — lets the
     # engine route an incoming answer without the frontend knowing anything
     # about internal state shape.

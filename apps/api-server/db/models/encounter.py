@@ -1,15 +1,12 @@
 """Encounter — FHIR: Encounter. `id` is also the LangGraph thread_id. See docs/database/DATABASE.md."""
 import uuid
-from typing import Literal
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
-EncounterStatus = Literal["NOT_STARTED", "IN_PROGRESS", "AWAITING_REVIEW", "COMPLETED"]
-PresentationCategory = Literal["LOCALISED", "NOT_LOCALISED"]
+from schemas.literals import EncounterStatus, PresentationCategory
 
 
 class Encounter(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -44,6 +41,9 @@ class Encounter(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     mitigating_factors: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     exacerbating_factors: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     comorbidities: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    # Meds for this visit's symptoms (NarrativeField dumps). Usual/ongoing meds
+    # are intake_fact_items kind=MEDICATION — do not conflate.
+    encounter_medication: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     ice_idea: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     ice_concern: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     ice_expectation: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
@@ -51,6 +51,7 @@ class Encounter(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     encounter_summary: Mapped[str | None] = mapped_column(String, nullable=True)
     acc_claim_suspected: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     acc_can_work: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    pregnancy_possible: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Encounter id={self.id} status={self.status}>"

@@ -1,0 +1,144 @@
+=== open Devise exploratory probe ===
+
+Exploratory (not pass/fail). Open prompt has no registry pool. Production engine still uses registry priority_questions only.
+
+classifier:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.97,
+  "reason": "Clear focal wrist injury after a fall with extractable anatomy site.",
+  "chiefComplaintSummary": "Patient injured a wrist in a fall yesterday and it remains swollen and bruised. They also report taking Eliquis (apixaban) for a heart condition.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "unknown",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.9,
+      "evidence": "Hurt my wrist yesterday after a fall"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": "Fell and hurt the wrist.",
+    "duration": "since yesterday",
+    "character": [
+      "swollen",
+      "bruised"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": [
+      "heart condition"
+    ],
+    "weightChange": null,
+    "accClaimSuspected": true,
+    "accCanWork": null
+  }
+}
+apply keys: ['acc_claim_suspected', 'character', 'chief_complaint', 'comorbidities', 'duration', 'onset_circumstance', 'presentation_category', 'presenting_complaint_hint']
+context.known_collect_values: {'onset_circumstance': 'Fell and hurt the wrist.', 'character': ['swollen', 'bruised'], 'comorbidities': ['heart condition']}
+context.presentation_category: LOCALISED
+context.chief_complaint: {'text': 'Patient injured a wrist in a fall yesterday and it remains swollen and bruised. They also report taking Eliquis (apixaban) for a heart condition.', 'source': 'ai_summary'}
+
+--- A_open_devise (no candidate_pool) ---
+A_open tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+devise topics:
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.97,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Named apixaban materially affects treatment safety after a fall; confirm current medicines, dose, and any other bleeding-risk drugs."
+  },
+  {
+    "topic": "wrist_function",
+    "relevance_score": 0.92,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "High-value acute injury gap: ability to move/use the wrist and hand helps gauge severity and urgency beyond swelling/bruising."
+  },
+  {
+    "topic": "pain_severity",
+    "relevance_score": 0.88,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Core acute injury detail still missing; pain intensity and whether it is worsening help prioritise assessment."
+  },
+  {
+    "topic": "injury_mechanism",
+    "relevance_score": 0.82,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "A fall is known, but mechanism details such as how they landed and whether they caught themselves are important for likely wrist injury pattern."
+  },
+  {
+    "topic": "bleeding_extent",
+    "relevance_score": 0.79,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Because the patient is anticoagulated and already bruised, extent/progression of bruising or swelling is a useful intake safety context."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.54,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Lower priority than acute injury details, but still useful background for likely analgesia or imaging-related care planning."
+  }
+]
+A_open ranking brief: [{'topic': 'medication', 'score': 0.97, 'source': 'base_reasoning', 'rationale': 'Named apixaban materially affects treatment safety after a fall; confirm current medicines, dose, and any other bleeding-risk drugs.'}, {'topic': 'wrist_function', 'score': 0.92, 'source': 'base_reasoning', 'rationale': 'High-value acute injury gap: ability to move/use the wrist and hand helps gauge severity and urgency beyond swelling/bruising.'}, {'topic': 'pain_severity', 'score': 0.88, 'source': 'base_reasoning', 'rationale': 'Core acute injury detail still missing; pain intensity and whether it is worsening help prioritise assessment.'}, {'topic': 'injury_mechanism', 'score': 0.82, 'source': 'base_reasoning', 'rationale': 'A fall is known, but mechanism details such as how they landed and whether they caught themselves are important for likely wrist injury pattern.'}, {'topic': 'bleeding_extent', 'score': 0.79, 'source': 'base_reasoning', 'rationale': 'Because the patient is anticoagulated and already bruised, extent/progression of bruising or swelling is a useful intake safety context.'}, {'topic': 'allergy', 'score': 0.54, 'source': 'base_reasoning', 'rationale': 'Lower priority than acute injury details, but still useful background for likely analgesia or imaging-related care planning.'}]
+A_open notes: {'topic_count': 6, 'searched': False, 'self_reported_web_search': False, 'topic_ids': ['medication', 'wrist_function', 'pain_severity', 'injury_mechanism', 'bleeding_extent', 'allergy'], 'non_registry_looking_ids': ['wrist_function', 'pain_severity', 'injury_mechanism', 'bleeding_extent']}
+
+--- B_registry_devise (control) ---
+B_registry tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+devise topics:
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.88,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Top gap: current meds taken for this injury matter for urgent care planning; anticoagulant use is mentioned but this target focuses on symptom-treatment meds and remains unknown."
+  },
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.76,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Mechanism is partly known from backfill, but confirming the fall details is still high value for a localised wrist injury."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.68,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Some features are known (swollen, bruised), but pain/tenderness and persistence details still help characterise the wrist injury."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.42,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Heart condition is already backfilled; confirmation is useful but lower priority than unresolved injury-specific gaps."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.31,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Background safety information is useful, but less urgent than mechanism, symptom details, and current treatment for this presentation."
+  }
+]
+B_registry ranking brief: [{'topic': 'medication', 'score': 0.88, 'source': 'base_reasoning', 'rationale': 'Top gap: current meds taken for this injury matter for urgent care planning; anticoagulant use is mentioned but this target focuses on symptom-treatment meds and remains unknown.'}, {'topic': 'onset_circumstance', 'score': 0.76, 'source': 'base_reasoning', 'rationale': 'Mechanism is partly known from backfill, but confirming the fall details is still high value for a localised wrist injury.'}, {'topic': 'character', 'score': 0.68, 'source': 'base_reasoning', 'rationale': 'Some features are known (swollen, bruised), but pain/tenderness and persistence details still help characterise the wrist injury.'}, {'topic': 'comorbidities', 'score': 0.42, 'source': 'base_reasoning', 'rationale': 'Heart condition is already backfilled; confirmation is useful but lower priority than unresolved injury-specific gaps.'}, {'topic': 'allergy', 'score': 0.31, 'source': 'base_reasoning', 'rationale': 'Background safety information is useful, but less urgent than mechanism, symptom details, and current treatment for this presentation.'}]
+B_registry notes: {'topic_count': 5, 'searched': False, 'self_reported_web_search': False, 'topic_ids': ['medication', 'onset_circumstance', 'character', 'comorbidities', 'allergy']}
+
+--- comparison notes (human) ---
+{'open_topic_count': 6, 'registry_topic_count': 5, 'open_ids': ['medication', 'wrist_function', 'pain_severity', 'injury_mechanism', 'bleeding_extent', 'allergy'], 'registry_ids': ['medication', 'onset_circumstance', 'character', 'comorbidities', 'allergy'], 'shared_ids': ['allergy', 'medication'], 'open_only': ['bleeding_extent', 'injury_mechanism', 'pain_severity', 'wrist_function'], 'registry_only': ['character', 'comorbidities', 'onset_circumstance'], 'open_top': ['medication', 'wrist_function', 'pain_severity'], 'registry_top': ['medication', 'onset_circumstance', 'character']}
+Interpretation: does open Devise propose sensible gaps without a pool? Does it search more? Does it invent non-registry topic keys that would need a mapper before QG/apply?
+
+done; exploratory (exit 0)

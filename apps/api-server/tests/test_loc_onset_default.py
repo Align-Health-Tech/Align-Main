@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers.apply_answers import apply_answers
+from engine.helpers.apply import apply_answers
 from engine.runner import SessionRunner
 from engine.static.onset_timing import ONSET_TIMING_OPTIONS
 from schemas.clinical_ai_io import (

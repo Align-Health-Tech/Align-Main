@@ -16,10 +16,11 @@ erDiagram
  
     Patient ||--|| Encounter         : "1:1 per QR scan"
     Patient ||--o{ Consent           : accepts
+    Patient ||--o{ IntakeFactItem    : "persistent patient facts"
  
     Encounter ||--o{ BodyStructure       : "affected sites"
     Encounter ||--o{ Flag                : "safety flags"
-    Encounter ||--o{ IntakeFactItem      : "patient-stated facts"
+    Encounter o|--o{ IntakeFactItem      : "optional first-noted provenance"
     Encounter ||--o{ PractitionerComment : "clinician notes"
     Encounter ||--o{ SurveyResponse      : "post-visit answers"
     Encounter ||--o{ LillyAiInteraction  : "AI call log"
@@ -105,7 +106,7 @@ All extension/PMS-linked fields above are nullable — collection path (self-ent
 
 **FHIR: `Encounter`**. The session — `id` doubles as the LangGraph `thread_id`, since there's always exactly one LangGraph session per encounter.
 
-**NarrativeField / `AnswerSource`** (Python: `schemas/jsonb_fields.py`): shared jsonb shape `{text, en_text?, source?}` used by several encounter columns and related tables.
+**NarrativeField / `AnswerSource`** (Python: `NarrativeField` in `schemas/jsonb_fields.py`; `AnswerSource` in `schemas/literals.py`): shared jsonb shape `{text, en_text?, source?}` used by several encounter columns and related tables.
 
 | `source` value | Meaning |
 | -------------- | ------- |
@@ -125,10 +126,10 @@ Omit `source` only where the column historically never recorded origin (e.g. som
 | `duration`, `persistence`, `progression`, `onset_circumstance`, `self_management` | jsonb, `{text, source}` or `{text, en_text, source}` — `source` is `"option"` (patient picked from LLM-generated multiple-choice options that already carry both languages, so `en_text` is just stored alongside) or `"free_text"` (patient picked "Other" and typed something, so `en_text` comes from an actual translation call) |
 | `severity_score`, `functional_impact_score`                                       | Integer scalars — no translation needed                                                                                                                                                                                                                                                                                              |
 | `weight_change`                                                                   | Free-text string — patients rarely report an exact number                                                                                                                                                                                                                                                                            |
-| `character`, `mitigating_factors`, `exacerbating_factors`, `comorbidities`        | jsonb holding a JSON array of `{text, source}` / `{text, en_text, source}` — not a Postgres `jsonb[]` column. `source` matters since one answer can mix `"option"` elements with a single `"free_text"` element                                                                                                                      |
+| `character`, `mitigating_factors`, `exacerbating_factors`, `comorbidities`, `encounter_medication` | jsonb holding a JSON array of `{text, source}` / `{text, en_text, source}` — not a Postgres `jsonb[]` column. `source` matters since one answer can mix `"option"` elements with a single `"free_text"` element. `encounter_medication` = meds for **this** visit's symptoms (distinct from `intake_fact_items` `kind=MEDICATION` = usual/ongoing meds) |
 | `ice_idea`, `ice_concern`, `ice_expectation`                                      | jsonb, `{text}` or `{text, en_text}`                                                                                                                                                                                                                                                                                                 |
 | `encounter_summary`                                                               | Free-text string, generated directly in English — no `text`/`en_text` wrapper, not jsonb                                                                                                                                                                                                                                             |
-| `acc_claim_suspected`, `acc_can_work`                                             | NZ ACC-specific fields                                                                                                                                                                                                                                                                                                               |
+| `acc_claim_suspected`, `acc_can_work`, `pregnancy_possible`                       | Booleans — ACC fields + pregnancy possibility (female patients; `null` = not asked / unknown)                                                                                                                                                                                                                                        |
 | `created_at`, `updated_at`                                                        | Timestamps                                                                                                                                                                                                                                                                                                                           |
 
 
@@ -188,14 +189,18 @@ Child of `body_structures` — one row per site the pain radiates to.
 
 ### `intake_fact_items`
 
-Patient-stated facts (allergies, meds, past conditions) — distinct from the current complaint captured on `Encounter`.
+Persistent **patient-scoped** facts (allergies, usual meds, past conditions) —
+not tied to a single visit. Distinct from the current complaint / visit-scoped
+fields on `Encounter` (e.g. `encounter_medication` for meds taken for *this*
+symptom).
 
 
 | Column                                     | Purpose                                                                                                                                                                                                                      |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `encounter_id`, `organization_id`          | Scope                                                                                                                                                                                                                        |
-| `kind`                                     | `ALLERGY | MEDICATION | CONDITION | PROCEDURE | IMMUNIZATION | FAMILY_HISTORY | SOCIAL_HISTORY | VITAL_SIGN | OTHER_OBSERVATION`                                                                                             |
-| `source`                                   | `PATIENT_INTAKE | LILLY_EXTRACTED | PRACTITIONER_ENTERED`                                                                                                                                                                    |
+| `patient_id`, `organization_id`            | **Scope** — primary access key is the patient                                                                                                                                                                                |
+| `encounter_id`                             | **Nullable provenance** — "first noted in this encounter"; not the access-scoping key                                                                                                                                        |
+| `kind`                                     | `ALLERGY \| MEDICATION \| CONDITION \| PROCEDURE \| FAMILY_HISTORY \| SOCIAL_HISTORY` — `MEDICATION` here means **usual/ongoing** meds (FHIR `MedicationStatement`), not visit-symptom meds                                  |
+| `source`                                   | `PATIENT_INTAKE \| LILLY_EXTRACTED \| PRACTITIONER_ENTERED`                                                                                                                                                                  |
 | `display`                                  | jsonb, `{text}` or `{text, en_text}` — the patient-stated fact itself (e.g. "penicillin"). Same `text` / `en_text` NarrativeField core as other free-form facts, but typically **no** `source` (unlike `encounters.chief_complaint`, which carries `"free_text"` / `"ai_summary"`). Distinct from `fhir_display`, which is the clinical/coded term this maps to |
 | `fhir_system`, `fhir_code`, `fhir_display` | Coding, same pattern as `flags`                                                                                                                                                                                          |
 | `created_at`, `updated_at`                 | Timestamps                                                                                                                                                                                                                   |
@@ -204,15 +209,14 @@ Patient-stated facts (allergies, meds, past conditions) — distinct from the cu
 **FHIR mapping is per-`kind`, not one resource** — this table stands in for several logical FHIR resources:
 
 
-| `kind`                                                | FHIR resource                        |
-| ----------------------------------------------------- | ------------------------------------ |
-| `ALLERGY`                                             | `AllergyIntolerance`                 |
-| `MEDICATION`                                          | `MedicationStatement`                |
-| `CONDITION`                                           | `Condition`                          |
-| `PROCEDURE`                                           | `Procedure`                          |
-| `IMMUNIZATION`                                        | `Immunization`                       |
-| `FAMILY_HISTORY`                                      | `FamilyMemberHistory`                |
-| `SOCIAL_HISTORY` / `VITAL_SIGN` / `OTHER_OBSERVATION` | `Observation` (different `category`) |
+| `kind`           | FHIR resource         |
+| ---------------- | --------------------- |
+| `ALLERGY`        | `AllergyIntolerance`  |
+| `MEDICATION`     | `MedicationStatement` (usual/ongoing — not `encounters.encounter_medication`) |
+| `CONDITION`      | `Condition`           |
+| `PROCEDURE`      | `Procedure`           |
+| `FAMILY_HISTORY` | `FamilyMemberHistory` |
+| `SOCIAL_HISTORY` | `Observation` (social-history category) |
 
 
 No need to split this into separate tables now — `kind` is the routing key for a future export script.

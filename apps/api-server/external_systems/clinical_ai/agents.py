@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from external_systems.clinical_ai.llm_client import run_agent, run_agent_with_tools
 from external_systems.clinical_ai.registry import (
     REDFLAG_SUBCATEGORIES,
-    get_eligible_targets,
+    targets_for_session_phase,
 )
 from external_systems.clinical_ai.tools import web_search
 from schemas.collect_targets import SESSION_TO_COLLECT_PHASE
@@ -20,7 +20,8 @@ from schemas.clinical_ai_io import (
     ReviewSummaryResult,
     TranslationResult,
 )
-from schemas.topic_candidates import TopicCandidate, TopicSource
+from schemas.literals import TopicSource
+from schemas.topic_candidates import TopicCandidate
 
 __all__ = [
     "run_classifier",
@@ -33,11 +34,31 @@ __all__ = [
 
 def run_classifier(input: ClassifierInput) -> ClassifierResult:
     """LOCALISED vs NOT_LOCALISED (or non-localised buckets). ready=False → engine clarify."""
-    return run_agent(
+    result = run_agent(
         "classifier",
         input.prompt_name,
         {"conversation": input.conversation, "context": input.context},
         ClassifierResult,
+    )
+    if input.prompt_name == "non_localised_categoriser":
+        return _null_pc_only_fields(result)
+    return result
+
+
+def _null_pc_only_fields(result: ClassifierResult) -> ClassifierResult:
+    """NL categoriser must not carry PC-shaped fields."""
+    if (
+        result.chief_complaint_summary is None
+        and result.localised_anatomy_sites is None
+        and result.encounter_intake_supplement is None
+    ):
+        return result
+    return result.model_copy(
+        update={
+            "chief_complaint_summary": None,
+            "localised_anatomy_sites": None,
+            "encounter_intake_supplement": None,
+        }
     )
 
 
@@ -98,11 +119,13 @@ class _DeviseTopicsResult(BaseModel):
 
 
 def _get_candidate_pool(phase: str, context: dict) -> list[dict]:
-    collect_phase = SESSION_TO_COLLECT_PHASE.get(phase)
-    if collect_phase is not None:
-        already_known = set(context.get("already_known_ids", []))
-        patient_sex = context.get("patient_sex")
-        targets = get_eligible_targets(collect_phase, already_known, patient_sex)
+    """Devise pool: collect targets (id/category/hint) or redflag subcategories."""
+    if phase in SESSION_TO_COLLECT_PHASE:
+        targets = targets_for_session_phase(
+            phase,
+            context.get("patient_sex"),
+            context.get("presentation_category"),
+        )
         return [t.model_dump(include=_DEVISE_TARGET_FIELDS) for t in targets]
 
     if phase == "redflag_screening":
@@ -111,14 +134,24 @@ def _get_candidate_pool(phase: str, context: dict) -> list[dict]:
     return []
 
 
-def run_devise_and_prioritise(phase: str, context: dict) -> list[TopicCandidate]:
-    """Rank topics for this phase. Uses web_search; is_red_flag set for redflag_screening."""
+def run_devise_and_prioritise(
+    phase: str,
+    context: dict,
+    *,
+    tool_choice: Optional[str] = None,
+) -> list[TopicCandidate]:
+    """Rank topics for this phase. Uses web_search; is_red_flag set for redflag_screening.
+
+    ``tool_choice`` defaults to model auto (None). Pass ``\"web_search\"`` only
+    for rare plumbing checks — not habitual production or smoke paths.
+    """
     raw = run_agent_with_tools(
         "devise_and_prioritise",
         phase,
         {"context": context, "candidate_pool": _get_candidate_pool(phase, context)},
         _DeviseTopicsResult,
         tools=[web_search],
+        tool_choice=tool_choice,
     )
     is_red_flag = phase == "redflag_screening"
     return [

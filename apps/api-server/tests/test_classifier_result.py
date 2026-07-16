@@ -1,4 +1,4 @@
-"""ClassifierResult aliases, supplement backfill, already_known_ids."""
+"""ClassifierResult aliases, supplement backfill, known_collect_values."""
 from __future__ import annotations
 
 import unittest
@@ -231,9 +231,40 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
         self.assertNotIn("presentation_category", updates)
         self.assertNotIn("chief_complaint", updates)
 
+    def test_null_pc_only_fields_strips_nl_echo(self) -> None:
+        from external_systems.clinical_ai.agents import _null_pc_only_fields
 
-class TestAlreadyKnownFromSupplement(unittest.TestCase):
-    def test_backfill_excludes_registry_targets(self) -> None:
+        dirty = ClassifierResult(
+            ready=True,
+            category="SYSTEMIC",
+            confidence=0.9,
+            reason="fever",
+            chief_complaint_summary="SHOULD_NULL",
+            localised_anatomy_sites=[
+                LocalisedAnatomySite(
+                    body_part="wrist",
+                    side="right",
+                    surface="unknown",
+                    major_region="arm",
+                    confidence=0.9,
+                    evidence="n/a",
+                )
+            ],
+            encounter_intake_supplement=EncounterIntakeSupplement(
+                character=["sharp"]
+            ),
+        )
+        clean = _null_pc_only_fields(dirty)
+        self.assertIsNone(clean.chief_complaint_summary)
+        self.assertIsNone(clean.localised_anatomy_sites)
+        self.assertIsNone(clean.encounter_intake_supplement)
+        self.assertEqual(clean.category, "SYSTEMIC")
+        self.assertEqual(clean.reason, "fever")
+
+
+class TestKnownCollectValuesFromSupplement(unittest.TestCase):
+    def test_backfill_marks_known_but_keeps_targets_eligible(self) -> None:
+        """known_collect_values keys are ranking/prefill signal — not an exclusion filter."""
         state = SessionState(
             session_id="s", patient_id="p", organization_id="o"
         )
@@ -253,12 +284,12 @@ class TestAlreadyKnownFromSupplement(unittest.TestCase):
         updates = apply_classifier_result(state, result)
         merged = state.model_copy(update=updates)
         ctx = build_agent_context(merged)
-        known = set(ctx["already_known_ids"])
+        known = set(ctx["known_collect_values"])
         self.assertEqual(
             known,
             {
                 "onset_circumstance",
-                "symptom_characteristics",
+                "character",
                 "comorbidities",
                 "self_management",
                 "weight_change",
@@ -266,19 +297,78 @@ class TestAlreadyKnownFromSupplement(unittest.TestCase):
                 "mitigating_factors",
             },
         )
+        self.assertEqual(
+            ctx["known_collect_values"]["onset_circumstance"], "fell"
+        )
+        self.assertEqual(
+            ctx["known_collect_values"]["character"], ["sharp"]
+        )
         priority_ids = {
-            t.id for t in get_eligible_targets("priority", known, None)
+            t.id for t in get_eligible_targets("priority", None)
         }
         optional_ids = {
-            t.id for t in get_eligible_targets("optional", known, None)
+            t.id for t in get_eligible_targets("optional", None)
         }
-        self.assertNotIn("onset_circumstance", priority_ids)
-        self.assertNotIn("symptom_characteristics", priority_ids)
-        self.assertNotIn("comorbidities", priority_ids)
-        self.assertNotIn("self_management", optional_ids)
-        self.assertNotIn("weight_change", optional_ids)
-        self.assertNotIn("exacerbating_factors", optional_ids)
-        self.assertNotIn("mitigating_factors", optional_ids)
+        # Prefill-and-confirm: known targets stay in the pool.
+        self.assertIn("onset_circumstance", priority_ids)
+        self.assertIn("character", priority_ids)
+        self.assertIn("comorbidities", priority_ids)
+        self.assertIn("self_management", optional_ids)
+        self.assertIn("weight_change", optional_ids)
+        self.assertIn("exacerbating_factors", optional_ids)
+        self.assertIn("mitigating_factors", optional_ids)
+
+    def test_pregnancy_only_when_female(self) -> None:
+        ids_female = {
+            t.id for t in get_eligible_targets("priority", "female")
+        }
+        ids_male = {
+            t.id for t in get_eligible_targets("priority", "male")
+        }
+        self.assertIn("pregnancy", ids_female)
+        self.assertNotIn("pregnancy", ids_male)
+
+    def test_locality_filters_onset_and_optional(self) -> None:
+        loc = {t.id for t in get_eligible_targets("priority", "male", "LOCALISED")}
+        nl = {
+            t.id for t in get_eligible_targets("priority", "male", "NOT_LOCALISED")
+        }
+        self.assertIn("onset_circumstance", loc)
+        self.assertNotIn("onset_circumstance", nl)
+        self.assertIn("medication", nl)
+        self.assertIn("character", nl)
+
+        opt_loc = {
+            t.id for t in get_eligible_targets("optional", None, "LOCALISED")
+        }
+        opt_nl = {
+            t.id for t in get_eligible_targets("optional", None, "NOT_LOCALISED")
+        }
+        self.assertIn("past_history", opt_loc)
+        self.assertNotIn("past_history", opt_nl)
+        self.assertIn("family_history", opt_nl)
+        self.assertNotIn("family_history", opt_loc)
+        self.assertIn("weight_change", opt_nl)
+        self.assertNotIn("weight_change", opt_loc)
+        self.assertIn("social_history", opt_nl)
+        self.assertNotIn("social_history", opt_loc)
+
+    def test_only_pregnancy_keeps_suggestion_fields(self) -> None:
+        from external_systems.clinical_ai.registry import (
+            OPTIONAL_TARGETS,
+            PRIORITY_TARGETS,
+        )
+
+        for t in PRIORITY_TARGETS + OPTIONAL_TARGETS:
+            if t.id == "pregnancy":
+                self.assertEqual(
+                    t.example_prompt,
+                    "Is there any chance you could be pregnant?",
+                )
+                self.assertEqual(t.suggested_options, ["No", "Yes"])
+            else:
+                self.assertIsNone(t.example_prompt, t.id)
+                self.assertIsNone(t.suggested_options, t.id)
 
 
 if __name__ == "__main__":

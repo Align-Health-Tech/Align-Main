@@ -1,31 +1,19 @@
 """BodyStructure, RadiationSite, Flag, IntakeFactItem. See docs/database/DATABASE.md."""
 import uuid
-from typing import Literal
 
 from sqlalchemy import CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
-FlagSource = Literal["CATALOGUE", "LILLY_INFERRED", "PRACTITIONER_ENTERED"]
-FlagTier = Literal["MILD", "MODERATE", "SEVERE", "EXTREME"]
-FlagStatus = Literal["ACTIVE", "INACTIVE", "ENTERED_IN_ERROR"]
-
-Laterality = Literal["left", "right", "bilateral"]
-
-IntakeFactKind = Literal[
-    "ALLERGY",
-    "MEDICATION",
-    "CONDITION",
-    "PROCEDURE",
-    "IMMUNIZATION",
-    "FAMILY_HISTORY",
-    "SOCIAL_HISTORY",
-    "VITAL_SIGN",
-    "OTHER_OBSERVATION",
-]
-IntakeFactSource = Literal["PATIENT_INTAKE", "LILLY_EXTRACTED", "PRACTITIONER_ENTERED"]
+from schemas.literals import (
+    FlagSource,
+    FlagStatus,
+    FlagTier,
+    IntakeFactKind,
+    IntakeFactSource,
+    Laterality,
+)
 
 
 class BodyStructure(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -91,10 +79,21 @@ class Flag(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
 
 class IntakeFactItem(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """Patient-scoped persistent fact (allergies, usual meds, PMH, …).
+
+    ``patient_id`` is the access scope. ``encounter_id`` is nullable provenance
+    ("first noted in this encounter"). ``kind=MEDICATION`` means usual/ongoing
+    meds — visit-symptom meds are ``Encounter.encounter_medication``.
+    """
+
     __tablename__ = "intake_fact_items"
 
-    encounter_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("encounters.id"), nullable=False, index=True
+    patient_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False, index=True
+    )
+    # Nullable — first-noted provenance only; not the RLS scoping key.
+    encounter_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("encounters.id"), nullable=True, index=True
     )
     organization_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True

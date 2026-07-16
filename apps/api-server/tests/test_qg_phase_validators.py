@@ -47,13 +47,87 @@ def _nl_ok(**kwargs) -> QuestionField:
 class TestValidateQgQuestions(unittest.TestCase):
     def test_unknown_phase_skips(self) -> None:
         validate_qg_questions(
-            "priority_questions",
+            "not_a_registered_phase",
             [
                 QuestionField(
                     id="x",
                     kind="free_text",
                     prompt="p",
                     personalization_note="n",
+                )
+            ],
+        )
+
+    def test_priority_comorbidities_rejects_other(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_qg_questions(
+                "priority_questions",
+                [
+                    QuestionField(
+                        id="comorbidities",
+                        kind="multi_choice",
+                        prompt="Conditions?",
+                        personalization_note="t",
+                        collect_target_id="comorbidities",
+                        options=[
+                            QuestionOption(value="Asthma", label="Asthma"),
+                            QuestionOption(value="Other", label="Other"),
+                        ],
+                    )
+                ],
+            )
+        self.assertIn("Other", str(ctx.exception))
+
+    def test_priority_comorbidities_requires_none_of_these(self) -> None:
+        with self.assertRaises(ValueError) as ctx:
+            validate_qg_questions(
+                "priority_questions",
+                [
+                    QuestionField(
+                        id="comorbidities",
+                        kind="multi_choice",
+                        prompt="Conditions?",
+                        personalization_note="t",
+                        collect_target_id="comorbidities",
+                        options=[
+                            QuestionOption(value="Asthma", label="Asthma"),
+                        ],
+                    )
+                ],
+            )
+        self.assertIn("None of these", str(ctx.exception))
+
+    def test_priority_comorbidities_accepts_valid(self) -> None:
+        validate_qg_questions(
+            "priority_questions",
+            [
+                QuestionField(
+                    id="comorbidities",
+                    kind="multi_choice",
+                    prompt="Conditions?",
+                    personalization_note="t",
+                    collect_target_id="comorbidities",
+                    options=[
+                        QuestionOption(value="Asthma", label="Asthma"),
+                        QuestionOption(value="None of these", label="None of these"),
+                    ],
+                )
+            ],
+        )
+
+    def test_priority_non_comorbid_passes(self) -> None:
+        validate_qg_questions(
+            "priority_questions",
+            [
+                QuestionField(
+                    id="allergy",
+                    kind="multi_choice",
+                    prompt="Allergies?",
+                    personalization_note="t",
+                    collect_target_id="allergy",
+                    options=[
+                        QuestionOption(value="Other", label="Other"),
+                    ],
                 )
             ],
         )

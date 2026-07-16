@@ -11,10 +11,6 @@ ONSET_TIMING_OPTIONS: list[QuestionOption] = [
     QuestionOption(value="MORE_THAN_1_WEEK", label="More than 1 week"),
 ]
 
-ONSET_TIMING_VALUES: frozenset[str] = frozenset(
-    o.value for o in ONSET_TIMING_OPTIONS
-)
-
 
 def onset_timing_label(value: str) -> str:
     """Map canon value → English label; fall back to raw string."""

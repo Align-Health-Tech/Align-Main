@@ -1,0 +1,149 @@
+=== non_localised_categoriser Azure smoke ===
+
+--- case 1: clear_systemic ---
+input: 'fever and body aches, no other symptoms'
+{
+  "ready": true,
+  "category": "SYSTEMIC",
+  "confidence": 0.93,
+  "reason": "Fever with whole-body aches and no primary localised site fits a constitutional/systemic presentation. Considered DISTRIBUTED_MSK due to body aches, but fever makes SYSTEMIC the stronger fit.",
+  "chiefComplaintSummary": "Fever and body aches without other symptoms or a clear localised source.",
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+case1: OK
+WARN: PC-only fields present on NL categoriser result
+apply: {'non_localised_category': 'SYSTEMIC'}
+
+--- case 2: ambiguous_systemic_vs_gi ---
+input: 'feel unwell and my stomach hurts a bit'
+{
+  "ready": false,
+  "category": "SYSTEMIC",
+  "confidence": 0.58,
+  "reason": "Could be SYSTEMIC or GASTROINTESTINAL — 'feel unwell' suggests constitutional symptoms, but it is unclear whether there is nausea, vomiting, or diarrhoea to support GASTROINTESTINAL, or fever/malaise as the main feature to support SYSTEMIC. Lean SYSTEMIC for now.",
+  "chiefComplaintSummary": "Feeling unwell with mild non-localised stomach discomfort.",
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+ready=false: OK (reason should name candidate buckets)
+devise topics:
+[
+  {
+    "topic": "gi_vomiting_diarrhoea",
+    "relevance_score": 0.96,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "GASTROINTESTINAL vs SYSTEMIC/other buckets — presence of vomiting or diarrhoea would strongly support a GI categorisation."
+  },
+  {
+    "topic": "has_fever",
+    "relevance_score": 0.82,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "SYSTEMIC vs GASTROINTESTINAL/other buckets — fever or feeling hot-and-shivery helps identify a systemic illness pattern."
+  },
+  {
+    "topic": "rash_widespread",
+    "relevance_score": 0.41,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "DERMATOLOGICAL vs non-skin buckets — a widespread rash would redirect categorisation away from vague unwellness/stomach discomfort."
+  }
+]
+qg questions:
+[
+  {
+    "id": "nl_clarify_1",
+    "kind": "single_choice",
+    "prompt": "Have you been vomiting or had diarrhoea?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "Patient reports feeling unwell with some stomach pain; vomiting or diarrhoea would help distinguish a gastrointestinal pattern from a more general illness."
+  },
+  {
+    "id": "nl_clarify_2",
+    "kind": "single_choice",
+    "prompt": "Have you had a fever, or felt hot and shivery?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "Because the patient feels generally unwell, fever or chills would help separate a systemic illness pattern from stomach-only symptoms."
+  },
+  {
+    "id": "nl_clarify_3",
+    "kind": "single_choice",
+    "prompt": "Do you have a rash over a larger area of your body?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Yes",
+        "label": "Yes",
+        "en_label": null
+      },
+      {
+        "value": "No",
+        "label": "No",
+        "en_label": null
+      },
+      {
+        "value": "I don't know",
+        "label": "I don't know",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "non_localised_clarify",
+    "personalization_note": "A widespread rash would point more toward a skin-related category rather than vague unwellness or mild stomach discomfort."
+  }
+]
+validate_qg_questions: OK
+en_prompt/en_label null on nl_clarify_1: OK
+en_prompt/en_label null on nl_clarify_2: OK
+en_prompt/en_label null on nl_clarify_3: OK
+
+--- case 3: max-3-rounds force-commit (code hard-stop) ---
+Engine: after non_localised_clarify_rounds >= 3, skip run_classifier and set non_localised_category from non_localised_category_lean (best-fit category on ready:false) or SYSTEMIC default. Covered by tests.test_nl_clarify_rounds — not re-driven live here.
+
+done; failures=0

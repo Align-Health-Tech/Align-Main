@@ -1,0 +1,103 @@
+=== devise empty-pool exploratory probe ===
+
+Exploratory (not pass/fail). Same wrist+Eliquis context as priority_questions case 4. Production registry lookup unchanged.
+
+classifier:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.97,
+  "reason": "Clear focal wrist injury after a fall with extractable anatomy site.",
+  "chiefComplaintSummary": "Patient injured a wrist in a fall yesterday and still has swelling and bruising. They also report taking Eliquis (apixaban) for a heart condition.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "unknown",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.9,
+      "evidence": "Hurt my wrist yesterday after a fall"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": "Fell and injured wrist.",
+    "duration": "since yesterday",
+    "character": [
+      "swollen",
+      "bruised"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": [
+      "heart condition"
+    ],
+    "weightChange": null,
+    "accClaimSuspected": true,
+    "accCanWork": null
+  }
+}
+apply keys: ['acc_claim_suspected', 'character', 'chief_complaint', 'comorbidities', 'duration', 'onset_circumstance', 'presentation_category', 'presenting_complaint_hint']
+context.known_collect_values: {'onset_circumstance': 'Fell and injured wrist.', 'character': ['swollen', 'bruised'], 'comorbidities': ['heart condition']}
+context.presentation_category: LOCALISED
+context.chief_complaint: {'text': 'Patient injured a wrist in a fall yesterday and still has swelling and bruising. They also report taking Eliquis (apixaban) for a heart condition.', 'source': 'ai_summary'}
+
+--- A_empty_pool ---
+candidate_pool forced empty: True
+A_empty_pool tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+devise topics:
+[]
+A_empty_pool ranking brief: []
+A_empty_pool notes: {'topic_count': 0, 'searched': False, 'self_reported_web_search': False, 'topic_ids': []}
+
+--- B_full_registry_pool ---
+candidate_pool forced empty: False
+B_full_registry_pool tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+devise topics:
+[
+  {
+    "topic": "medication",
+    "relevance_score": 0.92,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Current symptom treatment is an important gap for an acute wrist injury; anticoagulant use is mentioned in the complaint but current meds taken for this injury are not yet captured."
+  },
+  {
+    "topic": "onset_circumstance",
+    "relevance_score": 0.84,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Mechanism is already backfilled as a fall, but confirming the injury circumstances remains high value for a localised trauma presentation."
+  },
+  {
+    "topic": "character",
+    "relevance_score": 0.8,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Swelling and bruising are known, but further symptom character such as pain severity, tenderness, and persistence still helps prioritise this injury."
+  },
+  {
+    "topic": "comorbidities",
+    "relevance_score": 0.46,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "A heart condition is already known; confirmation is still useful but lower priority than unresolved acute injury details."
+  },
+  {
+    "topic": "allergy",
+    "relevance_score": 0.34,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Background safety information is useful, though less immediately valuable than acute trauma details and current treatment gaps."
+  }
+]
+B_full_registry_pool ranking brief: [{'topic': 'medication', 'score': 0.92, 'source': 'base_reasoning', 'rationale': 'Current symptom treatment is an important gap for an acute wrist injury; anticoagulant use is mentioned in the complaint but current meds taken for this injury are not yet captured.'}, {'topic': 'onset_circumstance', 'score': 0.84, 'source': 'base_reasoning', 'rationale': 'Mechanism is already backfilled as a fall, but confirming the injury circumstances remains high value for a localised trauma presentation.'}, {'topic': 'character', 'score': 0.8, 'source': 'base_reasoning', 'rationale': 'Swelling and bruising are known, but further symptom character such as pain severity, tenderness, and persistence still helps prioritise this injury.'}, {'topic': 'comorbidities', 'score': 0.46, 'source': 'base_reasoning', 'rationale': 'A heart condition is already known; confirmation is still useful but lower priority than unresolved acute injury details.'}, {'topic': 'allergy', 'score': 0.34, 'source': 'base_reasoning', 'rationale': 'Background safety information is useful, though less immediately valuable than acute trauma details and current treatment gaps.'}]
+B_full_registry_pool notes: {'topic_count': 5, 'searched': False, 'self_reported_web_search': False, 'topic_ids': ['medication', 'onset_circumstance', 'character', 'comorbidities', 'allergy']}
+
+--- comparison notes (human) ---
+{'empty_topic_count': 0, 'control_topic_count': 5, 'empty_ids': [], 'control_ids': ['medication', 'onset_circumstance', 'character', 'comorbidities', 'allergy'], 'empty_only': [], 'control_only': ['allergy', 'character', 'comorbidities', 'medication', 'onset_circumstance']}
+Interpretation cues: without a pool, does Devise invent free-form topic strings vs registry ids? Does it search more? Do ranks still elevate medication / injury mechanism for Eliquis + wrist trauma?
+
+done; exploratory (exit 0)

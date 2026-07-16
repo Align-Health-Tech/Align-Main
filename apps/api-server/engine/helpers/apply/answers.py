@@ -22,6 +22,7 @@ from engine.helpers.apply.detail import (
     apply_non_localised_detail,
 )
 from engine.helpers.apply.ice import apply_ice
+from engine.helpers.apply.optional import apply_optional_questions
 from engine.helpers.apply.presenting_complaint import apply_presenting_complaint
 from engine.helpers.apply.priority import apply_priority_questions
 from engine.helpers.apply.redflag import apply_redflag
@@ -75,6 +76,7 @@ def apply_answers(
         updates.update(apply_ice(state, typed, by_id))
     elif phase == "priority_questions":
         updates.update(apply_priority_questions(state, typed, by_id))
-    # optional: turn_number only until that apply path is ported
+    elif phase == "optional_questions":
+        updates.update(apply_optional_questions(state, typed, by_id))
 
     return updates

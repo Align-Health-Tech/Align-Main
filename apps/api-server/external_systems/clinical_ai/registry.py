@@ -96,15 +96,11 @@ OPTIONAL_TARGETS: list[CollectTarget] = [
         id="past_history",
         category="PAST_HISTORY",
         phase="optional",
-        # Apply split (when optional_questions is ported): each selected option
-        # becomes an intake_fact_items row on the patient —
-        #   "Major surgery" → kind=PROCEDURE
-        #   "Hospital stay for serious illness" / "Cancer treatment in the past"
-        #   / "Other" (+ free text) → kind=CONDITION
-        # Do not dump the whole multi_choice into a single CONDITION row.
+        # Apply: each selected chip / Other free text → one intake_fact
+        # with kind=PAST_HISTORY.
         clinical_hint=(
-            "Past surgeries, hospital stays, or serious prior illness. "
-            "'Major surgery' vs other serious conditions when distinguishing."
+            "Past surgeries, hospital stays, or serious prior illness — "
+            "not current comorbidities."
         ),
         free_text_policy="optional_other",
         applies_localised=True,
@@ -114,6 +110,7 @@ OPTIONAL_TARGETS: list[CollectTarget] = [
         id="family_history",
         category="FAMILY_HISTORY",
         phase="optional",
+        # Apply → intake_fact kind=FAMILY_HISTORY.
         clinical_hint="Immediate-family major ongoing conditions.",
         free_text_policy="optional_other",
         applies_localised=False,
@@ -156,6 +153,8 @@ OPTIONAL_TARGETS: list[CollectTarget] = [
         id="social_history",
         category="SOCIAL_HISTORY",
         phase="optional",
+        # NOT_LOCALISED optional pool. Apply → intake_fact kind=SOCIAL_HISTORY
+        # (chips / Other free text / free_text; Pattern E translate on free text).
         clinical_hint="Smoking/vaping, alcohol, and similar.",
         free_text_policy="optional_other",
         applies_localised=False,

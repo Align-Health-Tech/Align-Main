@@ -5,7 +5,7 @@ module (never Azure). Real Azure only via local prompt smoke (non-CI).
 """
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, get_args
 
 from external_systems.clinical_ai import agents as _agents
 from external_systems.clinical_ai.registry import targets_for_session_phase
@@ -18,6 +18,7 @@ from schemas.clinical_ai_io import (
     ReviewSummaryResult,
     TranslationResult,
 )
+from schemas.literals import IntakeFactKind
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 from schemas.topic_candidates import TopicCandidate
@@ -65,7 +66,12 @@ def translate_to_english(
 
 
 def build_agent_context(state: SessionState) -> dict:
-    """Shared context blob for Classifier / Devise / QG / nurse review."""
+    """Shared context blob for Classifier / Devise / QG / nurse review.
+
+    Nurse review synthesises the full clinical picture — include encounter
+    narratives, body structures, meds, intake facts, and ICE here (not only
+    ranking/prefill fields). Other phases ignore unused keys.
+    """
     return {
         # Target id → known text(s) for QG default_value / default_values.
         # Presence of a target id as a key means already known (prefill-and-confirm).
@@ -81,6 +87,24 @@ def build_agent_context(state: SessionState) -> dict:
         "completed_phases": list(state.completed_phases),
         "severity_score": state.severity_score,
         "functional_impact_score": state.functional_impact_score,
+        # Full synthesis fields (nurse_review; harmless extras for other agents)
+        "body_structures": list(state.body_structures),
+        "duration": state.duration,
+        "persistence": state.persistence,
+        "progression": state.progression,
+        "onset_circumstance": state.onset_circumstance,
+        "character": list(state.character),
+        "comorbidities": list(state.comorbidities),
+        "encounter_medication": list(state.encounter_medication),
+        "intake_facts": list(state.intake_facts),
+        "self_management": state.self_management,
+        "weight_change": state.weight_change,
+        "exacerbating_factors": list(state.exacerbating_factors),
+        "mitigating_factors": list(state.mitigating_factors),
+        "pregnancy_possible": state.pregnancy_possible,
+        "ice_idea": state.ice_idea,
+        "ice_concern": state.ice_concern,
+        "ice_expectation": state.ice_expectation,
     }
 
 
@@ -134,6 +158,14 @@ def devise_then_generate(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+# Derived from IntakeFactKind — kind.lower() is the collect-target / prefill key.
+# Apply writes allergy / past_history / family_history / social_history today.
+# medication (usual/ongoing) — apply not wired yet; visit meds use
+# encounter_medication → known key "medication".
+_KNOWN_INTAKE_FACT_TARGETS = frozenset(
+    kind.lower() for kind in get_args(IntakeFactKind)
+)
+
 
 def _narrative_text(field: object) -> Optional[str]:
     if isinstance(field, dict):
@@ -183,14 +215,21 @@ def _known_collect_values(state: SessionState) -> dict[str, object]:
     for fact in state.intake_facts or []:
         if not isinstance(fact, dict) or not fact.get("kind"):
             continue
-        kind = str(fact["kind"]).lower()
+        target = str(fact["kind"]).lower()
+        if target not in _KNOWN_INTAKE_FACT_TARGETS:
+            continue
         display = fact.get("display")
         text = _narrative_text(display) if display is not None else None
         if not text:
             continue
-        # Usual/ongoing allergy only — medication prefill uses encounter_medication.
-        if "allergy" in kind and "allergy" not in out:
-            out["allergy"] = text
+        # allergy stays a single string for back-compat with QG defaults.
+        if target == "allergy":
+            if "allergy" not in out:
+                out["allergy"] = text
+            continue
+        bucket = out.setdefault(target, [])
+        if isinstance(bucket, list):
+            bucket.append(text)
     return out
 
 

@@ -1,0 +1,246 @@
+=== optional_questions + ice Azure smoke ===
+
+=== OPTIONAL_QUESTIONS ===
+
+optional devise topics:
+[
+  {
+    "topic": "self_management",
+    "relevance_score": 0.84,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Useful to know what the patient has already tried since the wrist injury, such as rest, ice, compression, or pain relief."
+  },
+  {
+    "topic": "exacerbating_factors",
+    "relevance_score": 0.72,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Knowing which movements or activities worsen the wrist pain helps clarify current functional limitation and injury pattern."
+  },
+  {
+    "topic": "mitigating_factors",
+    "relevance_score": 0.68,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "What eases the pain can add context on severity and whether simple support or rest is helping."
+  },
+  {
+    "topic": "past_history",
+    "relevance_score": 0.34,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Lower priority, but prior wrist injuries, surgery, or significant past musculoskeletal history could still add useful context if not already known."
+  }
+]
+optional tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+optional qg questions:
+[
+  {
+    "id": "self_management",
+    "kind": "multi_choice",
+    "prompt": "What have you tried for your wrist since it happened?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Rested it",
+        "label": "Rested it",
+        "en_label": null
+      },
+      {
+        "value": "Ice",
+        "label": "Ice",
+        "en_label": null
+      },
+      {
+        "value": "Compression or support",
+        "label": "Compression or support",
+        "en_label": null
+      },
+      {
+        "value": "Pain relief",
+        "label": "Pain relief",
+        "en_label": null
+      },
+      {
+        "value": "Nothing yet",
+        "label": "Nothing yet",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "self_management",
+    "personalization_note": "This is tailored to a wrist injury from tennis and uses common early self-care steps such as rest, ice, support, and pain relief."
+  },
+  {
+    "id": "exacerbating_factors",
+    "kind": "free_text",
+    "prompt": "What movements or activities make your wrist pain worse?",
+    "en_prompt": null,
+    "options": null,
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "exacerbating_factors",
+    "personalization_note": "Because the wrist was twisted during tennis, free text fits best to capture specific triggers like gripping, twisting, lifting, or moving the wrist certain ways."
+  },
+  {
+    "id": "mitigating_factors",
+    "kind": "free_text",
+    "prompt": "What helps your wrist feel better, even a little?",
+    "en_prompt": null,
+    "options": null,
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "mitigating_factors",
+    "personalization_note": "This asks about anything easing the pain after the injury, such as rest, keeping it still, support, or pain relief, without assuming what is helping."
+  },
+  {
+    "id": "past_history",
+    "kind": "multi_choice",
+    "prompt": "Have you had any significant wrist or other bone, joint, or muscle problems before?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Previous wrist injury",
+        "label": "Previous wrist injury",
+        "en_label": null
+      },
+      {
+        "value": "Surgery on this wrist or hand",
+        "label": "Surgery on this wrist or hand",
+        "en_label": null
+      },
+      {
+        "value": "Hospital treatment for a serious bone, joint, or muscle problem",
+        "label": "Hospital treatment for a serious bone, joint, or muscle problem",
+        "en_label": null
+      },
+      {
+        "value": "None of these",
+        "label": "None of these",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "past_history",
+    "personalization_note": "For a recent wrist injury, prior wrist injuries, surgery, or major musculoskeletal events are the most relevant past-history examples to offer."
+  }
+]
+past_history apply intake_facts:
+[
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Previous wrist injury",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Surgery on this wrist or hand",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Hospital treatment for a serious bone, joint, or muscle problem",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "previous wrist surgery abroad",
+      "en_text": null,
+      "source": "free_text"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  }
+]
+
+=== ICE (QG only) ===
+
+ice tool_loop: {'tool_choice': None, 'tool_call_count': 0, 'tool_calls': []}
+ice qg questions:
+[
+  {
+    "id": "ice_idea",
+    "kind": "free_text",
+    "prompt": "What do you think might be going on with your wrist?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_idea",
+    "personalization_note": "Open question for the patient's own view of the wrist problem after twisting it playing tennis."
+  },
+  {
+    "id": "ice_concern",
+    "kind": "free_text",
+    "prompt": "What worries you most about this wrist problem?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_concern",
+    "personalization_note": "Open question for concerns related to the wrist injury from playing tennis."
+  },
+  {
+    "id": "ice_expectation",
+    "kind": "free_text",
+    "prompt": "What are you hoping we can help with today for your wrist?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_expectation",
+    "personalization_note": "Open question for the patient's goal for today's visit about the wrist injury."
+  }
+]
+ice web_search_count=0 OK
+ice devise_called=False OK (QG-only path)
+
+=== PHASE SUMMARY ===
+optional_questions: PASS (failures=0, topics=4, questions=4, web_search=0)
+ice: PASS (failures=0, web_search=0, devise_called=False)
+
+total_failures=0

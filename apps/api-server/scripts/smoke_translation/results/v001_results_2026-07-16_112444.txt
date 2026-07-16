@@ -1,0 +1,176 @@
+
+=== 1. Direct translate_to_english (Korean) ===
+
+-- wrist injury --
+{
+  "label": "wrist injury",
+  "source_text": "어제 테니스 치다가 오른쪽 손목을 삐었어요. 아파요.",
+  "raw": {
+    "en_text": "I twisted my right wrist while playing tennis yesterday. It hurts.",
+    "detected_lang": "ko"
+  }
+}
+
+-- lower back --
+{
+  "label": "lower back",
+  "source_text": "허리가 쑤시고 다리가 찌릿해요.",
+  "raw": {
+    "en_text": "My lower back is aching and my leg has a shooting pain.",
+    "detected_lang": "ko"
+  }
+}
+
+-- already english --
+{
+  "label": "already english",
+  "source_text": "NHI verified, ACC claim",
+  "raw": {
+    "en_text": "NHI verified, ACC claim",
+    "detected_lang": "en"
+  }
+}
+
+-- empty --
+{
+  "label": "empty",
+  "source_text": "",
+  "raw": {
+    "en_text": "",
+    "detected_lang": "ko"
+  }
+}
+
+=== 2. Pattern E via apply — presenting_complaint ===
+
+-- result --
+{
+  "phase": "presenting_complaint",
+  "input": "어제 테니스 치다가 손목을 삐었어요",
+  "updates": {
+    "turn_number": 3,
+    "chief_complaint": {
+      "text": "어제 테니스 치다가 손목을 삐었어요",
+      "en_text": "I sprained my wrist while playing tennis yesterday.",
+      "source": "free_text"
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "어제 테니스 치다가 손목을 삐었어요"
+      }
+    ]
+  }
+}
+
+=== 3. Pattern E via apply — priority allergy Other ===
+
+-- result --
+{
+  "phase": "priority_questions/allergy",
+  "input": "땅콩 알레르기",
+  "updates": {
+    "turn_number": 3,
+    "intake_facts": [
+      {
+        "kind": "ALLERGY",
+        "source": "PATIENT_INTAKE",
+        "display": {
+          "text": "땅콩 알레르기",
+          "en_text": "Peanut allergy",
+          "source": "free_text"
+        },
+        "fhir_system": null,
+        "fhir_code": null,
+        "fhir_display": null
+      }
+    ]
+  }
+}
+
+=== 4. Pattern E via apply — optional past_history + self_management ===
+
+-- result --
+{
+  "phase": "optional_questions",
+  "input": {
+    "past_history": "예전에 손목 골절 수술",
+    "self_management": "이부프로펜 먹었어요"
+  },
+  "updates": {
+    "turn_number": 3,
+    "intake_facts": [
+      {
+        "kind": "PAST_HISTORY",
+        "source": "PATIENT_INTAKE",
+        "display": {
+          "text": "예전에 손목 골절 수술",
+          "en_text": "Previous wrist fracture surgery",
+          "source": "free_text"
+        },
+        "fhir_system": null,
+        "fhir_code": null,
+        "fhir_display": null
+      }
+    ],
+    "self_management": {
+      "text": "이부프로펜 먹었어요",
+      "en_text": "I took ibuprofen.",
+      "source": "free_text"
+    }
+  }
+}
+
+=== 5. Pattern E via apply — ice (3 fields) ===
+
+-- result --
+{
+  "phase": "ice",
+  "input": {
+    "ice_idea": "염좌인 것 같아요",
+    "ice_concern": "골절이 걱정돼요",
+    "ice_expectation": "엑스레이 찍고 싶어요"
+  },
+  "updates": {
+    "turn_number": 3,
+    "ice_idea": {
+      "text": "염좌인 것 같아요",
+      "en_text": "I think it is a sprain.",
+      "source": "free_text"
+    },
+    "ice_concern": {
+      "text": "골절이 걱정돼요",
+      "en_text": "I am worried it might be a fracture.",
+      "source": "free_text"
+    },
+    "ice_expectation": {
+      "text": "엑스레이 찍고 싶어요",
+      "en_text": "I want to get an X-ray.",
+      "source": "free_text"
+    }
+  }
+}
+
+=== 6. English control (no Azure) ===
+
+-- result --
+{
+  "free_text_dump": {
+    "text": "twisted my wrist",
+    "en_text": null,
+    "source": "free_text"
+  },
+  "option_dump": {
+    "text": "Sharp",
+    "en_text": null,
+    "source": "option"
+  },
+  "translate_calls": 0,
+  "ok": true
+}
+
+=== human checks ===
+- Korean sources must keep original text; en_text must be English
+- No [en] fake prefix
+- 허리 → lower back (not waist) preferred
+- English session: en_text absent, zero translate calls

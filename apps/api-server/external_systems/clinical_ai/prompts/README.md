@@ -41,8 +41,8 @@ Red flag screening is Devise + Question Generation with `phase` /
 
 | Status | Prompts |
 | ------ | ------- |
-| **Ported** (Azure smokeed) | `classifier/presenting_complaint`, `devise_and_prioritise/presenting_complaint_clarify`, `question_generation/presenting_complaint_clarify`, `classifier/non_localised_categoriser`, `devise_and_prioritise/non_localised_clarify`, `question_generation/non_localised_clarify`, `devise_and_prioritise/priority_questions`, `question_generation/priority_questions`, `devise_and_prioritise/redflag_screening`, `question_generation/redflag_screening` |
-| **Still stubs** | Remaining Devise / QG / nurse_review / translation `.md` files — expected output shape + `TODO` links to Align-Pilot-V2. Replace before production demos. |
+| **Ported** (Azure smoked) | `classifier/presenting_complaint`, `devise_and_prioritise` + `question_generation` for `presenting_complaint_clarify`, `non_localised_categoriser` / `non_localised_clarify`, `priority_questions`, `redflag_screening`, `optional_questions`; `question_generation/ice` (QG-only; smoke: `smoke_optional_and_ice/`); `nurse_review/summary` (single agent; smoke: `smoke_nurse_review/`); `translation/to_english` (Pattern E; smoke: `smoke_translation/`) |
+| **Still stubs / thin** | — (M5 prompt port complete) |
 
 ## Dual track (M5)
 

@@ -197,10 +197,11 @@ symptom).
 
 | Column                                     | Purpose                                                                                                                                                                                                                      |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `patient_id`, `organization_id`            | **Scope** — primary access key is the patient                                                                                                                                                                                |
-| `encounter_id`                             | **Nullable provenance** — "first noted in this encounter"; not the access-scoping key                                                                                                                                        |
-| `kind`                                     | `ALLERGY \| MEDICATION \| CONDITION \| PROCEDURE \| FAMILY_HISTORY \| SOCIAL_HISTORY` — `MEDICATION` here means **usual/ongoing** meds (FHIR `MedicationStatement`), not visit-symptom meds                                  |
-| `source`                                   | `PATIENT_INTAKE \| LILLY_EXTRACTED \| PRACTITIONER_ENTERED`                                                                                                                                                                  |
+| `patient_id`                               | **Access scope** (patient-owned persistent facts). RLS keys off this via current encounter → patient                                                                                                                          |
+| `encounter_id`                             | Nullable **first-noted provenance** only — not the RLS scoping key                                                                                                                                                            |
+| `organization_id`                          | Tenant                                                                                                                                                                                                                       |
+| `kind`                                     | `ALLERGY \| MEDICATION \| PAST_HISTORY \| FAMILY_HISTORY \| SOCIAL_HISTORY` — `MEDICATION` here means **usual/ongoing** meds (FHIR `MedicationStatement`), not visit-symptom meds. `PAST_HISTORY` covers prior surgeries / hospital stays / serious prior illness collected in optional intake (not current comorbidities on `encounters.comorbidities`) |
+| `source`                                   | `PATIENT_INTAKE \| LILLY_EXTRACTED \| PRACTITIONER_ENTERED`                                                                                                                                                                    |
 | `display`                                  | jsonb, `{text}` or `{text, en_text}` — the patient-stated fact itself (e.g. "penicillin"). Same `text` / `en_text` NarrativeField core as other free-form facts, but typically **no** `source` (unlike `encounters.chief_complaint`, which carries `"free_text"` / `"ai_summary"`). Distinct from `fhir_display`, which is the clinical/coded term this maps to |
 | `fhir_system`, `fhir_code`, `fhir_display` | Coding, same pattern as `flags`                                                                                                                                                                                          |
 | `created_at`, `updated_at`                 | Timestamps                                                                                                                                                                                                                   |
@@ -213,8 +214,7 @@ symptom).
 | ---------------- | --------------------- |
 | `ALLERGY`        | `AllergyIntolerance`  |
 | `MEDICATION`     | `MedicationStatement` (usual/ongoing — not `encounters.encounter_medication`) |
-| `CONDITION`      | `Condition`           |
-| `PROCEDURE`      | `Procedure`           |
+| `PAST_HISTORY`   | Mixed prior-history provenance (future export may refine to `Condition` / `Procedure`) |
 | `FAMILY_HISTORY` | `FamilyMemberHistory` |
 | `SOCIAL_HISTORY` | `Observation` (social-history category) |
 

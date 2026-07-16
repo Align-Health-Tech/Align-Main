@@ -23,6 +23,19 @@
 
   Shared mappings between vocabularies (e.g. session phase → `CollectPhase`) stay next to the model that uses them (`schemas/collect_targets.py`); the `Literal` alias itself always lives in `schemas/literals.py`.
 
+- **One `Literal` member per line** in `schemas/literals.py` (even for 1–2 values), so diffs stay reviewable:
+
+  ```python
+  # good
+  CollectPhase = Literal[
+      "priority",
+      "optional",
+  ]
+
+  # bad
+  CollectPhase = Literal["priority", "optional"]
+  ```
+
 **Both:** no `console.log`/`print` debug statements left in merged code. No commented-out code blocks — delete it, git remembers.
 
 ---

@@ -21,7 +21,21 @@ _PHASE = "optional_questions"
 
 def optional_questions(state: SessionState) -> Command:
     if not state.pending_questions:
-        topics, questions = agent_bridge.devise_then_generate(_PHASE, state)
+        topics, questions = agent_bridge.devise_then_generate(
+            _PHASE,
+            state,
+            max_questions=4,
+        )
+        if not questions:
+            return Command(
+                update={
+                    "prioritised_topics": dump_topic_candidates(topics),
+                    "pending_questions": [],
+                    "awaiting_phase": None,
+                    "completed_phases": with_completed(state, _PHASE),
+                },
+                goto="ice",
+            )
         return Command(
             update={
                 "prioritised_topics": dump_topic_candidates(topics),

@@ -46,7 +46,7 @@ TOPICS_BY_PHASE: dict[str, list[TopicCandidate]] = {
     ],
     "optional_questions": [
         TopicCandidate(
-            topic="sleep",
+            topic="self_management",
             relevance_score=0.5,
             is_red_flag=False,
             source="base_reasoning",
@@ -84,9 +84,9 @@ QUESTIONS_BY_PHASE: dict[str, list[QuestionField]] = {
         QuestionField(
             id="opt_sleep",
             kind="yes_no",
-            prompt="Has this been affecting your sleep?",
+            prompt="Have you tried anything yourself for this?",
             personalization_note="mock optional",
-            collect_target_id="sleep",
+            collect_target_id="self_management",
             required=False,
         )
     ],

@@ -1,0 +1,148 @@
+=== silent review node (static) ===
+OK: review() has no interrupt
+OK: review() goto="complete"
+OK: review() does not build NextStep
+
+=== 1. Full localised wrist (no red flags) ===
+{
+  "label": "1. Full localised wrist (no red flags)",
+  "context_keys": [
+    "body_structures",
+    "character",
+    "chief_complaint",
+    "comorbidities",
+    "completed_phases",
+    "duration",
+    "encounter_medication",
+    "exacerbating_factors",
+    "functional_impact_score",
+    "ice_concern",
+    "ice_expectation",
+    "ice_idea",
+    "intake_facts",
+    "known_collect_values",
+    "mitigating_factors",
+    "non_localised_category",
+    "non_localised_category_lean",
+    "non_localised_clarify_rounds",
+    "onset_circumstance",
+    "patient_sex",
+    "persistence",
+    "pregnancy_possible",
+    "presentation_category",
+    "progression",
+    "raised_flag_topics",
+    "self_management",
+    "session_language",
+    "severity_score",
+    "weight_change"
+  ],
+  "raised_flag_topics": [],
+  "body_structures_len": 1,
+  "presentation_category": "LOCALISED",
+  "raw": {
+    "oneLineSummary": "R) wrist pain after twisting injury playing tennis yesterday; sharp pain, severity 5/10 with functional impact 4/10, ?sprain vs concerned re fracture, taking ibuprofen PRN, no red flags, penicillin allergy."
+  },
+  "summary": "R) wrist pain after twisting injury playing tennis yesterday; sharp pain, severity 5/10 with functional impact 4/10, ?sprain vs concerned re fracture, taking ibuprofen PRN, no red flags, penicillin allergy."
+}
+
+=== 2. Localised wrist + raised red flag ===
+{
+  "label": "2. Localised wrist + raised red flag",
+  "context_keys": [
+    "body_structures",
+    "character",
+    "chief_complaint",
+    "comorbidities",
+    "completed_phases",
+    "duration",
+    "encounter_medication",
+    "exacerbating_factors",
+    "functional_impact_score",
+    "ice_concern",
+    "ice_expectation",
+    "ice_idea",
+    "intake_facts",
+    "known_collect_values",
+    "mitigating_factors",
+    "non_localised_category",
+    "non_localised_category_lean",
+    "non_localised_clarify_rounds",
+    "onset_circumstance",
+    "patient_sex",
+    "persistence",
+    "pregnancy_possible",
+    "presentation_category",
+    "progression",
+    "raised_flag_topics",
+    "self_management",
+    "session_language",
+    "severity_score",
+    "weight_change"
+  ],
+  "raised_flag_topics": [
+    "Chest pain at rest"
+  ],
+  "body_structures_len": 1,
+  "presentation_category": "LOCALISED",
+  "raw": {
+    "oneLineSummary": "Chest pain at rest flagged; R) wrist pain after twisting playing tennis yesterday, sharp, severity 5/10 with functional impact 4/10, taking ibuprofen PRN, penicillin allergy, ?sprain vs concerned re fracture, requesting X-ray/advice."
+  },
+  "summary": "Chest pain at rest flagged; R) wrist pain after twisting playing tennis yesterday, sharp, severity 5/10 with functional impact 4/10, taking ibuprofen PRN, penicillin allergy, ?sprain vs concerned re fracture, requesting X-ray/advice."
+}
+
+=== 3. NOT_LOCALISED systemic (empty body_structures) ===
+{
+  "label": "3. NOT_LOCALISED systemic (empty body_structures)",
+  "context_keys": [
+    "body_structures",
+    "character",
+    "chief_complaint",
+    "comorbidities",
+    "completed_phases",
+    "duration",
+    "encounter_medication",
+    "exacerbating_factors",
+    "functional_impact_score",
+    "ice_concern",
+    "ice_expectation",
+    "ice_idea",
+    "intake_facts",
+    "known_collect_values",
+    "mitigating_factors",
+    "non_localised_category",
+    "non_localised_category_lean",
+    "non_localised_clarify_rounds",
+    "onset_circumstance",
+    "patient_sex",
+    "persistence",
+    "pregnancy_possible",
+    "presentation_category",
+    "progression",
+    "raised_flag_topics",
+    "self_management",
+    "session_language",
+    "severity_score",
+    "weight_change"
+  ],
+  "raised_flag_topics": [],
+  "body_structures_len": 0,
+  "presentation_category": "NOT_LOCALISED",
+  "raw": {
+    "oneLineSummary": "3-day systemic illness with fever, fatigue and myalgias; severity 6/10, functional impact 7/10, PMH asthma, no red flags raised."
+  },
+  "summary": "3-day systemic illness with fever, fatigue and myalgias; severity 6/10, functional impact 7/10, PMH asthma, no red flags raised."
+}
+
+=== tone / flag checks (human) ===
+- 1. Full localised wrist (no red flags)
+  summary: R) wrist pain after twisting injury playing tennis yesterday; sharp pain, severity 5/10 with functional impact 4/10, ?sprain vs concerned re fracture, taking ibuprofen PRN, no red flags, penicillin allergy.
+  patient-facing reassurance phrases: no
+- 2. Localised wrist + raised red flag
+  summary: Chest pain at rest flagged; R) wrist pain after twisting playing tennis yesterday, sharp, severity 5/10 with functional impact 4/10, taking ibuprofen PRN, penicillin allergy, ?sprain vs concerned re fracture, requesting X-ray/advice.
+  patient-facing reassurance phrases: no
+  raised flag reflected: likely (topic='Chest pain at rest')
+- 3. NOT_LOCALISED systemic (empty body_structures)
+  summary: 3-day systemic illness with fever, fatigue and myalgias; severity 6/10, functional impact 7/10, PMH asthma, no red flags raised.
+  patient-facing reassurance phrases: no
+  awkward body_structures filler: no

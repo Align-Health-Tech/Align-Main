@@ -7,6 +7,7 @@ from engine.helpers import agent_bridge
 from engine.helpers.apply import apply_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
+from engine.helpers.qg_phase_validators import validate_qg_questions
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
 from schemas.clinical_ai_io import QuestionGenerationInput
 from schemas.session_states import SessionState
@@ -24,6 +25,7 @@ def ice(state: SessionState) -> Command:
                 context=agent_bridge.build_agent_context(state),
             )
         )
+        validate_qg_questions(_PHASE, result.questions)
         return Command(
             update={
                 "pending_questions": dump_question_fields(result.questions),

@@ -1,8 +1,8 @@
-"""Unit tests for priority_questions apply — medication + pregnancy."""
+"""Unit tests for priority_questions apply."""
 from __future__ import annotations
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from engine.helpers.apply import apply_answers
 from schemas.question_fields import QuestionField, QuestionOption
@@ -105,6 +105,141 @@ class TestApplyAnswersPriorityMedication(unittest.TestCase):
         self.assertNotIn("intake_facts", updates)
 
 
+class TestApplyAnswersPriorityRest(unittest.TestCase):
+    def _state(self, **kwargs) -> SessionState:
+        base = dict(
+            session_id="s1",
+            patient_id="p1",
+            organization_id="o1",
+            awaiting_phase="priority_questions",
+            session_language="en",
+            turn_number=3,
+        )
+        base.update(kwargs)
+        return SessionState(**base)
+
+    def test_character_and_comorbidities_and_onset(self) -> None:
+        questions = [
+            QuestionField(
+                id="character",
+                kind="multi_choice",
+                prompt="What does it feel like?",
+                personalization_note="t",
+                collect_target_id="character",
+                options=[
+                    QuestionOption(value="Sharp", label="Sharp"),
+                    QuestionOption(value="Other", label="Other"),
+                ],
+            ),
+            QuestionField(
+                id="comorbidities",
+                kind="multi_choice",
+                prompt="Any long-term conditions?",
+                personalization_note="t",
+                collect_target_id="comorbidities",
+                options=[
+                    QuestionOption(value="Asthma", label="Asthma"),
+                    QuestionOption(
+                        value="None of these", label="None of these"
+                    ),
+                ],
+            ),
+            QuestionField(
+                id="onset",
+                kind="single_choice",
+                prompt="When did this start?",
+                personalization_note="t",
+                collect_target_id="onset_circumstance",
+                options=[
+                    QuestionOption(
+                        value="LAST_24_HOURS", label="Last 24 hours"
+                    ),
+                ],
+            ),
+        ]
+        updates = apply_answers(
+            self._state(),
+            {
+                "answers": [
+                    {
+                        "question_id": "character",
+                        "value": ["Sharp", "Other: throbbing"],
+                    },
+                    {"question_id": "comorbidities", "value": ["Asthma"]},
+                    {"question_id": "onset", "value": "LAST_24_HOURS"},
+                ]
+            },
+            questions,
+        )
+        self.assertEqual(
+            [(c["text"], c["source"]) for c in updates["character"]],
+            [("Sharp", "option"), ("throbbing", "free_text")],
+        )
+        self.assertEqual(updates["comorbidities"][0]["text"], "Asthma")
+        self.assertEqual(updates["onset_circumstance"]["text"], "Last 24 hours")
+        self.assertEqual(updates["onset_circumstance"]["source"], "option")
+
+    def test_comorbidities_none_of_these_clears(self) -> None:
+        q = QuestionField(
+            id="comorbidities",
+            kind="multi_choice",
+            prompt="Any long-term conditions?",
+            personalization_note="t",
+            collect_target_id="comorbidities",
+            options=[
+                QuestionOption(value="Asthma", label="Asthma"),
+                QuestionOption(value="None of these", label="None of these"),
+            ],
+        )
+        updates = apply_answers(
+            self._state(comorbidities=[{"text": "Asthma", "source": "option"}]),
+            {"answers": [{"question_id": "comorbidities", "value": ["None of these"]}]},
+            [q],
+        )
+        self.assertEqual(updates["comorbidities"], [])
+
+    def test_allergy_appends_intake_facts_with_translate(self) -> None:
+        q = QuestionField(
+            id="allergy",
+            kind="multi_choice",
+            prompt="Any allergies?",
+            personalization_note="t",
+            collect_target_id="allergy",
+            options=[
+                QuestionOption(value="Penicillin", label="Penicillin"),
+                QuestionOption(value="Other", label="Other"),
+            ],
+        )
+        existing = {
+            "kind": "PAST_HISTORY",
+            "source": "PATIENT_INTAKE",
+            "display": {"text": "appendectomy", "source": "option"},
+        }
+        with patch(
+            "engine.helpers.translate.agent_bridge.translate_to_english"
+        ) as translate_mock:
+            translate_mock.return_value = MagicMock(en_text="peanut allergy")
+            updates = apply_answers(
+                self._state(session_language="mi", intake_facts=[existing]),
+                {
+                    "answers": [
+                        {
+                            "question_id": "allergy",
+                            "value": ["Penicillin", "Other: mate pīnati"],
+                        }
+                    ]
+                },
+                [q],
+            )
+        translate_mock.assert_called_once_with("mate pīnati", "mi")
+        facts = updates["intake_facts"]
+        self.assertEqual(facts[0], existing)
+        self.assertEqual(facts[1]["kind"], "ALLERGY")
+        self.assertEqual(facts[1]["display"]["text"], "Penicillin")
+        self.assertEqual(facts[2]["display"]["text"], "mate pīnati")
+        self.assertEqual(facts[2]["display"]["en_text"], "peanut allergy")
+
+
 class TestIntakeFactItemsRlsMigration(unittest.TestCase):
     """Policy in intake_patient_scope_meds_001 must use patient-linkage, not encounter_id."""
 
@@ -118,13 +253,11 @@ class TestIntakeFactItemsRlsMigration(unittest.TestCase):
             / "intake_patient_scope_meds.py"
         )
         src = path.read_text()
-        # Patient-linkage subquery (same shape as patients / consents RLS.md).
         self.assertIn(
             "patient_id = (\n"
             "            SELECT patient_id FROM encounters WHERE id = app.current_encounter_id()",
             src,
         )
-        # Must not reinstate direct encounter match as the patient clause in upgrade.
         upgrade = src.split("def downgrade")[0]
         self.assertNotIn(
             "encounter_id = app.current_encounter_id()",

@@ -4,7 +4,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from engine.helpers.apply import apply_answers
+from engine.session_state_mappers import map_patient_answers
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
@@ -51,7 +51,7 @@ class TestApplyAnswersOptionalPastHistory(unittest.TestCase):
             "source": "PATIENT_INTAKE",
             "display": {"text": "penicillin", "source": "free_text"},
         }
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(intake_facts=[existing]),
             {
                 "answers": [
@@ -85,7 +85,7 @@ class TestApplyAnswersOptionalPastHistory(unittest.TestCase):
         self.assertEqual(facts[-1]["display"]["source"], "free_text")
 
     def test_unknown_chip_stored_as_free_text_past_history(self) -> None:
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {
                 "answers": [
@@ -104,10 +104,10 @@ class TestApplyAnswersOptionalPastHistory(unittest.TestCase):
 
     def test_other_free_text_translates_when_not_english(self) -> None:
         with patch(
-            "engine.helpers.translate.agent_bridge.translate_to_english"
+            "engine.agent_bridge.translate_to_english"
         ) as translate_mock:
             translate_mock.return_value = MagicMock(en_text="previous heart surgery")
-            updates = apply_answers(
+            updates = map_patient_answers(
                 self._state(session_language="mi"),
                 {
                     "answers": [
@@ -135,7 +135,7 @@ class TestApplyAnswersOptionalPastHistory(unittest.TestCase):
             collect_target_id="past_history",
             required=False,
         )
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {"answers": [{"question_id": parent.id, "value": True}]},
             [parent],
@@ -143,7 +143,7 @@ class TestApplyAnswersOptionalPastHistory(unittest.TestCase):
         self.assertNotIn("intake_facts", updates)
 
     def test_unanswered_past_history_leaves_existing_facts_untouched(self) -> None:
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(
                 intake_facts=[
                     {
@@ -192,7 +192,7 @@ class TestApplyAnswersOptionalSocialHistory(unittest.TestCase):
         )
 
     def test_multi_select_creates_social_history_rows(self) -> None:
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {
                 "answers": [
@@ -223,12 +223,12 @@ class TestApplyAnswersOptionalSocialHistory(unittest.TestCase):
             required=False,
         )
         with patch(
-            "engine.helpers.translate.agent_bridge.translate_to_english"
+            "engine.agent_bridge.translate_to_english"
         ) as translate_mock:
             translate_mock.return_value = MagicMock(
                 en_text="smokes 5 cigarettes a day"
             )
-            updates = apply_answers(
+            updates = map_patient_answers(
                 self._state(session_language="mi"),
                 {
                     "answers": [
@@ -316,7 +316,7 @@ class TestApplyAnswersOptionalEncounterFields(unittest.TestCase):
                 required=False,
             ),
         ]
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {
                 "answers": [

@@ -5,8 +5,8 @@ from typing import Any
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers import agent_bridge
-from engine.helpers.apply import apply_answers
+from engine import agent_bridge
+from engine.session_state_mappers import map_patient_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
@@ -61,7 +61,7 @@ def optional_questions(state: SessionState) -> Command:
             goto="ice",
         )
 
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

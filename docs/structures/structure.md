@@ -1,6 +1,4 @@
-# Structure ideation
-
-Scratchpad — not source of truth. Prefer `apps/api-server/README.md` for the live layout.
+# Structure
 
 ---
 
@@ -12,30 +10,36 @@ flowchart TB
   R[routers — HTTP]
   E[engine — LangGraph nodes]
   S[schemas — shared contracts]
-  CAI[clinical_ai — run_*]
+  INT[intelligence — agents + prompts]
   PMS[pms — Protocol + adapters]
   DB[(Postgres)]
 
   FE --> R --> E
   R --> DF[deterministic_forms — consent/survey]
   E --> S
-  CAI --> S
+  INT --> S
   R --> S
-  E --> CAI
+  E --> INT
   E --> PMS
   E --> DB
   PMS --> DB
 ```
 
-| Layer | Owns | Does not own |
-| ----- | ---- | ------------ |
-| **schemas** | Shapes everyone shares (`SessionState`, `NextStep`, agent I/O, `CollectTarget`, …) | LLM calls, DB writes, routing |
-| **engine** | Clinical graph progress; map answers → state / graph NextSteps | Prompt text, Azure, PMS, consent/survey HTTP lifecycle |
-| **deterministic_forms** (in engine/) | Consent/survey QuestionField builders for router | Graph topology |
-| **clinical_ai** (runtime) | `run_*`, prompts, registry lists, tools | Graph topology, HTTP |
-| **pms** (runtime) | Fetch/push behind `PMSProvider` | Clinical reasoning |
+
+
+
+| Layer                                | Owns                                                                               | Does not own                                           |
+| ------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **schemas**                          | Shapes everyone shares (`SessionState`, `NextStep`, agent I/O, `CollectTarget`, …) | LLM calls, DB writes, routing                          |
+| **engine**                           | Clinical graph progress; `agent_bridge`; session_state_mappers; NextStep / codecs / static | Prompt text, Azure, PMS, consent/survey HTTP lifecycle |
+| **deterministic_forms** (in engine/) | Consent/survey QuestionField builders for router                                   | Graph topology                                         |
+| **intelligence** (runtime)           | `agents` `run_*`, prompts, registry lists, tools, QG validators                    | Graph topology, HTTP; engine orchestration             |
+| **pms** (runtime)                    | Fetch/push behind `PMSProvider`                                                    | Clinical reasoning                                     |
+
 
 ---
+
+
 
 ## 2. PMS — adapter
 
@@ -46,9 +50,13 @@ flowchart LR
   P --> M[MedTechAdapter]
 ```
 
+
+
 Plain I/O, no LLM. Swap adapter via org `pms_config.vendor` — engine stays the same.
 
 ---
+
+
 
 ## 3. Clinical AI — agents
 
@@ -74,11 +82,13 @@ flowchart TB
   T --> L
 ```
 
+
+
 ```mermaid
 sequenceDiagram
   participant E as engine node
   participant S as schemas
-  participant A as clinical_ai
+  participant A as engine.agent_bridge
 
   E->>S: build Input / context
   E->>A: run_*(...)
@@ -86,4 +96,6 @@ sequenceDiagram
   E->>S: update SessionState / NextStep
 ```
 
-Replace David/Kevin Devise later by swapping `run_devise_and_prioritise` body — keep `list[TopicCandidate]`. No Protocol.
+
+
+Replace David/Kevin Devise later by swapping `run_devise_and_prioritise` body — keep `list[TopicCandidate]`. No Protocol. Nodes talk to AI only via `engine.agent_bridge`.

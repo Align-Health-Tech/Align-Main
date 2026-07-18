@@ -5,7 +5,12 @@ apps/api-server/README.md for the full planned endpoint surface
 """
 from fastapi import FastAPI
 
+from routers import clinician, session
+
 app = FastAPI(title="Align API", version="0.1.0")
+
+app.include_router(session.router)
+app.include_router(clinician.router)
 
 
 @app.get("/health")
@@ -15,9 +20,7 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-# Routers — uncomment as each one is actually built:
-# from routers import session, clinician, admin, demo
-# app.include_router(session.router)
-# app.include_router(clinician.router)
+# Future routers (M7+):
+# from routers import admin, demo
 # app.include_router(admin.router)
 # app.include_router(demo.router)

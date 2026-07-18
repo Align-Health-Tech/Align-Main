@@ -1,0 +1,351 @@
+=== redflag_screening Azure smoke ===
+
+--- case1_ordinary_wrist ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Twisted it playing tennis yesterday', 'character': ['Sharp']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "CIRCULATION",
+    "relevance_score": 0.78,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Recent twisted wrist with swelling and bruising; worth checking whether the hand is newly cold, pale/blue, numb, or much more painful than expected, as this could suggest impaired blood flow."
+  },
+  {
+    "topic": "DISABILITY",
+    "relevance_score": 0.72,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "A wrist injury can sometimes affect nerve or tendon function; worth checking for new loss of sensation, weakness, or inability to move the hand or fingers normally."
+  }
+]
+case1_ordinary_wrist tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_circulation_hand_cold_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has that hand felt unusually cold?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — cold hand after wrist injury."
+  },
+  {
+    "id": "rf_circulation_hand_colour_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has that hand looked unusually pale or blue?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — colour change in the hand after wrist injury."
+  },
+  {
+    "id": "rf_circulation_hand_numb_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, have you had any new numbness in that hand or fingers?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — new numbness in the hand or fingers."
+  },
+  {
+    "id": "rf_disability_move_fingers_1",
+    "kind": "yes_no",
+    "prompt": "Are you unable to move your fingers normally on that side?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY — loss of normal finger movement after wrist injury."
+  },
+  {
+    "id": "rf_disability_hand_weak_1",
+    "kind": "yes_no",
+    "prompt": "Does that hand feel newly weak when you try to grip or hold something?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY — new weakness affecting grip in the injured hand."
+  }
+]
+
+--- case2_chest_tightness_in_priority ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Fall onto outstretched hand yesterday', 'character': ['Sharp at the wrist; also mild chest tightness when climbing stairs (mentioned during priority)']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "BREATHING",
+    "relevance_score": 0.84,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "He mentioned chest tightness when climbing stairs. For this presentation, it is important to know if this comes with shortness of breath or trouble speaking in full sentences."
+  },
+  {
+    "topic": "CIRCULATION",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Chest tightness on exertion can matter for circulation, and the wrist injury also makes distal hand blood flow relevant. Worth checking faintness, chest pressure, or a cold/pale/numb hand."
+  },
+  {
+    "topic": "DISABILITY",
+    "relevance_score": 0.69,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "After a fall onto the hand, it is useful to know about any new loss of sensation, weakness, or reduced function in the hand or fingers because that could signal nerve or serious injury."
+  }
+]
+case2_chest_tightness_in_priority tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_breathing_sentence_1",
+    "kind": "yes_no",
+    "prompt": "When the chest tightness happens, do you have to stop mid-sentence to catch your breath?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "BREATHING",
+    "personalization_note": "BREATHING — checks breathlessness affecting speech during exertional chest tightness."
+  },
+  {
+    "id": "rf_breathing_rest_1",
+    "kind": "yes_no",
+    "prompt": "Have you felt short of breath even while sitting still?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "BREATHING",
+    "personalization_note": "BREATHING — checks breathlessness at rest relevant to chest symptoms."
+  },
+  {
+    "id": "rf_circulation_faint_1",
+    "kind": "yes_no",
+    "prompt": "Have you felt faint or dizzy with the chest tightness?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — checks faintness or dizziness with exertional chest symptoms."
+  },
+  {
+    "id": "rf_circulation_pressure_1",
+    "kind": "yes_no",
+    "prompt": "Does it feel like pressure or heaviness in your chest when this happens?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — checks chest pressure/heaviness with exertion."
+  },
+  {
+    "id": "rf_circulation_hand_cold_1",
+    "kind": "yes_no",
+    "prompt": "Since the fall, has that hand felt unusually cold?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — checks reduced blood flow to the injured hand."
+  },
+  {
+    "id": "rf_circulation_hand_colour_1",
+    "kind": "yes_no",
+    "prompt": "Since the fall, has that hand looked unusually pale or blue?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION — checks colour change in the injured hand."
+  },
+  {
+    "id": "rf_disability_hand_numb_1",
+    "kind": "yes_no",
+    "prompt": "Since the fall, have you had any new numbness in that hand or fingers?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY — checks new loss of sensation after wrist injury."
+  },
+  {
+    "id": "rf_disability_hand_move_1",
+    "kind": "yes_no",
+    "prompt": "Since the fall, have you been unable to move your fingers normally?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY — checks new loss of function in the injured hand."
+  }
+]
+case ABC bias OK: ['BREATHING', 'CIRCULATION']
+
+--- case3_unremarkable_bruise ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Bumped coffee table yesterday', 'character': ['Mild ache']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[]
+case3_unremarkable_bruise tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[]
+
+--- case4_sore_throat_airway_split ---
+context presentation_category: NOT_LOCALISED
+known_collect_values: {'onset_circumstance': 'More than 1 week', 'character': ['It is there all the time', 'It hurts more when I swallow']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "AIRWAY",
+    "relevance_score": 0.95,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Sore throat with painful swallowing plus lip/face/throat swelling raises concern for airway involvement; important to check for trouble swallowing saliva, voice change, or noisy breathing."
+  },
+  {
+    "topic": "TEMPERATURE",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "They mentioned fever with a sore throat lasting over a week and widespread rash; worth confirming whether there is high fever or shaking chills suggesting more systemic illness."
+  },
+  {
+    "topic": "BREATHING",
+    "relevance_score": 0.74,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Throat/facial swelling can extend beyond pain and affect breathing, so it is important to know if there is shortness of breath at rest, wheeze, or difficulty speaking full sentences."
+  }
+]
+case4_sore_throat_airway_split tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_airway_swallow_1",
+    "kind": "yes_no",
+    "prompt": "Have you had any new trouble swallowing your saliva?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY — difficulty swallowing saliva with throat/lip/face swelling."
+  },
+  {
+    "id": "rf_airway_drooling_1",
+    "kind": "yes_no",
+    "prompt": "Have you been drooling because it is hard to swallow?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY — drooling related to swallowing difficulty."
+  },
+  {
+    "id": "rf_airway_voice_1",
+    "kind": "yes_no",
+    "prompt": "Has your voice become muffled or much harder to speak with?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY — voice change suggesting throat swelling."
+  },
+  {
+    "id": "rf_temperature_fever_1",
+    "kind": "yes_no",
+    "prompt": "Have you had a very high fever with this illness?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "TEMPERATURE",
+    "personalization_note": "TEMPERATURE — high fever with sore throat and rash."
+  },
+  {
+    "id": "rf_temperature_rigors_1",
+    "kind": "yes_no",
+    "prompt": "Have you had shaking chills with the fever?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "TEMPERATURE",
+    "personalization_note": "TEMPERATURE — rigors as a systemic feature."
+  },
+  {
+    "id": "rf_breathing_rest_1",
+    "kind": "yes_no",
+    "prompt": "Are you short of breath even when sitting still?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "BREATHING",
+    "personalization_note": "BREATHING — shortness of breath at rest with throat/facial swelling."
+  },
+  {
+    "id": "rf_breathing_sentence_1",
+    "kind": "yes_no",
+    "prompt": "Can you still speak in full sentences without stopping for breath?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "BREATHING",
+    "personalization_note": "BREATHING — ability to finish a sentence without breathlessness."
+  }
+]
+case AIRWAY split OK: 3 questions — Have you had any new trouble swallowing your saliva?; Have you been drooling because it is hard to swallow?; Has your voice become muffled or much harder to speak with?
+case ABC bias OK: ['AIRWAY', 'BREATHING']
+
+=== search-bias summary ===
+case2 (redflag, uncertain safety) tool_call_count=?; priority_questions historic smokes typically tool_call_count=0 under auto tool_choice (see smoke_priority_questions results).
+
+failures=0

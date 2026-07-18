@@ -34,9 +34,9 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import translate_to_english
-from engine.helpers.apply import apply_answers
-from engine.helpers.translate import narrative_dump_free_text, narrative_dump_option
+from engine.agent_bridge import translate_to_english
+from engine.session_state_mappers import map_patient_answers
+from engine.session_state_mappers.narrative import narrative_dump_free_text, narrative_dump_option
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
@@ -111,7 +111,7 @@ def _phase_presenting_complaint() -> dict:
         _q("chief_complaint", collect_target_id="chief_complaint"),
     ]
     text = "어제 테니스 치다가 손목을 삐었어요"
-    updates = apply_answers(
+    updates = map_patient_answers(
         state,
         {"answers": [{"question_id": "chief_complaint", "value": text}]},
         questions,
@@ -133,7 +133,7 @@ def _phase_priority_allergy() -> dict:
         )
     ]
     text = "땅콩 알레르기"
-    updates = apply_answers(
+    updates = map_patient_answers(
         state,
         {
             "answers": [
@@ -161,7 +161,7 @@ def _phase_optional() -> dict:
     ]
     past = "예전에 손목 골절 수술"
     self_mgmt = "이부프로펜 먹었어요"
-    updates = apply_answers(
+    updates = map_patient_answers(
         state,
         {
             "answers": [
@@ -196,7 +196,7 @@ def _phase_ice() -> dict:
         "ice_concern": "골절이 걱정돼요",
         "ice_expectation": "엑스레이 찍고 싶어요",
     }
-    updates = apply_answers(
+    updates = map_patient_answers(
         state,
         {
             "answers": [
@@ -217,7 +217,7 @@ def _english_control() -> dict:
         raise AssertionError("translate_to_english must not run for en session")
 
     with patch(
-        "engine.helpers.translate.agent_bridge.translate_to_english",
+        "engine.agent_bridge.translate_to_english",
         side_effect=_blocked,
     ):
         free = narrative_dump_free_text(

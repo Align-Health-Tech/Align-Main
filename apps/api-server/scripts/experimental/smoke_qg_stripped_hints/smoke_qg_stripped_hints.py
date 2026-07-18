@@ -37,15 +37,15 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     run_classifier,
     run_devise_and_prioritise,
     run_question_generation,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from external_systems.clinical_ai.registry import get_eligible_targets
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.registry import get_eligible_targets
 from schemas.clinical_ai_io import ClassifierInput, QuestionGenerationInput
 from schemas.collect_targets import CollectTarget
 from schemas.question_fields import QuestionField
@@ -108,7 +108,7 @@ def _classify_and_apply(state: SessionState) -> SessionState:
     )
     print("classifier:")
     print(_dump(clf))
-    updates = apply_classifier_result(state, clf)
+    updates = map_classifier_result(state, clf)
     print("apply keys:", sorted(updates.keys()))
     return state.model_copy(update=updates)
 

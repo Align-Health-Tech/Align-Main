@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers import agent_bridge
-from engine.helpers.apply import apply_answers
+from engine import agent_bridge
+from engine.session_state_mappers import map_patient_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
@@ -19,7 +19,10 @@ _PHASE = "redflag_screening"
 
 def redflag_screening(state: SessionState) -> Command:
     if not state.pending_questions:
-        topics, questions = agent_bridge.devise_then_generate(_PHASE, state)
+        # Cap QG after finding-split (Devise ≤3 topics × ≤3 findings = 9).
+        topics, questions = agent_bridge.devise_then_generate(
+            _PHASE, state, max_questions=9
+        )
         return Command(
             update={
                 "prioritised_topics": dump_topic_candidates(topics),
@@ -33,7 +36,7 @@ def redflag_screening(state: SessionState) -> Command:
     answer = interrupt(
         build_next_step(state, questions, phase=_PHASE).model_dump()
     )
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

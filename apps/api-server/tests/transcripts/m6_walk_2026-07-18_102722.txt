@@ -1,0 +1,66 @@
+## POST /sessions
+status: NOT_STARTED
+step_type: consent  phase: consent  turn: 0
+  ask [consent_privacy] (consent_accept): I agree to Align processing my health information for this visit.
+
+## consent accept
+status: IN_PROGRESS
+step_type: question_batch  phase: presenting_complaint  turn: 0
+  ask [pc_chief_complaint] (free_text): What brings you in today?
+  answer → {'answers': [{'question_id': 'consent_privacy', 'value': True}]}
+
+## presenting_complaint
+status: IN_PROGRESS
+step_type: body_diagram  phase: localised_detail  turn: 1
+  body_diagram: Arm Right Front.svg highlights=['Select_RightWrist']
+  answer → {'answers': [{'question_id': 'pc_chief_complaint', 'value': 'pain in my right wrist'}]}
+
+## body_diagram
+status: IN_PROGRESS
+step_type: question_batch  phase: localised_detail  turn: 2
+  ask [loc_severity] (single_choice): How severe is the pain right now? (0 = none, 10 = worst)
+  answer → {'region_id': 'Select_RightWrist'}
+
+## localised_detail questions
+status: IN_PROGRESS
+step_type: question_batch  phase: priority_questions  turn: 3
+  ask [meds_q1] (yes_no): Are you taking any medicines for your symptoms?
+  answer → {'answers': [{'question_id': 'loc_severity', 'value': '7'}]}
+
+## priority_questions
+status: IN_PROGRESS
+step_type: question_batch  phase: redflag_screening  turn: 4
+  ask [rf_chest_pain] (yes_no): Do you have chest pain or pressure?
+  ask [rf_neuro] (yes_no): Any sudden weakness, numbness, or vision loss?
+  answer → {'answers': [{'question_id': 'meds_q1', 'value': 'no'}]}
+
+## redflag_screening
+status: IN_PROGRESS
+step_type: question_batch  phase: optional_questions  turn: 5
+  ask [opt_sleep] (yes_no): Have you tried anything yourself for this?
+  answer → {'answers': [{'question_id': 'rf_chest_pain', 'value': 'no'}, {'question_id': 'rf_neuro', 'value': 'no'}]}
+
+## optional skip
+status: IN_PROGRESS
+step_type: question_batch  phase: ice  turn: 6
+  ask [ice_idea] (multi_choice): What do you think is going on?
+  ask [ice_concern] (multi_choice): What worries you most about this?
+  ask [ice_expectation] (multi_choice): What are you hoping we can do today?
+  answer → {'skip': True}
+
+## ice → survey (graph complete intercepted)
+status: IN_PROGRESS
+step_type: survey  phase: survey  turn: 7
+  ask [survey_ease] (single_choice): How easy was this intake to complete?
+  answer → {'answers': [{'question_id': 'ice_idea', 'value': 'Maybe a sprain'}, {'question_id': 'ice_concern', 'value': 'Worried about a fracture'}, {'question_id': 'ice_expectation', 'value': 'Want an X-ray'}]}
+
+## survey answer
+status: AWAITING_REVIEW
+step_type: complete  phase: ice  turn: 7
+  answer → {'answers': [{'question_id': 'survey_ease', 'value': 'easy'}]}
+
+## clinician mark complete
+status: COMPLETED
+
+## status transitions
+NOT_STARTED → IN_PROGRESS → AWAITING_REVIEW → COMPLETED

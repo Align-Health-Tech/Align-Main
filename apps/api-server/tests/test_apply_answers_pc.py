@@ -1,9 +1,9 @@
-"""Unit tests for apply_answers presenting_complaint mapping."""
+"""Unit tests for map_patient_answers presenting_complaint mapping."""
 from __future__ import annotations
 
 import unittest
 
-from engine.helpers.apply import apply_answers
+from engine.session_state_mappers import map_patient_answers
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 
@@ -27,7 +27,7 @@ class TestApplyAnswersPresentingComplaint(unittest.TestCase):
             personalization_note="deterministic",
             collect_target_id="chief_complaint",
         )
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {"answers": [{"question_id": "pc_chief_complaint", "value": "wrist pain"}]},
             [q],
@@ -52,7 +52,7 @@ class TestApplyAnswersPresentingComplaint(unittest.TestCase):
             chief_complaint={"text": "hurts"},
             turn_number=1,
         )
-        updates = apply_answers(
+        updates = map_patient_answers(
             state,
             {"answers": [{"question_id": "pc_clarify_1", "value": "body_part"}]},
             [q],

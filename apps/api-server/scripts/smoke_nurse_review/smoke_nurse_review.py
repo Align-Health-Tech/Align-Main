@@ -31,7 +31,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     run_nurse_review_summary_agent,
 )

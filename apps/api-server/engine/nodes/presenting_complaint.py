@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers import agent_bridge
-from engine.helpers.apply import apply_answers
-from engine.helpers.apply_classifier_result import apply_classifier_result
+from engine import agent_bridge
+from engine.session_state_mappers import map_patient_answers
+from engine.session_state_mappers import map_ai_result
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
@@ -48,7 +48,7 @@ def presenting_complaint(state: SessionState) -> Command:
                 state, questions, phase="presenting_complaint"
             ).model_dump()
         )
-        updates = apply_answers(state, answer, questions)
+        updates = map_patient_answers(state, answer, questions)
         return Command(
             update={
                 **updates,
@@ -76,7 +76,7 @@ def presenting_complaint(state: SessionState) -> Command:
             )
             return Command(
                 update={
-                    **apply_classifier_result(state, result),
+                    **map_ai_result(state, result),
                     "completed_phases": with_completed(state, "presenting_complaint"),
                 },
                 goto=next_node,
@@ -96,7 +96,7 @@ def presenting_complaint(state: SessionState) -> Command:
     answer = interrupt(
         build_next_step(state, questions, phase="presenting_complaint").model_dump()
     )
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

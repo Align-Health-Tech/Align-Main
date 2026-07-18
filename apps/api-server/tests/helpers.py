@@ -77,17 +77,35 @@ def walk_to_optional(runner: SessionRunner, session_id: str) -> NextStep:
     )
 
 
-def answer_ice(runner: SessionRunner, session_id: str) -> NextStep:
-    return runner.resume(
-        session_id,
-        {
-            "answers": [
-                {"question_id": "ice_idea", "value": "maybe a sprain"},
-                {"question_id": "ice_concern", "value": "worried about fracture"},
-                {"question_id": "ice_expectation", "value": "want an X-ray"},
-            ]
-        },
-    )
+def answer_ice(
+    runner: SessionRunner,
+    session_id: str,
+    *,
+    as_other_free_text: bool = False,
+) -> NextStep:
+    """Answer ICE chips. Default uses mock fixture option values.
+
+    Pass ``as_other_free_text=True`` to exercise Pattern E via Other:.
+    """
+    if as_other_free_text:
+        answers = [
+            {"question_id": "ice_idea", "value": "Other:maybe a sprain"},
+            {
+                "question_id": "ice_concern",
+                "value": "Other:worried about fracture",
+            },
+            {"question_id": "ice_expectation", "value": "Other:want an X-ray"},
+        ]
+    else:
+        answers = [
+            {"question_id": "ice_idea", "value": "Maybe a sprain"},
+            {
+                "question_id": "ice_concern",
+                "value": "Worried about a fracture",
+            },
+            {"question_id": "ice_expectation", "value": "Want an X-ray"},
+        ]
+    return runner.resume(session_id, {"answers": answers})
 
 
 def snap_values(runner: SessionRunner, session_id: str) -> dict:

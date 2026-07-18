@@ -44,7 +44,7 @@ The app will consist of:
 ### Why Devise & Prioritise is a separate agent
 
 David/Kevin are building a clinical reasoning capability in parallel. When it is
-ready, replace `run_devise_and_prioritise` in `clinical_ai/agents.py` (or its
+ready, replace `run_devise_and_prioritise` in `intelligence/agents.py` (or its
 body) — keep returning `list[TopicCandidate]`. There is no separate
 `ClinicalReasoningProvider` Protocol to swap.
 
@@ -81,10 +81,11 @@ Align-Main/
 │   ├── urgent-care-app/      # Next.Js frontend app
 │   ├── gp-app/                 # not built yet
 │   └── api-server/             # FastAPI + LangGraph, single Python process
-│       ├── routers/            # session / clinician / demo (scaffold)
-│       ├── engine/             # graph + nodes (scaffold)
-│       ├── external_systems/   # pms/ (Protocol+adapters), clinical_ai/ (run_* agents)
-│       ├── schemas/            # SessionState, NextStep, clinical_ai I/O, …
+│       ├── routers/            # session / clinician mark-complete
+│       ├── engine/             # LangGraph + agent_bridge + session_state_mappers
+│       ├── intelligence/       # agents + prompts (CI patches engine.agent_bridge)
+│       ├── external_systems/   # pms/ only (Protocol + adapters)
+│       ├── schemas/            # SessionState, NextStep, clinical AI I/O shapes
 │       └── db/                 # SQLAlchemy models, Alembic migrations
 ├── packages/
 │   ├── generated-types/       # openapi-typescript output — never hand-edit

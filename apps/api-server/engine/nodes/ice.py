@@ -1,15 +1,13 @@
-"""ice — Pattern C minus devise; free-text idea / concern / expectation."""
+"""ice — Pattern C with Devise skipped; multi_choice chips + Other free text."""
 from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers import agent_bridge
-from engine.helpers.apply import apply_answers
+from engine import agent_bridge
+from engine.session_state_mappers import map_patient_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
-from engine.helpers.qg_phase_validators import validate_qg_questions
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
-from schemas.clinical_ai_io import QuestionGenerationInput
 from schemas.session_states import SessionState
 
 _PHASE = "ice"
@@ -17,18 +15,12 @@ _PHASE = "ice"
 
 def ice(state: SessionState) -> Command:
     if not state.pending_questions:
-        result = agent_bridge.run_question_generation(
-            QuestionGenerationInput(
-                prompt_name=_PHASE,
-                prioritised_topics=[],
-                eligible_targets=[],
-                context=agent_bridge.build_agent_context(state),
-            )
+        _topics, questions = agent_bridge.devise_then_generate(
+            _PHASE, state, devise=False
         )
-        validate_qg_questions(_PHASE, result.questions)
         return Command(
             update={
-                "pending_questions": dump_question_fields(result.questions),
+                "pending_questions": dump_question_fields(questions),
                 "awaiting_phase": _PHASE,
             },
             goto="ice",
@@ -36,7 +28,7 @@ def ice(state: SessionState) -> Command:
 
     questions = as_question_fields(state.pending_questions)
     answer = interrupt(build_next_step(state, questions, phase=_PHASE).model_dump())
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

@@ -4,9 +4,9 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from external_systems.clinical_ai import agents
-from external_systems.clinical_ai.agents import _get_candidate_pool
-from external_systems.clinical_ai.registry import (
+from intelligence import agents
+from intelligence.agents import _get_candidate_pool
+from intelligence.registry import (
     REDFLAG_SUBCATEGORIES,
     REDFLAG_TARGETS,
     normalize_redflag_subcategory,

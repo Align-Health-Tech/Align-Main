@@ -4,6 +4,11 @@ FastAPI + LangGraph, single process. Target endpoint surface — what each route
 
 Companion docs: [DATABASE.md](../../database/DATABASE.md) (schema), [RLS.md](../../database/RLS.md) (access rules per table), [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md) (consent/survey outside graph), [USERFLOW.md](../../structures/USERFLOW.md).
 
+**M6 note:** Patient + clinician mark-complete routes are wired against an
+**in-memory** store (`services/`). Responses include `status` for lifecycle
+verification. Real Patient/Encounter/Consent/SurveyResponse SQL + auth/RLS
+land in M7. Tables-touched rows below describe the target persistence model.
+
 ---
 
 ## 1. Patient session lifecycle (`routers/session.py`) - Preconsultation
@@ -22,27 +27,21 @@ Called once, on QR scan or a URL open.
 | Auth           | QR or URL only                                                                                                                                            |
 | Role           | `align_app`, `is_patient() = true` after this call sets `current_encounter_id`                                                                            |
 | Request        | None                                                                                                                                                      |
-| Response       | `{ session_id: str, next_step: NextStep }`                                                                                                                |
+| Response       | `{ session_id: str, next_step: NextStep, status: EncounterStatus }` (M6 adds `status`)                                                                    |
 | Tables touched | Creates `Patient` (`kind = GUEST`) and `Encounter` (`status = NOT_STARTED`). `Encounter.id` becomes `session_id` and doubles as the LangGraph `thread_id` |
 
-
-`status` stays `NOT_STARTED` while the router serves the consent form (no
-graph yet). It flips to `IN_PROGRESS` once consent is accepted and the
-router makes the graph's **first** `invoke()` (clinical intake starts at
-`presenting_complaint`). `Consent` rows key off `patient_id`, not
-`encounter_id`. See [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md).
 
 ### `POST /sessions/{id}/respond`
 
 The loop. Called once per patient answer, however many times that ends up being.
 
 
-|                |                                                                                                                                                                                                                                                                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth           | Session-scoped — `id` must match the caller's `current_encounter_id`                                                                                                                                                                                                                                                                                       |
-| Role           | `align_app`, `is_patient() = true`                                                                                                                                                                                                                                                                                                                         |
-| Request        | `{ answer: ... }` — shape depends on the current `step_type`                                                                                                                                                                                                                                                                                               |
-| Response       | `{ next_step: NextStep }`                                                                                                                                                                                                                                                                                                                                  |
+|                |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth           | Session-scoped — `id` must match the caller's `current_encounter_id`                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Role           | `align_app`, `is_patient() = true`                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Request        | `{ answer: ... }` — shape depends on the current `step_type`                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Response       | `{ next_step: NextStep, status: EncounterStatus }`                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Tables touched | Varies by step — `Consent` (router, gates `Encounter.status → IN_PROGRESS` before first graph invoke), graph-driven `Encounter` columns / `BodyStructure` / `Flag` / `IntakeFactItem`, router-driven `SurveyResponse` after graph complete, plus `LillyAiInteraction`/`AuditLog` as engine-internal writes (via `align_engine`, not this request's `align_app` context — see [RLS.md](../../database/RLS.md)). Lifecycle detail: [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md). |
 
 
@@ -56,7 +55,7 @@ Read-only. Covers both "resume after a refresh" and "review a completed session"
 | Auth           | Session-scoped, same as above                                                       |
 | Role           | `align_app`, `is_patient() = true`                                                  |
 | Request        | None                                                                                |
-| Response       | `{ next_step: NextStep }`                                                           |
+| Response       | `{ next_step: NextStep, status: EncounterStatus }`                                  |
 | Tables touched | None written — reads current `Encounter` state via the checkpointer/business tables |
 
 
@@ -92,14 +91,14 @@ Dashboard “mark as complete” — flips `Encounter.status` from `AWAITING_REV
 → `COMPLETED`. Not graph-driven. See [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md).
 
 
-|                |                                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Auth           | Practitioner login (Medtech or Entra, To be decided)                                                                            |
-| Role           | `align_app`, `is_patient() = false`                                                                                             |
-| Request        | None (or empty body)                                                                                                            |
-| Response       | `{ session_id: str, status: "COMPLETED" }`                                                                                      |
-| Preconditions  | Current status must be `AWAITING_REVIEW` — otherwise `409` (or equivalent)                                                      |
-| Tables touched | `Encounter` (update `status`)                                                                                                   |
+|                |                                                                            |
+| -------------- | -------------------------------------------------------------------------- |
+| Auth           | Practitioner login (Medtech or Entra, To be decided)                       |
+| Role           | `align_app`, `is_patient() = false`                                        |
+| Request        | None (or empty body)                                                       |
+| Response       | `{ session_id: str, status: "COMPLETED" }`                                 |
+| Preconditions  | Current status must be `AWAITING_REVIEW` — otherwise `409` (or equivalent) |
+| Tables touched | `Encounter` (update `status`)                                              |
 
 
 ### `POST /clinician/sessions/{id}/comments`

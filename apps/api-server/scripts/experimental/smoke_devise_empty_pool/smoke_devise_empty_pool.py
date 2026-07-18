@@ -32,14 +32,14 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     run_classifier,
     run_devise_and_prioritise,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from external_systems.clinical_ai.llm_client import get_last_tool_loop
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.llm_client import get_last_tool_loop
 from schemas.clinical_ai_io import ClassifierInput
 from schemas.session_states import SessionState
 from schemas.topic_candidates import TopicCandidate
@@ -98,7 +98,7 @@ def _classify_and_apply(state: SessionState) -> SessionState:
     print(_dump(clf))
     if not clf.ready:
         print("WARN: classifier ready=false — applying partial / skipping supplement")
-    updates = apply_classifier_result(state, clf)
+    updates = map_classifier_result(state, clf)
     print("apply keys:", sorted(updates.keys()))
     return state.model_copy(update=updates)
 
@@ -138,7 +138,7 @@ def _run_devise(label: str, context: dict, *, empty_pool: bool) -> list[TopicCan
     try:
         if empty_pool:
             with patch(
-                "external_systems.clinical_ai.agents._get_candidate_pool",
+                "intelligence.agents._get_candidate_pool",
                 return_value=[],
             ):
                 topics = run_devise_and_prioritise(_PHASE, context)

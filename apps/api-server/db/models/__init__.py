@@ -2,9 +2,7 @@
 Export all ORM models for Alembic autogenerate via Base.metadata.
 
 Checkpoint tables (`checkpoints`, `checkpoint_writes`, `checkpoint_blobs`,
-`checkpoint_migrations`) are owned by LangGraph's PostgresSaver — not modeled
-here. Add `organization_id` for RLS via a hand-written Alembic migration after
-`.setup()` (see docs/database/RLS.md §7).
+`checkpoint_migrations`) are not modeled here.
 """
 from db.models.audit import AuditLog, LillyAiInteraction
 from db.models.clinical import BodyStructure, Flag, IntakeFactItem, RadiationSite

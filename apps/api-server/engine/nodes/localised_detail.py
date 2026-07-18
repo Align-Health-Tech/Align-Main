@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers.apply import apply_answers
+from engine.session_state_mappers import map_patient_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_body_diagram_next_step, build_next_step
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
@@ -82,7 +82,7 @@ def localised_detail(state: SessionState) -> Command:
 
         next_step = build_body_diagram_next_step(state)
         answer = interrupt(next_step.model_dump())
-        updates = apply_answers(state, answer, [])
+        updates = map_patient_answers(state, answer, [])
         return Command(
             update={
                 **updates,
@@ -109,7 +109,7 @@ def localised_detail(state: SessionState) -> Command:
     answer = interrupt(
         build_next_step(state, questions, phase=_PHASE).model_dump()
     )
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

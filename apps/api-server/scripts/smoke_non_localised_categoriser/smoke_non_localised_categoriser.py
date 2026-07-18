@@ -27,14 +27,14 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     devise_then_generate,
     run_classifier,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from engine.helpers.qg_phase_validators import validate_qg_questions
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.qg_phase_validators import validate_qg_questions
 from schemas.clinical_ai_io import ClassifierInput
 from schemas.session_states import SessionState
 
@@ -113,7 +113,7 @@ def _run() -> int:
         print("case1: OK")
     if clf1.chief_complaint_summary or clf1.localised_anatomy_sites:
         print("WARN: PC-only fields present on NL categoriser result")
-    updates = apply_classifier_result(
+    updates = map_classifier_result(
         state1, clf1, prompt_name=_CATEGORISER
     )
     print("apply:", updates)

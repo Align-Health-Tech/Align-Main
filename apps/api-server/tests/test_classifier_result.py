@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers.agent_bridge import build_agent_context
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from external_systems.clinical_ai.registry import get_eligible_targets
+from engine.agent_bridge import build_agent_context
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.registry import get_eligible_targets
 from schemas.clinical_ai_io import (
     ClassifierResult,
     EncounterIntakeSupplement,
@@ -107,7 +107,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
                 acc_can_work=False,
             ),
         )
-        updates = apply_classifier_result(state, result)
+        updates = map_classifier_result(state, result)
         self.assertEqual(updates["presentation_category"], "LOCALISED")
         self.assertEqual(
             updates["presenting_complaint_hint"]["localisedAnatomySites"][0][
@@ -136,7 +136,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
                 duration="since yesterday"
             ),
         )
-        updates = apply_classifier_result(state, result)
+        updates = map_classifier_result(state, result)
         self.assertEqual(updates["duration"]["text"], "since yesterday")
         self.assertNotIn("onset_circumstance", updates)
         self.assertEqual(updates["presenting_complaint_hint"], {})
@@ -175,7 +175,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
                 )
             ],
         )
-        updates = apply_classifier_result(state, result)
+        updates = map_classifier_result(state, result)
         self.assertEqual(updates["chief_complaint"]["text"], summary)
         self.assertEqual(updates["chief_complaint"]["source"], "ai_summary")
         self.assertNotIn("en_text", updates["chief_complaint"])
@@ -200,7 +200,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
             category="LOCALISED",
             chief_complaint_summary=summary,
         )
-        updates = apply_classifier_result(state, result)
+        updates = map_classifier_result(state, result)
         self.assertEqual(updates["chief_complaint"]["text"], summary)
         self.assertEqual(updates["chief_complaint"]["en_text"], summary)
         self.assertEqual(updates["chief_complaint"]["source"], "ai_summary")
@@ -224,7 +224,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
             # If a model wrongly echoed PC fields, still must not apply them here.
             chief_complaint_summary="SHOULD_NOT_APPLY",
         )
-        updates = apply_classifier_result(
+        updates = map_classifier_result(
             state, result, prompt_name="non_localised_categoriser"
         )
         self.assertEqual(updates, {"non_localised_category": "SYSTEMIC"})
@@ -232,7 +232,7 @@ class TestApplyClassifierResult(MockClinicalAiTestCase, unittest.TestCase):
         self.assertNotIn("chief_complaint", updates)
 
     def test_null_pc_only_fields_strips_nl_echo(self) -> None:
-        from external_systems.clinical_ai.agents import _null_pc_only_fields
+        from intelligence.agents import _null_pc_only_fields
 
         dirty = ClassifierResult(
             ready=True,
@@ -281,7 +281,7 @@ class TestKnownCollectValuesFromSupplement(unittest.TestCase):
                 mitigating_factors=["rest"],
             ),
         )
-        updates = apply_classifier_result(state, result)
+        updates = map_classifier_result(state, result)
         merged = state.model_copy(update=updates)
         ctx = build_agent_context(merged)
         known = set(ctx["known_collect_values"])
@@ -354,7 +354,7 @@ class TestKnownCollectValuesFromSupplement(unittest.TestCase):
         self.assertNotIn("social_history", opt_loc)
 
     def test_only_pregnancy_keeps_suggestion_fields(self) -> None:
-        from external_systems.clinical_ai.registry import (
+        from intelligence.registry import (
             OPTIONAL_TARGETS,
             PRIORITY_TARGETS,
         )

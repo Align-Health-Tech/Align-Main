@@ -1,0 +1,408 @@
+=== optional_questions + ice Azure smoke ===
+
+=== OPTIONAL_QUESTIONS ===
+
+optional devise topics:
+[
+  {
+    "topic": "self_management",
+    "relevance_score": 0.84,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "For an acute wrist twist, knowing whether they rested, iced, compressed, immobilised, or used pain relief helps interpret current severity and response so far."
+  },
+  {
+    "topic": "exacerbating_factors",
+    "relevance_score": 0.72,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "What movements or activities worsen the wrist pain can clarify functional limitation and mechanism-relevant context after a sports injury."
+  },
+  {
+    "topic": "mitigating_factors",
+    "relevance_score": 0.66,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Knowing what eases the pain, such as rest or support, adds useful context about symptom behaviour in this acute injury."
+  },
+  {
+    "topic": "past_history",
+    "relevance_score": 0.38,
+    "is_red_flag": false,
+    "source": "base_reasoning",
+    "rationale": "Previous wrist injuries, fractures, or surgery could be relevant background, but this is lower yield than immediate symptom-behaviour and self-care details."
+  }
+]
+optional tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+optional qg questions:
+[
+  {
+    "id": "self_management",
+    "kind": "multi_choice",
+    "prompt": "What have you tried for your wrist since it happened?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Rested it",
+        "label": "Rested it",
+        "en_label": null
+      },
+      {
+        "value": "Ice",
+        "label": "Ice",
+        "en_label": null
+      },
+      {
+        "value": "Compression or bandage",
+        "label": "Compression or bandage",
+        "en_label": null
+      },
+      {
+        "value": "Brace or splint",
+        "label": "Brace or splint",
+        "en_label": null
+      },
+      {
+        "value": "Pain relief medicine",
+        "label": "Pain relief medicine",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "self_management",
+    "personalization_note": "Because this was an acute wrist twist yesterday, the wording focuses on common early self-care steps for a sports injury."
+  },
+  {
+    "id": "exacerbating_factors",
+    "kind": "multi_choice",
+    "prompt": "What tends to make your wrist pain worse?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Moving the wrist",
+        "label": "Moving the wrist",
+        "en_label": null
+      },
+      {
+        "value": "Twisting or gripping",
+        "label": "Twisting or gripping",
+        "en_label": null
+      },
+      {
+        "value": "Lifting or carrying",
+        "label": "Lifting or carrying",
+        "en_label": null
+      },
+      {
+        "value": "Using it during sport",
+        "label": "Using it during sport",
+        "en_label": null
+      },
+      {
+        "value": "Nothing in particular",
+        "label": "Nothing in particular",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "exacerbating_factors",
+    "personalization_note": "The options are tailored to a wrist injury from tennis and focus on movements and activities that commonly aggravate this kind of pain."
+  },
+  {
+    "id": "mitigating_factors",
+    "kind": "multi_choice",
+    "prompt": "What helps your wrist feel better, even a little?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Resting it",
+        "label": "Resting it",
+        "en_label": null
+      },
+      {
+        "value": "Keeping it still",
+        "label": "Keeping it still",
+        "en_label": null
+      },
+      {
+        "value": "Ice",
+        "label": "Ice",
+        "en_label": null
+      },
+      {
+        "value": "Brace, splint, or bandage",
+        "label": "Brace, splint, or bandage",
+        "en_label": null
+      },
+      {
+        "value": "Pain relief medicine",
+        "label": "Pain relief medicine",
+        "en_label": null
+      },
+      {
+        "value": "Nothing seems to help",
+        "label": "Nothing seems to help",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "mitigating_factors",
+    "personalization_note": "This asks about common easing factors for an acute wrist injury so the answers match the symptom pattern after the twist."
+  },
+  {
+    "id": "past_history",
+    "kind": "multi_choice",
+    "prompt": "Have you had any significant wrist problems or treatments before?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Previous wrist fracture",
+        "label": "Previous wrist fracture",
+        "en_label": null
+      },
+      {
+        "value": "Previous bad wrist sprain or injury",
+        "label": "Previous bad wrist sprain or injury",
+        "en_label": null
+      },
+      {
+        "value": "Wrist surgery",
+        "label": "Wrist surgery",
+        "en_label": null
+      },
+      {
+        "value": "Hospital treatment for a wrist problem",
+        "label": "Hospital treatment for a wrist problem",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": false,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "past_history",
+    "personalization_note": "Because the current problem is a twisted wrist, the past-history chips are tailored to prior wrist injuries or treatment rather than general medical conditions."
+  }
+]
+past_history apply intake_facts:
+[
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Previous wrist fracture",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Previous bad wrist sprain or injury",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Wrist surgery",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "Hospital treatment for a wrist problem",
+      "en_text": null,
+      "source": "option"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  },
+  {
+    "kind": "PAST_HISTORY",
+    "source": "PATIENT_INTAKE",
+    "display": {
+      "text": "previous wrist surgery abroad",
+      "en_text": null,
+      "source": "free_text"
+    },
+    "fhir_system": null,
+    "fhir_code": null,
+    "fhir_display": null
+  }
+]
+
+=== ICE (QG only) ===
+
+ice tool_loop: {'tool_choice': None, 'tool_call_count': 0, 'tool_calls': []}
+ice qg questions:
+[
+  {
+    "id": "ice_idea",
+    "kind": "multi_choice",
+    "prompt": "What do you think might be going on with your wrist?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "A sprain or strain",
+        "label": "A sprain or strain",
+        "en_label": null
+      },
+      {
+        "value": "I twisted it and irritated it",
+        "label": "I twisted it and irritated it",
+        "en_label": null
+      },
+      {
+        "value": "Just a minor sports injury",
+        "label": "Just a minor sports injury",
+        "en_label": null
+      },
+      {
+        "value": "I'm not sure",
+        "label": "I'm not sure",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_idea",
+    "personalization_note": "Likely ideas for a wrist injury after twisting it during sport."
+  },
+  {
+    "id": "ice_concern",
+    "kind": "multi_choice",
+    "prompt": "What worries you about it?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "It might take a while to heal",
+        "label": "It might take a while to heal",
+        "en_label": null
+      },
+      {
+        "value": "I might have injured it more than I thought",
+        "label": "I might have injured it more than I thought",
+        "en_label": null
+      },
+      {
+        "value": "It could affect work, sport, or daily tasks",
+        "label": "It could affect work, sport, or daily tasks",
+        "en_label": null
+      },
+      {
+        "value": "The pain might get worse",
+        "label": "The pain might get worse",
+        "en_label": null
+      },
+      {
+        "value": "I'm not sure what to worry about",
+        "label": "I'm not sure what to worry about",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_concern",
+    "personalization_note": "Common concerns for a recent wrist twist, kept neutral and non-alarmist."
+  },
+  {
+    "id": "ice_expectation",
+    "kind": "multi_choice",
+    "prompt": "What are you hoping we can help with today?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "Check how serious it is",
+        "label": "Check how serious it is",
+        "en_label": null
+      },
+      {
+        "value": "Advice on how to look after it",
+        "label": "Advice on how to look after it",
+        "en_label": null
+      },
+      {
+        "value": "Help with pain or swelling",
+        "label": "Help with pain or swelling",
+        "en_label": null
+      },
+      {
+        "value": "Advice about sport, work, or activity",
+        "label": "Advice about sport, work, or activity",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "ice_expectation",
+    "personalization_note": "Practical goals for a visit about a recent wrist injury."
+  }
+]
+ice web_search_count=0 OK
+ice devise_called=False OK (QG-only path)
+
+=== PHASE SUMMARY ===
+optional_questions: PASS (failures=0, topics=4, questions=4, web_search=0)
+ice: PASS (failures=0, web_search=0, devise_called=False)
+
+total_failures=0

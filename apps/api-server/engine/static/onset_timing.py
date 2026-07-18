@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from schemas.question_fields import QuestionOption
 
-# Matches Align-Pilot-V2 SHORECARE_TIMING_ORDER / TIMING_CANON_TO_ENGLISH.
 ONSET_TIMING_OPTIONS: list[QuestionOption] = [
     QuestionOption(value="LAST_24_HOURS", label="Last 24 hours"),
     QuestionOption(value="WITHIN_48_HOURS", label="Within 48 hours"),

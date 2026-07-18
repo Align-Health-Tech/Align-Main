@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers import agent_bridge
+from engine import agent_bridge
 from schemas.clinical_ai_io import ClassifierInput, ClassifierResult
 from schemas.session_states import SessionState
 from tests.mock_clinical_ai import MockClinicalAiTestCase

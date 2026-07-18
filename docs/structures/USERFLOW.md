@@ -38,7 +38,7 @@ flowchart TD
 
 1. consent (router) → 2. presenting_complaint (+ clarify) → 3a/3b → 4. priority → 5. redflag → 6. optional → 7. ice → *(silent review)* → 9. survey? (router) → complete
 
-**`presenting_complaint` / `chief_complaint`:** Stage 1 stores the patient's free-text answer (`source: "free_text"`). On classifier `ready: true`, `apply_classifier_result` overwrites `chief_complaint` with `chiefComplaintSummary` (`source: "ai_summary"`). Original patient wording stays recoverable in session `messages` (no separate DB column).
+**`presenting_complaint` / `chief_complaint`:** Stage 1 stores the patient's free-text answer (`source: "free_text"`). On classifier `ready: true`, `map_classifier_result` overwrites `chief_complaint` with `chiefComplaintSummary` (`source: "ai_summary"`). Original patient wording stays recoverable in session `messages` (no separate DB column).
 
 **Detail timing (3a/3b):** After routing, deterministic `single_choice` chips ask when symptoms started (Last 24 hours / Within 48 hours / Within 1 week / More than 1 week) into `onset_circumstance` (`source: "option"`). NL path also asks severity + functional impact; localised asks severity after the body diagram. NL categoriser clarify is capped at **3 rounds in code** (`non_localised_clarify_rounds` + lean force-commit) — see [ENGINE_NODES.md](../apps/api-server/ENGINE_NODES.md).
 

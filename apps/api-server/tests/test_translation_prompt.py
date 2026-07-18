@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from external_systems.clinical_ai.prompt_loader import load_prompt
+from intelligence.prompt_loader import load_prompt
 from schemas.clinical_ai_io import TranslationResult
 
 

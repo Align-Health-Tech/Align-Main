@@ -4,8 +4,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from engine.helpers import agent_bridge
-from engine.helpers.qg_phase_validators import validate_qg_questions
+from engine import agent_bridge
+from intelligence.qg_phase_validators import validate_qg_questions
 from engine.nodes.ice import ice
 from schemas.clinical_ai_io import QuestionGenerationResult
 from schemas.question_fields import QuestionField, QuestionOption
@@ -321,16 +321,23 @@ class TestValidateQgQuestions(unittest.TestCase):
             validate_qg_questions("optional_questions", questions)
         self.assertIn("at most 4", str(ctx.exception))
 
-    def test_ice_requires_exact_three_free_text_targets(self) -> None:
-        valid = [
-            QuestionField(
+    def test_ice_requires_exact_three_multi_choice_with_other(self) -> None:
+        def _ice(target: str) -> QuestionField:
+            return QuestionField(
                 id=target,
-                kind="free_text",
+                kind="multi_choice",
                 prompt=f"Prompt for {target}",
                 personalization_note="test",
                 collect_target_id=target,
+                options=[
+                    QuestionOption(value="a", label="A"),
+                    QuestionOption(value="b", label="B"),
+                    QuestionOption(value="Other", label="Other"),
+                ],
             )
-            for target in ("ice_idea", "ice_concern", "ice_expectation")
+
+        valid = [
+            _ice(t) for t in ("ice_idea", "ice_concern", "ice_expectation")
         ]
         validate_qg_questions("ice", valid)
 
@@ -339,13 +346,91 @@ class TestValidateQgQuestions(unittest.TestCase):
         self.assertIn("exactly", str(ctx.exception))
 
         invalid_kind = [q.model_copy() for q in valid]
-        invalid_kind[0] = invalid_kind[0].model_copy(update={"kind": "yes_no"})
+        invalid_kind[0] = invalid_kind[0].model_copy(
+            update={"kind": "free_text", "options": None}
+        )
         with self.assertRaises(ValueError) as ctx:
             validate_qg_questions("ice", invalid_kind)
-        self.assertIn("free_text", str(ctx.exception))
+        self.assertIn("multi_choice", str(ctx.exception))
+
+    def test_redflag_accepts_split_findings_same_subcategory(self) -> None:
+        """Multi-finding AIRWAY → multiple yes_no, same collect_target_id."""
+        # Pilot-style observables (≤3/topic); validator still yes_no-only.
+        questions = [
+            QuestionField(
+                id="rf_airway_swallow_1",
+                kind="yes_no",
+                prompt="Have you had any new trouble swallowing your saliva?",
+                personalization_note="AIRWAY — difficulty swallowing saliva.",
+                collect_target_id="AIRWAY",
+            ),
+            QuestionField(
+                id="rf_airway_drooling_1",
+                kind="yes_no",
+                prompt="Have you been drooling because it is hard to swallow?",
+                personalization_note="AIRWAY — drooling.",
+                collect_target_id="AIRWAY",
+            ),
+            QuestionField(
+                id="rf_airway_voice_1",
+                kind="yes_no",
+                prompt="Has your voice become muffled or much harder to speak with?",
+                personalization_note="AIRWAY — voice change.",
+                collect_target_id="AIRWAY",
+            ),
+        ]
+        validate_qg_questions("redflag_screening", questions)
+        hint = next(
+            t.clinical_hint
+            for t in __import__(
+                "intelligence.registry", fromlist=["REDFLAG_TARGETS"]
+            ).REDFLAG_TARGETS
+            if t.subcategory == "AIRWAY"
+        )
+        self.assertEqual(len(questions), 3)
+        self.assertIn("swallowing", hint.casefold())
+        self.assertIn("drooling", hint.casefold())
 
 
 class TestDeviseThenGenerateValidates(MockClinicalAiTestCase, unittest.TestCase):
+    def test_redflag_truncates_over_max_questions(self) -> None:
+        """Bridge hard-caps QG when the model ignores max_questions."""
+        state = SessionState(
+            session_id="s", patient_id="p", organization_id="o"
+        )
+        oversized = QuestionGenerationResult(
+            reason="too many",
+            questions=[
+                QuestionField(
+                    id=f"rf_{i}",
+                    kind="yes_no",
+                    prompt=f"Finding {i}?",
+                    personalization_note="n",
+                    collect_target_id="AIRWAY",
+                )
+                for i in range(12)
+            ],
+        )
+        with patch.object(
+            agent_bridge,
+            "run_devise_and_prioritise",
+            return_value=[
+                TopicCandidate(
+                    topic="AIRWAY",
+                    relevance_score=0.9,
+                    is_red_flag=True,
+                    source="base_reasoning",
+                )
+            ],
+        ), patch.object(
+            agent_bridge, "run_question_generation", return_value=oversized
+        ):
+            _topics, questions = agent_bridge.devise_then_generate(
+                "redflag_screening", state, max_questions=9
+            )
+        self.assertEqual(len(questions), 9)
+        validate_qg_questions("redflag_screening", questions)
+
     def test_bad_qg_output_raises_through_bridge(self) -> None:
         state = SessionState(
             session_id="s", patient_id="p", organization_id="o"
@@ -383,29 +468,37 @@ class TestDeviseThenGenerateValidates(MockClinicalAiTestCase, unittest.TestCase)
 
 
 class TestIceNodeValidatesWithoutDevise(unittest.TestCase):
-    def test_ice_validates_direct_qg_and_never_calls_devise(self) -> None:
+    def test_ice_devise_false_skips_devise_and_validates_qg(self) -> None:
         state = SessionState(
             session_id="s",
             patient_id="p",
             organization_id="o",
         )
+        def _bad(target: str) -> QuestionField:
+            return QuestionField(
+                id=target,
+                kind="single_choice",
+                prompt=f"Prompt for {target}",
+                personalization_note="test",
+                collect_target_id=target,
+                options=[
+                    QuestionOption(value="a", label="A"),
+                    QuestionOption(value="Other", label="Other"),
+                ],
+            )
+
         bad = QuestionGenerationResult(
             reason="drift",
             questions=[
-                QuestionField(
-                    id="ice_idea",
-                    kind="yes_no",
-                    prompt="Do you think this is a sprain?",
-                    personalization_note="test",
-                    collect_target_id="ice_idea",
-                )
+                _bad(t) for t in ("ice_idea", "ice_concern", "ice_expectation")
             ],
         )
         with patch.object(
             agent_bridge, "run_question_generation", return_value=bad
         ), patch.object(agent_bridge, "run_devise_and_prioritise") as devise:
-            with self.assertRaises(ValueError):
+            with self.assertRaises(ValueError) as ctx:
                 ice(state)
+            self.assertIn("multi_choice", str(ctx.exception))
             devise.assert_not_called()
 
 

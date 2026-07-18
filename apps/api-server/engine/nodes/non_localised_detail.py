@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
-from engine.helpers import agent_bridge
-from engine.helpers.apply import apply_answers
-from engine.helpers.apply_classifier_result import apply_classifier_result
+from engine import agent_bridge
+from engine.session_state_mappers import map_patient_answers
+from engine.session_state_mappers import map_ai_result
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_next_step
 from engine.helpers.state_codecs import (
@@ -109,7 +109,7 @@ def non_localised_detail(state: SessionState) -> Command:
             )
             if result.ready:
                 return Command(
-                    update=apply_classifier_result(
+                    update=map_ai_result(
                         state, result, prompt_name=_CATEGORISER
                     ),
                     goto="non_localised_detail",
@@ -142,7 +142,7 @@ def non_localised_detail(state: SessionState) -> Command:
         answer = interrupt(
             build_next_step(state, questions, phase=_PHASE).model_dump()
         )
-        updates = apply_answers(state, answer, questions)
+        updates = map_patient_answers(state, answer, questions)
         return Command(
             update={
                 **updates,
@@ -168,7 +168,7 @@ def non_localised_detail(state: SessionState) -> Command:
     answer = interrupt(
         build_next_step(state, questions, phase=_PHASE).model_dump()
     )
-    updates = apply_answers(state, answer, questions)
+    updates = map_patient_answers(state, answer, questions)
     return Command(
         update={
             **updates,

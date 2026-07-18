@@ -4,7 +4,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import MagicMock, patch
 
-from engine.helpers.apply import apply_answers
+from engine.session_state_mappers import map_patient_answers
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
@@ -50,12 +50,12 @@ class TestApplyAnswersPriorityMedication(unittest.TestCase):
         self,
     ) -> None:
         with patch(
-            "engine.helpers.translate.agent_bridge.translate_to_english"
+            "engine.agent_bridge.translate_to_english"
         ) as translate_mock:
             translate_mock.side_effect = AssertionError(
                 "en session must not call translate"
             )
-            updates = apply_answers(
+            updates = map_patient_answers(
                 self._state(intake_facts=[{"kind": "ALLERGY", "display": {"text": "x"}}]),
                 {
                     "answers": [
@@ -80,7 +80,7 @@ class TestApplyAnswersPriorityMedication(unittest.TestCase):
         self.assertEqual(updates["turn_number"], 4)
 
     def test_parent_no_clears_encounter_medication(self) -> None:
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(encounter_medication=[{"text": "stale", "source": "option"}]),
             {"answers": [{"question_id": "med_parent", "value": False}]},
             self._med_questions(),
@@ -96,7 +96,7 @@ class TestApplyAnswersPriorityMedication(unittest.TestCase):
             personalization_note="test",
             collect_target_id="pregnancy",
         )
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {"answers": [{"question_id": "preg_q", "value": "Yes"}]},
             [q],
@@ -157,7 +157,7 @@ class TestApplyAnswersPriorityRest(unittest.TestCase):
                 ],
             ),
         ]
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(),
             {
                 "answers": [
@@ -191,7 +191,7 @@ class TestApplyAnswersPriorityRest(unittest.TestCase):
                 QuestionOption(value="None of these", label="None of these"),
             ],
         )
-        updates = apply_answers(
+        updates = map_patient_answers(
             self._state(comorbidities=[{"text": "Asthma", "source": "option"}]),
             {"answers": [{"question_id": "comorbidities", "value": ["None of these"]}]},
             [q],
@@ -216,10 +216,10 @@ class TestApplyAnswersPriorityRest(unittest.TestCase):
             "display": {"text": "appendectomy", "source": "option"},
         }
         with patch(
-            "engine.helpers.translate.agent_bridge.translate_to_english"
+            "engine.agent_bridge.translate_to_english"
         ) as translate_mock:
             translate_mock.return_value = MagicMock(en_text="peanut allergy")
-            updates = apply_answers(
+            updates = map_patient_answers(
                 self._state(session_language="mi", intake_facts=[existing]),
                 {
                     "answers": [

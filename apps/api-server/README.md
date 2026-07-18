@@ -16,35 +16,40 @@ api-server/
 ├── alembic.ini             # Alembic config (DB URL from .env)
 ├── .env.example            # Template for local DATABASE_URL + Azure OpenAI (copy to .env)
 │
-├── routers/                # Transport: HTTP routes (scaffold) — no business logic
-├── engine/                 # LangGraph clinical intake (+ deterministic_forms for router)
-│   ├── nodes/              # Graph nodes only (no consent/survey)
-│   └── deterministic_forms.py  # Consent/survey QuestionFields — router-level, not nodes
+├── routers/                # Transport: session + clinician mark-complete (M6)
+├── services/               # Session lifecycle + in-memory store (DB wiring → M7)
+├── engine/                 # LangGraph clinical intake
+│   ├── agent_bridge.py     # Engine→AI boundary — CI patches this module
+│   ├── nodes/              # Graph nodes
+│   ├── topology/           # per-segment graphs
+│   ├── session_state_mappers/  # patient + AI result → SessionState
+│   ├── helpers/            # next_step, state_codecs, completed_phases
+│   └── static/             # catalogues / deterministic forms
+├── intelligence/           # Clinical AI agents + prompts + registry
 ├── external_systems/
-│   ├── pms/                # Practice-management Protocol + adapters
-│   └── clinical_ai/        # Three peer agents + helpers (see below)
-├── schemas/                # Shared Pydantic contracts (API, graph state, clinical_ai I/O)
+│   └── pms/                # Practice-management Protocol + adapters
+├── schemas/                # Shared Pydantic contracts (shapes only)
 ├── db/                     # SQLAlchemy setup and persistence models
-│   ├── base.py
-│   └── models/
 └── alembic/
-    └── versions/
 ```
 
-### `external_systems/clinical_ai/`
+### `intelligence/`
 
 ```
-clinical_ai/
-├── agents.py           # thin run_* wrappers (+ private Devise parse types)
+intelligence/
+├── agents.py           # thin run_* wrappers
 ├── llm_client.py       # Azure chat; run_agent / run_agent_with_tools
 ├── prompt_loader.py    # load prompts/{category}/{phase}.md
 ├── registry.py         # PRIORITY/OPTIONAL targets + REDFLAG_TARGETS
+├── qg_phase_validators.py
 ├── tools.py            # DuckDuckGo web_search (Devise)
-└── prompts/            # phase prompts — see prompts/README.md (PC + NL categoriser/clarify ported; rest stub)
+└── prompts/            # phase prompts — see prompts/README.md
 ```
 
-Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
-`run_question_generation`, `run_nurse_review_summary_agent`, `translate_to_english`.
+Engine talks to AI only via `engine.agent_bridge`: `run_classifier`,
+`run_devise_and_prioritise`, `run_question_generation`,
+`run_nurse_review_summary_agent`, `translate_to_english`,
+`build_agent_context`, `devise_then_generate`.
 
 ### `schemas/`
 
@@ -65,12 +70,16 @@ Public entrypoints: `run_classifier`, `run_devise_and_prioritise`,
 | `routers/` | Request/response parsing and routing; consent/survey lifecycle (see ROUTER_SPEC) |
 | `engine/` | LangGraph clinical intake (START=`presenting_complaint` → END=`complete`) |
 | `engine/graph.py` / `runner.py` / `topology/` / `checkpointer.py` | Compile, public API, per-segment edges, MemorySaver |
-| `engine/helpers/` | Shared helpers (`next_step`, `apply/`, codecs, translate, …) |
-| `engine/static/` | Lookup/reference data outside the graph (forms, body-diagram catalogue) |
-| `engine/nodes/` | Per-phase clinical nodes (via `engine.helpers.agent_bridge` → `clinical_ai.run_*`) |
-| `engine/helpers/agent_bridge.py` | Engine→AI boundary — **CI patches this module** (no Azure in tests) |
+| `engine/session_state_mappers/` | `map_patient_answers` / `map_ai_result` + phase mappers + `narrative.py` |
+| `engine/helpers/` | `next_step`, `state_codecs`, `completed_phases` |
+| `engine/static/` | Lookup/reference data (forms, body-diagram catalogue) |
+| `engine/agent_bridge.py` | Engine→intelligence boundary (CI patch seam) |
+| `engine/nodes/` | Per-phase clinical nodes (AI only via `engine.agent_bridge`) |
+| `intelligence/` | Agents, prompts, registry, QG validators |
 | `external_systems/pms/` | PMS fetch/push adapters behind `PMSProvider` |
-| `external_systems/clinical_ai/` | Three peer agents + nurse review / translation helpers |
+| `schemas/` | Shared Pydantic models — see table above |
+| `db/` | ORM base, session helpers, and table models |
+| `alembic/` | Migration runner env and revision history |
 
 ### Tests & Azure (M5 dual track)
 
@@ -80,9 +89,5 @@ npm test
 # or: source venv/bin/activate && python -m unittest discover -s tests -p 'test_*.py'
 ```
 
-- **Graph tests** mock `engine.helpers.agent_bridge.run_*` (`tests/mock_clinical_ai.py`). Classifier scripts are order-based (`side_effect=[...]`); Devise/QG are phase-based (`side_effect=fn`).
-- **Prompt smoke** (non-CI): after porting a prompt under `clinical_ai/prompts/`, call the matching `run_*` once against real Azure locally and check output shape/vocab. Do not put Azure keys in CI.
-| `schemas/` | Shared Pydantic models — see table above |
-| `db/` | ORM base, session helpers, and table models |
-| `db/models/` | SQLAlchemy mapped tables aligned with `DATABASE.md` |
-| `alembic/` | Migration runner env and revision history |
+- **Graph tests** mock `engine.agent_bridge.run_*` (`tests/mock_clinical_ai.py`). Classifier scripts are order-based (`side_effect=[...]`); Devise/QG are phase-based (`side_effect=fn`).
+- **Prompt smoke** (non-CI): after porting a prompt under `intelligence/prompts/`, call the matching `run_*` once against real Azure locally and check output shape/vocab. Do not put Azure keys in CI.

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers.apply import apply_answers
+from engine.session_state_mappers import map_patient_answers
 from engine.runner import SessionRunner
 from engine.static.onset_timing import ONSET_TIMING_OPTIONS
 from schemas.clinical_ai_io import (
@@ -92,7 +92,7 @@ class TestLocOnsetDefaultValue(MockClinicalAiTestCase, unittest.TestCase):
 
 
 class TestLocOnsetApplyAnswers(unittest.TestCase):
-    def test_apply_answers_stores_option_label(self) -> None:
+    def test_map_patient_answers_stores_option_label(self) -> None:
         q = QuestionField(
             id="loc_onset",
             kind="single_choice",
@@ -119,7 +119,7 @@ class TestLocOnsetApplyAnswers(unittest.TestCase):
             body_structures=[{"region_detail": {"layman_term": "right wrist"}}],
         )
 
-        accepted = apply_answers(
+        accepted = map_patient_answers(
             state,
             {
                 "answers": [

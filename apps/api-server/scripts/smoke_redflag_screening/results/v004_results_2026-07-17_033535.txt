@@ -1,0 +1,244 @@
+=== redflag_screening Azure smoke ===
+
+--- case1_ordinary_wrist ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Twisted it playing tennis yesterday', 'character': ['Sharp']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "CIRCULATION",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Recent twisted wrist with swelling and bruising; it matters to confirm whether the hand has become cold, pale/blue, numb, or much more painful than expected, which could suggest impaired blood flow or significant injury."
+  },
+  {
+    "topic": "DISABILITY",
+    "relevance_score": 0.71,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "A wrist injury with sharp pain on movement can sometimes involve nerve injury or loss of function; check for new loss of sensation or inability to use/move the hand normally."
+  }
+]
+case1_ordinary_wrist tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_circulation_hand_cold_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has your hand felt unusually cold?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION finding: cold hand after wrist injury; asked as a single finding tied to this complaint."
+  },
+  {
+    "id": "rf_circulation_hand_pale_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has your hand looked unusually pale?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION finding: pale hand after wrist injury; separated from blue color, numbness, and pain."
+  },
+  {
+    "id": "rf_circulation_hand_blue_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has your hand looked blue or dusky?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION finding: blue/dusky color change in the hand; one finding per question."
+  },
+  {
+    "id": "rf_circulation_hand_numb_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, have you had any new numbness in your hand or fingers?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION hint included numbness in the limb; phrased for the injured hand/fingers in this presentation."
+  },
+  {
+    "id": "rf_circulation_pain_much_worse_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has the pain become much worse than it was at first?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "CIRCULATION",
+    "personalization_note": "CIRCULATION finding: very painful limb/hand adapted to worsening pain after this wrist injury."
+  },
+  {
+    "id": "rf_disability_hand_weakness_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, has your hand become weak or much harder to use?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY finding: limb weakness/function change, tailored to hand use after wrist injury."
+  },
+  {
+    "id": "rf_disability_loss_sensation_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, have you had any new loss of feeling in your hand or fingers?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY finding: new loss of sensation; kept separate from weakness or function loss."
+  },
+  {
+    "id": "rf_disability_loss_function_1",
+    "kind": "yes_no",
+    "prompt": "Since you twisted your wrist, have you been unable to move your hand or fingers normally?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "DISABILITY",
+    "personalization_note": "DISABILITY finding: new loss of function/movement in the hand or fingers; asked alone."
+  }
+]
+
+--- case2_chest_tightness_in_priority ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Fall onto outstretched hand yesterday', 'character': ['Sharp at the wrist; also mild chest tightness when climbing stairs (mentioned during priority)']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+ERROR devise_then_generate: QG phase 'redflag_screening': expected at most 8 questions, got 19
+case2_chest_tightness_in_priority tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+--- case3_unremarkable_bruise ---
+context presentation_category: LOCALISED
+known_collect_values: {'onset_circumstance': 'Bumped coffee table yesterday', 'character': ['Mild ache']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[]
+case3_unremarkable_bruise tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[]
+
+--- case4_sore_throat_airway_split ---
+context presentation_category: NOT_LOCALISED
+known_collect_values: {'onset_circumstance': 'More than 1 week', 'character': ['It is there all the time', 'It hurts more when I swallow']}
+candidate_pool: [{'subcategory': 'AIRWAY', 'clinical_hint': 'Difficulty swallowing, drooling, voice change, stridor concern.'}, {'subcategory': 'BREATHING', 'clinical_hint': 'Shortness of breath at rest or on exertion, unable to finish a sentence, severe wheeze.'}, {'subcategory': 'CIRCULATION', 'clinical_hint': 'Feeling faint, dizzy on standing, chest pressure, shock concern, or new cold/pale/blue/numb/very painful limb/hand/foot.'}, {'subcategory': 'DISABILITY', 'clinical_hint': 'Confusion, drowsiness, limb weakness, sudden vision or speech changes, new loss of sensation/function.'}, {'subcategory': 'TEMPERATURE', 'clinical_hint': 'High fever with systemic concern, rigors when relevant.'}, {'subcategory': 'OTHER', 'clinical_hint': 'Serious concern that fits none of the above — not a last-resort dump for weak signals.'}]
+devise topics:
+[
+  {
+    "topic": "AIRWAY",
+    "relevance_score": 0.95,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "Sore throat with painful swallowing plus reported lip/face/throat swelling raises concern for upper-airway involvement; the nurse needs to know about trouble swallowing saliva, voice change, or noisy breathing."
+  },
+  {
+    "topic": "TEMPERATURE",
+    "relevance_score": 0.82,
+    "is_red_flag": true,
+    "source": "base_reasoning",
+    "rationale": "He mentioned fever and has felt unwell for more than a week with sore throat and rash; confirming high fever or shaking chills matters because it can signal a more serious systemic infection."
+  }
+]
+case4_sore_throat_airway_split tool_loop: {'tool_choice': 'auto', 'tool_call_count': 0, 'tool_calls': []}
+qg questions:
+[
+  {
+    "id": "rf_airway_swallow_1",
+    "kind": "yes_no",
+    "prompt": "Since this sore throat started, have you had any new trouble swallowing your saliva?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY finding: difficulty swallowing — asked separately from drooling, voice change, and noisy breathing."
+  },
+  {
+    "id": "rf_airway_drooling_1",
+    "kind": "yes_no",
+    "prompt": "Since this sore throat started, have you been drooling because it is hard to swallow?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY finding: drooling — one finding per question."
+  },
+  {
+    "id": "rf_airway_voice_change_1",
+    "kind": "yes_no",
+    "prompt": "Since this sore throat started, has your voice become muffled or much harder to speak with?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY finding: voice change."
+  },
+  {
+    "id": "rf_airway_noisy_breathing_1",
+    "kind": "yes_no",
+    "prompt": "Since this sore throat started, have you noticed new noisy breathing or a whistling sound when you breathe?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "AIRWAY",
+    "personalization_note": "AIRWAY finding: stridor / noisy breathing concern."
+  },
+  {
+    "id": "rf_temperature_high_fever_1",
+    "kind": "yes_no",
+    "prompt": "Since this started, have you had a very high temperature or fever?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "TEMPERATURE",
+    "personalization_note": "TEMPERATURE finding: high fever with systemic concern — separated from rigors."
+  },
+  {
+    "id": "rf_temperature_rigors_1",
+    "kind": "yes_no",
+    "prompt": "Since this started, have you had shaking chills?",
+    "en_prompt": null,
+    "options": null,
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "TEMPERATURE",
+    "personalization_note": "TEMPERATURE finding: rigors / shaking chills."
+  }
+]
+case AIRWAY split OK: 4 questions — Since this sore throat started, have you had any new trouble swallowing your saliva?; Since this sore throat started, have you been drooling because it is hard to swallow?; Since this sore throat started, has your voice become muffled or much harder to speak with?; Since this sore throat started, have you noticed new noisy breathing or a whistling sound when you breathe?
+case ABC bias OK: ['AIRWAY']
+
+=== search-bias summary ===
+case2 (redflag, uncertain safety) tool_call_count=?; priority_questions historic smokes typically tool_call_count=0 under auto tool_choice (see smoke_priority_questions results).
+
+failures=1

@@ -1,7 +1,7 @@
 """Stable TopicCandidate / QuestionField fixtures for ClinicalAiMock (CI)."""
 from __future__ import annotations
 
-from schemas.question_fields import QuestionField
+from schemas.question_fields import QuestionField, QuestionOption
 from schemas.topic_candidates import TopicCandidate
 
 TOPICS_BY_PHASE: dict[str, list[TopicCandidate]] = {
@@ -93,24 +93,42 @@ QUESTIONS_BY_PHASE: dict[str, list[QuestionField]] = {
     "ice": [
         QuestionField(
             id="ice_idea",
-            kind="free_text",
+            kind="multi_choice",
             prompt="What do you think is going on?",
             personalization_note="mock ice",
             collect_target_id="ice_idea",
+            options=[
+                QuestionOption(value="Maybe a sprain", label="Maybe a sprain"),
+                QuestionOption(value="I'm not sure", label="I'm not sure"),
+                QuestionOption(value="Other", label="Other"),
+            ],
         ),
         QuestionField(
             id="ice_concern",
-            kind="free_text",
+            kind="multi_choice",
             prompt="What worries you most about this?",
             personalization_note="mock ice",
             collect_target_id="ice_concern",
+            options=[
+                QuestionOption(
+                    value="Worried about a fracture",
+                    label="Worried about a fracture",
+                ),
+                QuestionOption(value="I'm not sure", label="I'm not sure"),
+                QuestionOption(value="Other", label="Other"),
+            ],
         ),
         QuestionField(
             id="ice_expectation",
-            kind="free_text",
+            kind="multi_choice",
             prompt="What are you hoping we can do today?",
             personalization_note="mock ice",
             collect_target_id="ice_expectation",
+            options=[
+                QuestionOption(value="Want an X-ray", label="Want an X-ray"),
+                QuestionOption(value="Advice only", label="Advice only"),
+                QuestionOption(value="Other", label="Other"),
+            ],
         ),
     ],
 }

@@ -26,14 +26,14 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     devise_then_generate,
     run_question_generation,
 )
-from engine.helpers.apply import apply_answers
-from engine.helpers.qg_phase_validators import validate_qg_questions
-from external_systems.clinical_ai.llm_client import (
+from engine.session_state_mappers import map_patient_answers
+from intelligence.qg_phase_validators import validate_qg_questions
+from intelligence.llm_client import (
     get_last_tool_loop,
     reset_last_tool_loop,
 )
@@ -166,7 +166,7 @@ def _simulate_past_history_apply(
     state_awaiting = state.model_copy(
         update={"awaiting_phase": _OPTIONAL_PHASE}
     )
-    updates = apply_answers(
+    updates = map_patient_answers(
         state_awaiting,
         {"answers": [{"question_id": ph.id, "value": values}]},
         questions,
@@ -264,8 +264,18 @@ def _run_ice(state: SessionState) -> tuple[int, dict]:
         )
         failures += 1
     for q in questions:
-        if q.kind != "free_text":
-            print(f"REJECTED: ice {q.id} kind={q.kind!r} (want free_text)")
+        if q.kind != "multi_choice":
+            print(f"REJECTED: ice {q.id} kind={q.kind!r} (want multi_choice)")
+            failures += 1
+            continue
+        values = [o.value for o in (q.options or [])]
+        if "Other" not in values:
+            print(f"REJECTED: ice {q.id} missing Other; values={values!r}")
+            failures += 1
+        if not 3 <= len(values) <= 7:
+            print(
+                f"REJECTED: ice {q.id} expected 3–7 options, got {len(values)}"
+            )
             failures += 1
 
     web_n = _web_search_count(tool)

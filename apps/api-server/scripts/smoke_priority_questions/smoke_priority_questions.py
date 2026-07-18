@@ -30,15 +30,15 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     devise_then_generate,
     run_classifier,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from external_systems.clinical_ai.llm_client import get_last_tool_loop
-from external_systems.clinical_ai.registry import (
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.llm_client import get_last_tool_loop
+from intelligence.registry import (
     PRIORITY_TARGETS,
     get_eligible_targets,
 )
@@ -100,7 +100,7 @@ def _classify_and_apply(state: SessionState) -> SessionState:
     print(_dump(clf))
     if not clf.ready:
         print("WARN: classifier ready=false — applying partial / skipping supplement")
-    updates = apply_classifier_result(state, clf)
+    updates = map_classifier_result(state, clf)
     print("apply keys:", sorted(updates.keys()))
     return state.model_copy(update=updates)
 

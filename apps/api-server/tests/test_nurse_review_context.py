@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.helpers.agent_bridge import build_agent_context
+from engine.agent_bridge import build_agent_context
 from schemas.clinical_ai_io import ReviewSummaryResult
 from schemas.session_states import SessionState
 

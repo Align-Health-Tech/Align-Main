@@ -35,14 +35,14 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     run_classifier,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from external_systems.clinical_ai.llm_client import run_agent
-from external_systems.clinical_ai.registry import get_eligible_targets
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.llm_client import run_agent
+from intelligence.registry import get_eligible_targets
 from schemas.clinical_ai_io import ClassifierInput, QuestionGenerationResult
 from schemas.collect_targets import CollectTarget
 from schemas.session_states import SessionState
@@ -123,7 +123,7 @@ def _classify(text: str) -> SessionState:
     print(f"classifier ready={clf.ready} category={clf.category}")
     print("chiefComplaintSummary:", clf.chief_complaint_summary)
     print("supplement comorbidities:", None if not clf.encounter_intake_supplement else clf.encounter_intake_supplement.comorbidities)
-    return state.model_copy(update=apply_classifier_result(state, clf))
+    return state.model_copy(update=map_classifier_result(state, clf))
 
 
 def _strip_heart_from_state(state: SessionState) -> SessionState:

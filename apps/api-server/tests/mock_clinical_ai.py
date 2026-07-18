@@ -1,4 +1,4 @@
-"""CI doubles for clinical_ai — patch engine.helpers.agent_bridge (no Azure).
+"""CI doubles for clinical_ai — patch engine.agent_bridge (no Azure).
 
 Mock rules (locked for M5):
 - Order-based classifier scripts → side_effect list / scripted returns
@@ -23,7 +23,7 @@ from schemas.question_fields import QuestionField, QuestionOption
 from schemas.topic_candidates import TopicCandidate
 from tests.mock_clinical_ai_fixtures import QUESTIONS_BY_PHASE, TOPICS_BY_PHASE
 
-_BRIDGE = "engine.helpers.agent_bridge"
+_BRIDGE = "engine.agent_bridge"
 
 
 class ClinicalAiMock:

@@ -28,14 +28,14 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     devise_then_generate,
     run_classifier,
 )
-from engine.helpers.apply_classifier_result import apply_classifier_result
-from engine.helpers.qg_phase_validators import validate_qg_questions
+from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.qg_phase_validators import validate_qg_questions
 from schemas.clinical_ai_io import ClassifierInput
 from schemas.session_states import SessionState
 
@@ -140,7 +140,7 @@ def _vague_tap_arm_reclassify(raw: str, state: SessionState) -> list[str]:
         )
         return notes
 
-    updates = apply_classifier_result(state, clf2)
+    updates = map_classifier_result(state, clf2)
     merged = state.model_copy(update=updates)
     cc = merged.chief_complaint or {}
     print("applied chief_complaint:", json.dumps(cc, ensure_ascii=False))

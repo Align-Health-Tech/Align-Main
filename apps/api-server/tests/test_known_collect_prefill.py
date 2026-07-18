@@ -4,7 +4,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from engine.helpers.agent_bridge import build_agent_context, devise_then_generate
+from engine.agent_bridge import build_agent_context, devise_then_generate
 from schemas.clinical_ai_io import QuestionGenerationInput, QuestionGenerationResult
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
@@ -139,11 +139,11 @@ class TestKnownCollectValuesMultiCategory(unittest.TestCase):
 
         with (
             patch(
-                "engine.helpers.agent_bridge.run_devise_and_prioritise",
+                "engine.agent_bridge.run_devise_and_prioritise",
                 side_effect=fake_devise,
             ),
             patch(
-                "engine.helpers.agent_bridge.run_question_generation",
+                "engine.agent_bridge.run_question_generation",
                 side_effect=fake_qg,
             ),
         ):

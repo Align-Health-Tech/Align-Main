@@ -10,6 +10,9 @@ Cases:
   2. Wrist + chest tightness mentioned in priority answers — expect
      BREATHING/CIRCULATION bias; report whether Devise actually searched.
   3. Genuinely unremarkable minor bruise — prefer empty / no over-trigger.
+  4. Sore throat / allergic-immune (CLI walkthrough) — expect AIRWAY
+     Pilot-style observables as multiple yes_no (not one bundled OR;
+     typically 2–3 per topic, no Mild/Moderate/Severe).
 
 Results under ``./results/vNNN_results_YYYY-MM-DD_HHMMSS.txt``.
 """
@@ -29,13 +32,13 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
-from engine.helpers.agent_bridge import (
+from engine.agent_bridge import (
     build_agent_context,
     devise_then_generate,
 )
-from external_systems.clinical_ai.agents import _get_candidate_pool
-from external_systems.clinical_ai.llm_client import get_last_tool_loop
-from external_systems.clinical_ai.registry import REDFLAG_TARGETS
+from intelligence.agents import _get_candidate_pool
+from intelligence.llm_client import get_last_tool_loop
+from intelligence.registry import REDFLAG_TARGETS
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
 from schemas.topic_candidates import TopicCandidate
@@ -138,6 +141,12 @@ def _check_questions(questions: list[QuestionField], label: str) -> list[str]:
             o.en_label is not None for o in (q.options or [])
         ):
             fails.append(f"{label}: en_* set on {q.id} while session=en")
+        prompt = (q.prompt or "").casefold()
+        # Bundled OR questions: several clauses joined with commas + " or ".
+        if prompt.count(",") >= 2 and " or " in prompt:
+            fails.append(
+                f"{label}: {q.id} looks bundled (comma list + 'or'): {q.prompt!r}"
+            )
     return fails
 
 
@@ -147,6 +156,7 @@ def _run_case(
     *,
     expect_empty_preferred: bool = False,
     expect_abc_bias: bool = False,
+    expect_split_airway: bool = False,
 ) -> tuple[int, dict]:
     print(f"--- {label} ---")
     ctx = build_agent_context(state)
@@ -162,7 +172,9 @@ def _run_case(
     topics: list[TopicCandidate] = []
     questions: list[QuestionField] = []
     try:
-        topics, questions = devise_then_generate(_PHASE, state)
+        topics, questions = devise_then_generate(
+            _PHASE, state, max_questions=9
+        )
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR devise_then_generate: {exc}")
         failures += 1
@@ -181,10 +193,26 @@ def _run_case(
     for msg in _check_questions(questions, label):
         print(f"REJECTED: {msg}")
         failures += 1
-    if topics and len(questions) != len(topics):
+    if topics and len(questions) < len(topics):
         print(
-            f"WARN: {label}: {len(topics)} topics vs {len(questions)} questions"
+            f"WARN: {label}: {len(topics)} topics but only "
+            f"{len(questions)} questions (expected ≥1 finding/topic)"
         )
+    if expect_split_airway:
+        airway_qs = [
+            q for q in questions if (q.collect_target_id or "") == "AIRWAY"
+        ]
+        if len(airway_qs) < 2:
+            print(
+                f"REJECTED: {label}: expected ≥2 AIRWAY finding questions, "
+                f"got {len(airway_qs)}"
+            )
+            failures += 1
+        else:
+            print(
+                f"case AIRWAY split OK: {len(airway_qs)} questions — "
+                + "; ".join(q.prompt for q in airway_qs)
+            )
     if expect_empty_preferred and topics:
         print(
             f"WARN: {label}: expected lean/empty Devise but got "
@@ -273,6 +301,30 @@ def _run() -> int:
     )
     failures += f3
     telemetry["case3"] = t3
+
+    # Case 4 — sore throat + allergic/airway concern (CLI walkthrough shape)
+    f4, t4 = _run_case(
+        "case4_sore_throat_airway_split",
+        _state(
+            text=(
+                "Feeling cold and sore throat for more than a week. "
+                "Painful swallowing; mentioned fever, widespread rash, "
+                "and lip/face/throat swelling during clarify."
+            ),
+            presentation_category="NOT_LOCALISED",
+            onset="More than 1 week",
+            character=[
+                {"text": "It is there all the time", "source": "option"},
+                {"text": "It hurts more when I swallow", "source": "option"},
+            ],
+            severity=6,
+            functional=4,
+        ),
+        expect_abc_bias=True,
+        expect_split_airway=True,
+    )
+    failures += f4
+    telemetry["case4"] = t4
 
     print("=== search-bias summary ===")
     c2_calls = (telemetry.get("case2") or {}).get("tool_loop", {}).get(

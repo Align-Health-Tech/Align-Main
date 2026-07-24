@@ -16,6 +16,7 @@ Cases:
 
 Results under ``./results/vNNN_results_YYYY-MM-DD_HHMMSS.txt``.
 """
+
 from __future__ import annotations
 
 import json
@@ -37,7 +38,7 @@ from engine.agent_bridge import (
     devise_then_generate,
 )
 from intelligence.agents import _get_candidate_pool
-from intelligence.llm_client import get_last_tool_loop
+from intelligence.llm_client import _get_last_tool_trace
 from intelligence.registry import REDFLAG_TARGETS
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
@@ -107,17 +108,51 @@ def _dump(obj: object) -> str:
 
 
 def _print_tool_telemetry(label: str) -> dict:
-    loop = get_last_tool_loop()
+    loop = _get_last_tool_trace()
     calls = loop.get("tool_calls") or []
+    results: list[dict] = []
+    for traced in loop.get("tool_results") or []:
+        raw = traced.get("result") if isinstance(traced, dict) else None
+        try:
+            result = json.loads(raw) if isinstance(raw, str) else raw
+        except json.JSONDecodeError:
+            result = None
+        if not isinstance(result, dict):
+            continue
+        results.append(
+            {
+                "query": result.get("query"),
+                "successful": [
+                    {
+                        "url": source.get("url"),
+                        "bm25_score": source.get("bm25_score"),
+                        "latency_ms": source.get("latency_ms"),
+                    }
+                    for source in result.get("successful_sources") or []
+                ],
+                "failed": [
+                    {
+                        "url": source.get("url"),
+                        "error_code": source.get("error_code"),
+                        "bm25_score": source.get("bm25_score"),
+                        "latency_ms": source.get("latency_ms"),
+                    }
+                    for source in result.get("failed_sources") or []
+                ],
+                "batch_latency_ms": result.get("batch_latency_ms"),
+            }
+        )
+    summary = {
+        "tool_choice": loop.get("tool_choice"),
+        "tool_call_count": len(calls),
+        "tool_calls": calls,
+        "tool_results": results,
+    }
     print(
         f"{label} tool_loop:",
-        {
-            "tool_choice": loop.get("tool_choice"),
-            "tool_call_count": len(calls),
-            "tool_calls": calls,
-        },
+        summary,
     )
-    return loop
+    return summary
 
 
 def _check_topics(topics: list[TopicCandidate], label: str) -> list[str]:
@@ -126,9 +161,7 @@ def _check_topics(topics: list[TopicCandidate], label: str) -> list[str]:
         if not t.is_red_flag:
             fails.append(f"{label}: topic {t.topic!r} is_red_flag=False (must be True)")
         if t.topic not in _POOL_SUBS:
-            fails.append(
-                f"{label}: topic {t.topic!r} not in REDFLAG_TARGETS"
-            )
+            fails.append(f"{label}: topic {t.topic!r} not in REDFLAG_TARGETS")
     return fails
 
 
@@ -172,9 +205,7 @@ def _run_case(
     topics: list[TopicCandidate] = []
     questions: list[QuestionField] = []
     try:
-        topics, questions = devise_then_generate(
-            _PHASE, state, max_questions=9
-        )
+        topics, questions = devise_then_generate(_PHASE, state, max_questions=9)
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR devise_then_generate: {exc}")
         failures += 1
@@ -184,6 +215,9 @@ def _run_case(
     print("devise topics:")
     print(_dump(topics))
     tool = _print_tool_telemetry(label)
+    if tool["tool_call_count"] != 1:
+        print(f"REJECTED: {label}: expected exactly one web_search call")
+        failures += 1
     print("qg questions:")
     print(_dump(questions))
 
@@ -199,9 +233,7 @@ def _run_case(
             f"{len(questions)} questions (expected ≥1 finding/topic)"
         )
     if expect_split_airway:
-        airway_qs = [
-            q for q in questions if (q.collect_target_id or "") == "AIRWAY"
-        ]
+        airway_qs = [q for q in questions if (q.collect_target_id or "") == "AIRWAY"]
         if len(airway_qs) < 2:
             print(
                 f"REJECTED: {label}: expected ≥2 AIRWAY finding questions, "
@@ -327,13 +359,13 @@ def _run() -> int:
     telemetry["case4"] = t4
 
     print("=== search-bias summary ===")
-    c2_calls = (telemetry.get("case2") or {}).get("tool_loop", {}).get(
-        "tool_call_count", "?"
+    c2_calls = (
+        (telemetry.get("case2") or {}).get("tool_loop", {}).get("tool_call_count", "?")
     )
     print(
         f"case2 (redflag, uncertain safety) tool_call_count={c2_calls}; "
-        "priority_questions historic smokes typically tool_call_count=0 "
-        "under auto tool_choice (see smoke_priority_questions results)."
+        "priority and redflag phases both require exactly one curated "
+        "web_search call."
     )
     print(f"\nfailures={failures}")
     return 1 if failures else 0

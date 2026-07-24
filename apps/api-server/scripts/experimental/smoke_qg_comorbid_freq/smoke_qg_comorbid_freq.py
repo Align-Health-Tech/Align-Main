@@ -1,6 +1,6 @@
 """Comorbidities option-frequency probe (stripped hints) — repetition, not self-report.
 
-NOT for CI. Asks QG 5× per context with temperature>0 so variance is possible.
+NOT for CI. Asks QG 5× per context to observe run-to-run variation.
 Does NOT ask the model to explain itself.
 
 Usage (from apps/api-server, Azure env set):
@@ -51,8 +51,6 @@ from schemas.topic_candidates import TopicCandidate
 _RESULTS_DIR = Path(__file__).resolve().parent / "results"
 _PHASE = "priority_questions"
 _RUNS = 5
-# Slight temp so repeats are not byte-identical; still low enough to stay coherent.
-_QG_TEMPERATURE = 0.4
 _STRIPPED_KEEP = {"id", "category", "phase", "free_text_policy"}
 
 _REGISTRY_COMORBID = {
@@ -186,7 +184,6 @@ def _run_qg(context: dict, eligible: list[CollectTarget]) -> list[str] | None:
             "context": context,
         },
         QuestionGenerationResult,
-        temperature=_QG_TEMPERATURE,
     )
     return _comorbid_options(result)
 
@@ -247,7 +244,7 @@ def _condition(label: str, state: SessionState, eligible: list[CollectTarget]) -
 
 def _run() -> int:
     print("=== comorbidities stripped-hints frequency probe ===\n")
-    print(f"QG temperature={_QG_TEMPERATURE} runs_per_condition={_RUNS}")
+    print(f"QG model-default sampling runs_per_condition={_RUNS}")
     print("stripped: clinical_hint, example_prompt, suggested_options\n")
 
     eligible = _strip_targets(get_eligible_targets("priority", "male"))

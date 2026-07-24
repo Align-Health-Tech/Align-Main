@@ -56,7 +56,44 @@ DATABASE_URL=postgresql+psycopg://align_owner:local_dev_only@localhost:5432/alig
 
 ---
 
-## 4. Migrations (Alembic)
+## 4. Azure OpenAI Responses API
+
+The API runtime and scripts invoked with `--real-azure` use Azure OpenAI.
+Ordinary unit and graph tests mock this boundary and do not require Azure
+credentials.
+
+Set these values in `apps/api-server/.env`:
+
+```env
+AZURE_OPENAI_API_KEY=<resource-key>
+AZURE_OPENAI_ENDPOINT=https://<resource>.cognitiveservices.azure.com/
+AZURE_MODEL_NAME=<gpt-5.4-deployment-name>
+# Optional; defaults to 2025-04-01-preview
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+```
+
+`AZURE_OPENAI_ENDPOINT` must be the exact resource endpoint shown by Azure.
+`AZURE_MODEL_NAME` is the Azure **deployment name**, not necessarily the base
+model ID. The client intentionally uses `AzureChatOpenAI` with the Responses
+API, `reasoning_effort="low"`, a 60-second request timeout, and no SDK retries.
+GPT-5.4 Responses does not accept a configurable `temperature` in this
+integration.
+
+For an end-to-end local session:
+
+```bash
+cd apps/api-server
+./venv/bin/python scripts/cli_session.py --real-azure
+```
+
+Priority and red-flag Devise phases each perform one curated evidence tool
+round; the tool may fetch up to three allowlisted catalogue pages in parallel.
+See [the smoke and CLI guide](../../apps/api-server/scripts/README.md) for the
+observable diagnostics.
+
+---
+
+## 5. Migrations (Alembic)
 
 From `apps/api-server` with venv active and Postgres healthy:
 
@@ -85,7 +122,7 @@ alembic current   # should show simplify_flag_status_001 (head)
 
 ---
 
-## 5. Verify the local database
+## 6. Verify the local database
 
 From the repository root, the clone-to-proof flow is:
 
@@ -120,7 +157,7 @@ and `PostgresSaver` are not required for this verification.
 
 ---
 
-## 6. RLS role passwords (local only)
+## 7. RLS role passwords (local only)
 
 Roles `align_app`, `align_engine`, `align_admin` are created by the RLS migration **without** passwords (secrets stay out of git). Set them once:
 
@@ -135,7 +172,7 @@ ALTER ROLE align_admin WITH PASSWORD 'local_dev_password';
 
 ---
 
-## 7. LangGraph checkpoint tables (optional until engine is wired)
+## 8. LangGraph checkpoint tables (optional until engine is wired)
 
 Checkpoint tables are **not** created by Alembic. After installing deps:
 
@@ -157,7 +194,7 @@ After `setup()`, a follow-up migration may be needed to attach `organization_id`
 
 ---
 
-## 8. Run everything
+## 9. Run everything
 
 From **repo root**:
 

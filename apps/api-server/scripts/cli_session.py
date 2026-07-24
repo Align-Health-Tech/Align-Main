@@ -280,9 +280,9 @@ def _print_signals(
 ) -> None:
     if ai is None:
         try:
-            from intelligence.llm_client import get_last_tool_loop
+            from intelligence.llm_client import _get_last_tool_trace
 
-            loop = get_last_tool_loop()
+            loop = _get_last_tool_trace()
             tools = loop.get("tool_calls") or []
             print(f"  signals: azure tool_calls={len(tools)}")
             for t in tools[:5]:
@@ -319,10 +319,10 @@ def run_interactive(args: argparse.Namespace) -> int:
         print("clinical_ai: MOCKED (pass --real-azure for Azure)")
     else:
         from dotenv import load_dotenv
-        from intelligence.llm_client import get_model
+        from intelligence.llm_client import validate_model_configuration
 
         load_dotenv()
-        get_model()  # fail fast if Azure env missing
+        validate_model_configuration()
         print("clinical_ai: REAL Azure")
 
     try:

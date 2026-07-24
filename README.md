@@ -37,7 +37,7 @@ The app will consist of:
 | Agent                         | Job                                                | Input                                                    | Output                                                       |
 | ----------------------------- | -------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
 | **Classifier agent**          | Binary/categorical judgment                        | Free-text patient input                                  | A classification (e.g. physical/localised vs non-localised)  |
-| **Devise & Prioritise agent** | Clinical reasoning — decide *what* should be asked | Previous conversation state + tools (web search for now) | Ranked list of topics + red flag markers (not questions yet) |
+| **Devise & Prioritise agent** | Clinical reasoning — decide *what* should be asked | Previous conversation state + curated Healthify / Health NZ evidence for priority and red-flag phases | Ranked `TopicCandidate` values with source, brief rationale, validated evidence URLs, and red-flag markers (not questions yet) |
 | **Question Generation agent** | Conversational reasoning — decide *how* to ask it  | Topic list + conversation context                        | A batch of natural-language questions or a single question   |
 
 
@@ -86,6 +86,7 @@ Align-Main/
 │       ├── intelligence/       # agents + prompts (CI patches engine.agent_bridge)
 │       ├── external_systems/   # pms/ only (Protocol + adapters)
 │       ├── schemas/            # SessionState, NextStep, clinical AI I/O shapes
+│       ├── urls/               # reviewed Healthify / Health NZ evidence catalogues
 │       └── db/                 # SQLAlchemy models, Alembic migrations
 ├── packages/
 │   ├── generated-types/       # openapi-typescript output — never hand-edit
@@ -128,4 +129,3 @@ New teammates: follow **[docs/setup/LOCAL.md](docs/setup/LOCAL.md)** (Docker Pos
 - [Structure ideation](docs/structures/STRUCTURE.md)
 - [User flow (graph)](docs/structures/USERFLOW.md)
 - [Router lifecycle spec](docs/structures/ROUTER_SPEC.md)
-

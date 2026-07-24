@@ -42,8 +42,8 @@ from engine.agent_bridge import (
 )
 from engine.session_state_mappers.ai import map_classifier_result
 from intelligence.llm_client import (
-    chat_with_tools_then_structured,
-    get_last_tool_loop,
+    _chat_with_tools_then_structured,
+    _get_last_tool_trace,
 )
 from intelligence.tools import web_search
 from schemas.clinical_ai_io import ClassifierInput
@@ -124,7 +124,7 @@ def _classify_and_apply(state: SessionState) -> SessionState:
 
 
 def _print_tool_telemetry(label: str) -> dict:
-    loop = get_last_tool_loop()
+    loop = _get_last_tool_trace()
     calls = loop.get("tool_calls") or []
     print(
         f"{label} tool_loop:",
@@ -174,7 +174,7 @@ def _run_open(context: dict) -> list[TopicCandidate]:
         system = _OPEN_PROMPT.read_text(encoding="utf-8")
         import json as _json
 
-        raw = chat_with_tools_then_structured(
+        raw = _chat_with_tools_then_structured(
             _DeviseTopicsResult,
             system,
             _json.dumps({"context": context}, default=str),

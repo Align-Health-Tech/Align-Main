@@ -31,7 +31,7 @@ if str(SCRIPTS) not in sys.path:
 
 from _smoke_results import next_result_path
 from engine.agent_bridge import devise_then_generate
-from intelligence.llm_client import get_last_tool_loop, reset_last_tool_loop
+from intelligence.llm_client import _get_last_tool_trace, _reset_last_tool_trace
 from schemas.session_states import SessionState
 
 _PHASE = "duration"
@@ -124,7 +124,7 @@ def _web_search_count(tool: object) -> int:
 
 
 def _print_tool_telemetry(label: str) -> dict | None:
-    tool = get_last_tool_loop()
+    tool = _get_last_tool_trace()
     print(f"{label} tool_loop web_search_count={_web_search_count(tool)}")
     return tool
 
@@ -132,7 +132,7 @@ def _print_tool_telemetry(label: str) -> dict | None:
 def _run_case(label: str, state: SessionState) -> tuple[int, dict]:
     print(f"=== {label} ===\n")
     failures = 0
-    reset_last_tool_loop()
+    _reset_last_tool_trace()
     try:
         topics, questions = devise_then_generate(
             _PHASE, state, devise=False

@@ -39,7 +39,7 @@ from engine.agent_bridge import (
     run_devise_and_prioritise,
 )
 from engine.session_state_mappers.ai import map_classifier_result
-from intelligence.llm_client import get_last_tool_loop
+from intelligence.llm_client import _get_last_tool_trace
 from schemas.clinical_ai_io import ClassifierInput
 from schemas.session_states import SessionState
 from schemas.topic_candidates import TopicCandidate
@@ -104,7 +104,7 @@ def _classify_and_apply(state: SessionState) -> SessionState:
 
 
 def _print_tool_telemetry(label: str) -> dict:
-    loop = get_last_tool_loop()
+    loop = _get_last_tool_trace()
     calls = loop.get("tool_calls") or []
     print(
         f"{label} tool_loop:",

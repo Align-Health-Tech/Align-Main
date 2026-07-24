@@ -142,7 +142,8 @@ def devise_then_generate(
     Pass ``devise=False`` for QG-only phases (ICE): skips Devise, uses empty
     topics, still runs eligible lookup + QG + validate.
 
-    Devise uses model reasoning only; it does not invoke external tools.
+    Priority and red-flag Devise each make one curated ``web_search`` call.
+    Optional and clarification phases remain reasoning-only.
     """
     context = build_agent_context(state)
     if phase in _CLARIFY_PHASES:

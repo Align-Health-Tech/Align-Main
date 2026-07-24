@@ -9,10 +9,11 @@ Cases:
      with default_value / default_values (uniform prefill-and-confirm).
   2. Minimal localised complaint — no defaults populated.
   3. Female patient — pregnancy target eligible (registry sex rule).
-  4. Wrist injury + Eliquis (apixaban) — base-reasoning ranking.
+  4. Wrist injury + Eliquis (apixaban) — evidence-aware ranking.
 
 Results under ``./results/vNNN_results_YYYY-MM-DD_HHMMSS.txt``.
 """
+
 from __future__ import annotations
 
 import json
@@ -36,6 +37,7 @@ from engine.agent_bridge import (
     run_classifier,
 )
 from engine.session_state_mappers.ai import map_classifier_result
+from intelligence.llm_client import _get_last_tool_trace
 from intelligence.registry import (
     PRIORITY_TARGETS,
     get_eligible_targets,
@@ -212,7 +214,11 @@ def _check_no_legacy_example_verbatim(
         prompt = (q.prompt or "").strip()
         if not prompt:
             continue
-        if q.collect_target_id == "pregnancy" and pregnancy_ep and prompt == pregnancy_ep:
+        if (
+            q.collect_target_id == "pregnancy"
+            and pregnancy_ep
+            and prompt == pregnancy_ep
+        ):
             continue
         if prompt in _LEGACY_EXAMPLE_PROMPTS_STRICT:
             rejects.append(
@@ -235,10 +241,58 @@ def _print_devise_brief(topics: list[TopicCandidate]) -> None:
                 "score": t.relevance_score,
                 "source": t.source,
                 "rationale": t.rationale,
+                "evidence_urls": t.evidence_urls,
             }
             for t in topics
         ],
     )
+
+
+def _print_tool_telemetry(label: str) -> bool:
+    loop = _get_last_tool_trace()
+    calls = loop.get("tool_calls") or []
+    results: list[dict] = []
+    for traced in loop.get("tool_results") or []:
+        raw = traced.get("result") if isinstance(traced, dict) else None
+        try:
+            result = json.loads(raw) if isinstance(raw, str) else raw
+        except json.JSONDecodeError:
+            result = None
+        if not isinstance(result, dict):
+            continue
+        results.append(
+            {
+                "query": result.get("query"),
+                "successful": [
+                    {
+                        "url": source.get("url"),
+                        "bm25_score": source.get("bm25_score"),
+                        "latency_ms": source.get("latency_ms"),
+                    }
+                    for source in result.get("successful_sources") or []
+                ],
+                "failed": [
+                    {
+                        "url": source.get("url"),
+                        "error_code": source.get("error_code"),
+                        "bm25_score": source.get("bm25_score"),
+                        "latency_ms": source.get("latency_ms"),
+                    }
+                    for source in result.get("failed_sources") or []
+                ],
+                "batch_latency_ms": result.get("batch_latency_ms"),
+            }
+        )
+    print(
+        f"{label} tool_loop:",
+        {
+            "tool_choice": loop.get("tool_choice"),
+            "tool_call_count": len(calls),
+            "tool_calls": calls,
+            "tool_results": results,
+        },
+    )
+    return len(calls) == 1
 
 
 def _run() -> int:
@@ -267,6 +321,9 @@ def _run() -> int:
     else:
         print("devise topics:")
         print(_dump(topics1))
+        if not _print_tool_telemetry("case1"):
+            print("REJECTED: case1 expected exactly one web_search call")
+            failures += 1
         print("qg questions:")
         print(_dump(questions1))
         prefill_report: list[dict] = []
@@ -337,6 +394,9 @@ def _run() -> int:
     else:
         print("devise topics:")
         print(_dump(topics2))
+        if not _print_tool_telemetry("case2"):
+            print("REJECTED: case2 expected exactly one web_search call")
+            failures += 1
         print("qg questions:")
         print(_dump(questions2))
         prefills = [q.id for q in questions2 if _has_prefill(q)]
@@ -344,7 +404,11 @@ def _run() -> int:
             print(f"REJECTED: unexpected prefills with empty known values: {prefills}")
             failures += 1
         else:
-            print("case2: no spurious prefills OK" if not prefills else "case2: prefills match known only")
+            print(
+                "case2: no spurious prefills OK"
+                if not prefills
+                else "case2: prefills match known only"
+            )
         pool_ids = {
             t.id
             for t in get_eligible_targets(
@@ -357,7 +421,10 @@ def _run() -> int:
         if "pregnancy" in pool_ids:
             print("REJECTED: pregnancy in pool for male")
             failures += 1
-        if ctx2.get("presentation_category") == "LOCALISED" and "onset_circumstance" not in pool_ids:
+        if (
+            ctx2.get("presentation_category") == "LOCALISED"
+            and "onset_circumstance" not in pool_ids
+        ):
             print("REJECTED: onset_circumstance missing from LOCALISED pool")
             failures += 1
         rejects, warns = _check_no_legacy_example_verbatim(questions2)
@@ -394,10 +461,7 @@ def _run() -> int:
         ctx3.get("presentation_category") == "NOT_LOCALISED"
         and "onset_circumstance" in pool_f
     ):
-        print(
-            "REJECTED: onset_circumstance in NOT_LOCALISED pool "
-            "(locality hard rule)"
-        )
+        print("REJECTED: onset_circumstance in NOT_LOCALISED pool (locality hard rule)")
         failures += 1
     try:
         topics3, questions3 = devise_then_generate(_PHASE, state3)
@@ -407,6 +471,9 @@ def _run() -> int:
     else:
         print("devise topics:")
         print(_dump(topics3))
+        if not _print_tool_telemetry("case3"):
+            print("REJECTED: case3 expected exactly one web_search call")
+            failures += 1
         print("qg questions:")
         print(_dump(questions3))
         rejects, warns = _check_no_legacy_example_verbatim(questions3)
@@ -438,8 +505,8 @@ def _run() -> int:
             failures += 1
     print()
 
-    # --- Case 4: wrist + Eliquis — base-reasoning ranking ---
-    print("--- case 4: wrist_eliquis_base_reasoning ---")
+    # --- Case 4: wrist + Eliquis — evidence-aware ranking ---
+    print("--- case 4: wrist_eliquis_evidence ---")
     text4 = (
         "Hurt my wrist yesterday after a fall, still swollen and bruised. "
         "I'm on Eliquis (apixaban) for a heart condition."
@@ -456,6 +523,9 @@ def _run() -> int:
         print("devise topics:")
         print(_dump(topics4))
         _print_devise_brief(topics4)
+        if not _print_tool_telemetry("case4"):
+            print("REJECTED: case4 expected exactly one web_search call")
+            failures += 1
         print("qg questions:")
         print(_dump(questions4))
         rejects, warns = _check_no_legacy_example_verbatim(questions4)
@@ -478,9 +548,19 @@ def _run() -> int:
                 "sources": sorted({t.source for t in topics4}),
             },
         )
-        if any(t.source != "base_reasoning" for t in topics4):
-            print("REJECTED: devise emitted a non-base_reasoning source")
-            failures += 1
+        for topic in topics4:
+            if topic.source == "web_search" and not topic.evidence_urls:
+                print(
+                    "REJECTED: web_search attribution without evidence URL "
+                    f"for {topic.topic}"
+                )
+                failures += 1
+            if topic.source == "base_reasoning" and topic.evidence_urls:
+                print(
+                    "REJECTED: base_reasoning attribution retained evidence "
+                    f"URLs for {topic.topic}"
+                )
+                failures += 1
     print()
 
     print(f"done; failures={failures}")

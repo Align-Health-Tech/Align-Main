@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+lib/    
 lib64/
 parts/
 sdist/
@@ -216,3 +216,50 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.schema.sql
+
+/supabase/
+
+# --- Align monorepo (enforce) ---
+.npm/
+.turbo/
+next-env.d.ts
+*.tsbuildinfo
+
+# Next.js build output (any app)
+.next/
+out/
+
+# macOS / IDE
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python tooling / local caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Secrets & local env (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+!.env*.example
+
+# Local virtualenvs (any path)
+venv/
+.venv/
+ENV/
+
+# Alembic / local DB dumps
+*.sql.dump
+pgdata/
+# Node.js modules
+node_modules/
+
+/scripts

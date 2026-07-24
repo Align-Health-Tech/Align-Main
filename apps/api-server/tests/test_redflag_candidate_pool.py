@@ -1,4 +1,5 @@
 """Candidate pool + topic clamp for redflag_screening."""
+
 from __future__ import annotations
 
 import unittest
@@ -74,7 +75,7 @@ class TestDeviseClampsRedflagTopics(unittest.TestCase):
                 )(),
             ]
 
-        with patch.object(agents, "run_agent", return_value=_Raw()):
+        with patch.object(agents, "run_agent_with_tools", return_value=_Raw()):
             out = agents.run_devise_and_prioritise(
                 "redflag_screening", {"presentation_category": "LOCALISED"}
             )
@@ -98,7 +99,7 @@ class TestDeviseClampsRedflagTopics(unittest.TestCase):
                 )(),
             ]
 
-        with patch.object(agents, "run_agent", return_value=_Raw()):
+        with patch.object(agents, "run_agent_with_tools", return_value=_Raw()):
             out = agents.run_devise_and_prioritise(
                 "redflag_screening", {"presentation_category": "LOCALISED"}
             )

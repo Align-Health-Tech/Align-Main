@@ -34,8 +34,8 @@ from engine.agent_bridge import (
 from engine.session_state_mappers import map_patient_answers
 from intelligence.qg_phase_validators import validate_qg_questions
 from intelligence.llm_client import (
-    get_last_tool_loop,
-    reset_last_tool_loop,
+    _get_last_tool_trace,
+    _reset_last_tool_trace,
 )
 from schemas.clinical_ai_io import QuestionGenerationInput
 from schemas.question_fields import QuestionField
@@ -104,7 +104,7 @@ def _dump(obj: object) -> str:
 
 
 def _print_tool_telemetry(label: str) -> dict:
-    loop = get_last_tool_loop()
+    loop = _get_last_tool_trace()
     calls = loop.get("tool_calls") or []
     print(
         f"{label} tool_loop:",
@@ -193,7 +193,7 @@ def _simulate_past_history_apply(
 def _run_optional(state: SessionState) -> tuple[int, dict]:
     print("=== OPTIONAL_QUESTIONS ===\n")
     failures = 0
-    reset_last_tool_loop()
+    _reset_last_tool_trace()
     topics: list[TopicCandidate] = []
     questions: list[QuestionField] = []
     try:
@@ -233,7 +233,7 @@ def _run_optional(state: SessionState) -> tuple[int, dict]:
 def _run_ice(state: SessionState) -> tuple[int, dict]:
     print("=== ICE (QG only) ===\n")
     failures = 0
-    reset_last_tool_loop()
+    _reset_last_tool_trace()
     try:
         result = run_question_generation(
             QuestionGenerationInput(

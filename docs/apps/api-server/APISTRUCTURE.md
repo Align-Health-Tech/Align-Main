@@ -44,6 +44,14 @@ The loop. Called once per patient answer, however many times that ends up being.
 | Response       | `{ next_step: NextStep, status: EncounterStatus }`                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Tables touched | Varies by step — `Consent` (router, gates `Encounter.status → IN_PROGRESS` before first graph invoke), graph-driven `Encounter` columns / `BodyStructure` / `Flag` / `IntakeFactItem`, router-driven `SurveyResponse` after graph complete, plus `LillyAiInteraction`/`AuditLog` as engine-internal writes (via `align_engine`, not this request's `align_app` context — see [RLS.md](../../database/RLS.md)). Lifecycle detail: [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md). |
 
+Operationally, the first entry into `priority_questions` and
+`redflag_screening` can include a curated evidence batch. Up to three selected
+sources are fetched concurrently, each with an eight-second total deadline, so
+fetch time is bounded by the slowest selected source rather than the sum of
+three deadlines. End-to-end response time also includes the Azure Devise
+requests and QG request. Optional and clarification phases perform no evidence
+fetch.
+
 
 ### `GET /sessions/{id}`
 
@@ -201,4 +209,3 @@ Same shape as /sessions but with /demo/sessions. The patient will be created wit
 
 - **Going back to a previous answer** — designed (LangGraph `get_state_history`/fork + business-table cleanup rules), deliberately not built for the 2-week demo. Revisit if pilot feedback asks for it.
 - **Direct endpoints for `Consent`, `IntakeFactItem`, `BodyStructure`, `RadiationSite`, etc.** — not missing, just handled inside the session loop as engine side-effects rather than separate REST resources.
-

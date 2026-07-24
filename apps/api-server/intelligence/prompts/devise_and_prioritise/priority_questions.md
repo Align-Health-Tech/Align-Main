@@ -24,6 +24,24 @@ JSON payload:
 - `candidate_pool` — eligible collect targets as
   `{id, category, clinical_hint}` only.
 
+## Curated evidence
+
+- Invoke `web_search` exactly once with one concise clinical query for this
+  presentation.
+- The `query` argument must be non-empty and contain 3–12 useful clinical
+  words.
+- Use all successfully fetched source content when ranking the candidate pool.
+  Partial results are usable.
+- A candidate may cite only successful source URLs returned by that tool call,
+  in the tool's ranking order, with no duplicates and at most three URLs.
+- Cite a source only when its fetched content directly supports that specific
+  candidate and rationale. A successful fetch alone is not evidence.
+- Set `source` to `web_search` when `evidence_urls` contains at least one
+  supporting URL. If no fetched source supports a candidate, set
+  `source` to `base_reasoning` and `evidence_urls` to `[]`.
+- If every fetch fails or the catalogue returns no match, continue with
+  controlled base reasoning.
+
 ## Prefill-and-confirm (not exclude)
 
 `context.known_collect_values` maps collect-target ids to already-known
@@ -40,17 +58,28 @@ values. A key present means that target is already known.
 ## Rules
 
 - Rank from `candidate_pool` only. Do not invent target ids outside the pool.
-- Use model reasoning only. Set every candidate's source to
-  `base_reasoning`.
-- Each candidate: `{topic, relevance_score, source, rationale}`.
+- Each candidate:
+  `{topic, relevance_score, source, rationale, evidence_urls}`.
   - `topic` — use the pool entry's `id` (e.g. `medication`,
     `onset_circumstance`, `allergy`).
   - `relevance_score` — 0–1.
-  - `source` — `base_reasoning`.
+  - `source` — `web_search` only when supported by a cited successful source;
+    otherwise `base_reasoning`.
   - `rationale` — brief English audit note (why this target, why this rank).
+  - `evidence_urls` — 0–3 supporting successful URLs.
 - Prefer higher-acuity gaps, then symptom detail, then background
   (allergy, comorbidities, pregnancy).
 - Prefer fewer high-value topics over padding the list.
+
+## Copyright and attribution
+
+- Prefer original paraphrasing and synthesis.
+- Do not copy source headings, lists, or extended passages.
+- Any direct quotation must contain at most 14 words.
+- Use at most one direct quote from each referenced source.
+- Do not use quotation marks around paraphrased material.
+- Keep each rationale brief, even when evidence is available.
+- Explain why the intake topic matters; do not claim to diagnose or treat.
 
 ## Output
 
@@ -60,8 +89,9 @@ values. A key present means that target is already known.
     {
       "topic": "onset_circumstance",
       "relevance_score": 0.9,
-      "source": "base_reasoning",
-      "rationale": "Localised injury — mechanism still the top gap even if partially stated."
+      "source": "web_search",
+      "rationale": "Localised injury — mechanism remains the top gap even if partly stated.",
+      "evidence_urls": ["https://healthify.nz/health-a-z/s/strains-and-sprains"]
     }
   ]
 }

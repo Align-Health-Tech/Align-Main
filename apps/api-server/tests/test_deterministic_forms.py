@@ -4,7 +4,7 @@ from __future__ import annotations
 import unittest
 
 from engine.helpers.next_step import build_next_step_raw
-from engine.static.deterministic_forms import (
+from forms import (
     build_consent_questions,
     build_survey_questions,
 )

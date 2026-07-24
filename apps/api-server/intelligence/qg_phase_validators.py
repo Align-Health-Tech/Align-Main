@@ -233,6 +233,47 @@ def _validate_ice_question(
         )
 
 
+
+def _validate_duration_batch(
+    phase: str,
+    questions: list[QuestionField],
+) -> None:
+    if len(questions) != 1:
+        raise ValueError(
+            f"QG phase {phase!r}: expected exactly 1 question, "
+            f"got {len(questions)}"
+        )
+
+
+def _validate_duration_question(
+    phase: str,
+    question: QuestionField,
+) -> None:
+    if question.collect_target_id != "duration":
+        raise ValueError(
+            f"QG phase {phase!r} question {question.id!r}: "
+            f"collect_target_id must be 'duration', "
+            f"got {question.collect_target_id!r}"
+        )
+    if question.kind != "single_choice":
+        raise ValueError(
+            f"QG phase {phase!r} question {question.id!r}: "
+            f"kind must be 'single_choice', got {question.kind!r}"
+        )
+    options = question.options or []
+    if not 3 <= len(options) <= 6:
+        raise ValueError(
+            f"QG phase {phase!r} question {question.id!r}: "
+            f"expected 3–6 options (chips + Other), got {len(options)}"
+        )
+    value_labels = {option.value: option.label for option in options}
+    if "Other" not in value_labels or value_labels["Other"] != "Other":
+        raise ValueError(
+            f"QG phase {phase!r} question {question.id!r}: "
+            f"options must include 'Other'; got value_labels={value_labels!r}"
+        )
+
+
 _PHASE_POLICIES: dict[str, PhaseValidationPolicy] = {
     "presenting_complaint_clarify": PhaseValidationPolicy(
         question_validator=_validate_presenting_complaint_question,
@@ -257,5 +298,10 @@ _PHASE_POLICIES: dict[str, PhaseValidationPolicy] = {
     "ice": PhaseValidationPolicy(
         batch_validator=_validate_ice_batch,
         question_validator=_validate_ice_question,
+    ),
+    "duration": PhaseValidationPolicy(
+        max_questions=1,
+        batch_validator=_validate_duration_batch,
+        question_validator=_validate_duration_question,
     ),
 }

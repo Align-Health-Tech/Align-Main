@@ -1,7 +1,7 @@
 """Back leg diagrams — sex-split. Hamstring maps to body_part=thigh, surface=back."""
 from __future__ import annotations
 
-from engine.static.body_diagram_catalogue.types import PrefillMapping, RegionCoding
+from catalogues.body_diagram.types import PrefillMapping, RegionCoding
 
 PREFILL_MAPPINGS: list[PrefillMapping] = [
     PrefillMapping(

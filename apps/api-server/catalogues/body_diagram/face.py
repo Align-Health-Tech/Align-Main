@@ -6,7 +6,7 @@ Confirm with design/clinical before treating as settled vocab).
 """
 from __future__ import annotations
 
-from engine.static.body_diagram_catalogue.types import PrefillMapping, RegionCoding
+from catalogues.body_diagram.types import PrefillMapping, RegionCoding
 
 PREFILL_MAPPINGS: list[PrefillMapping] = [
     PrefillMapping(

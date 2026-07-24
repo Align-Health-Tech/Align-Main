@@ -72,19 +72,55 @@ base → 859d69d120fc (initial schema)
      → add_intake_fact_display_001
      → summary_str_laterality_ck_001
      → intake_patient_scope_meds_001 (patient-scoped intake facts + encounter_medication)
+     → simplify_flag_status_001 (drop unused Flag source/tier)
 ```
 
 Check:
 
 ```bash
-alembic current   # should show intake_patient_scope_meds_001 (head)
+alembic current   # should show simplify_flag_status_001 (head)
 ```
 
 **Do not** `alembic revision --autogenerate` for RLS — that migration is hand-written (`alembic/versions/rls_roles_and_policies.py`).
 
 ---
 
-## 5. RLS role passwords (local only)
+## 5. Verify the local database
+
+From the repository root, the clone-to-proof flow is:
+
+```bash
+docker compose up -d --wait
+source apps/api-server/venv/bin/activate
+python scripts/verify_local_postgres.py
+```
+
+The verifier reads `DATABASE_URL` from the environment or
+`apps/api-server/.env` and refuses to connect to a non-local host. Its
+throwaway engine/session applies Alembic to head, checks the M5 schema contract,
+and commits then reloads three complete states through the SQLAlchemy models:
+the original sore-throat fixture plus the real-Azure localised-wrist and
+non-localised-fever fixtures. The wrist case includes its body-structure,
+allergy, and active CIRCULATION flag rows. `fhir_display` carries the fixture
+topic for this round-trip without claiming that a FHIR coding was resolved.
+The fever case asserts that no body-structure, intake-fact, or flag rows are
+created. Practitioner, patient, and admin RLS checks run against these same
+fixture rows using the real database roles. A successful run prints named
+`PASS` results and removes all generated rows.
+
+To retain the generated organizations, patients, encounters, body structures,
+intake facts, and flags for inspection, run:
+
+```bash
+python scripts/verify_local_postgres.py --keep-data
+```
+
+The retained row IDs are printed at the end. LangGraph checkpoint-table setup
+and `PostgresSaver` are not required for this verification.
+
+---
+
+## 6. RLS role passwords (local only)
 
 Roles `align_app`, `align_engine`, `align_admin` are created by the RLS migration **without** passwords (secrets stay out of git). Set them once:
 
@@ -99,7 +135,7 @@ ALTER ROLE align_admin WITH PASSWORD 'local_dev_password';
 
 ---
 
-## 6. LangGraph checkpoint tables (optional until engine is wired)
+## 7. LangGraph checkpoint tables (optional until engine is wired)
 
 Checkpoint tables are **not** created by Alembic. After installing deps:
 
@@ -121,7 +157,7 @@ After `setup()`, a follow-up migration may be needed to attach `organization_id`
 
 ---
 
-## 7. Run everything
+## 8. Run everything
 
 From **repo root**:
 
@@ -145,21 +181,6 @@ npm run dev:apps-only
 | API health | http://localhost:8000/health |
 | API docs | http://localhost:8000/docs |
 | Urgent care UI | http://localhost:3000 (Next default) |
-
----
-
-## Common failures
-
-| Symptom | Fix |
-| ------- | --- |
-| `DATABASE_URL is not set` | Create `apps/api-server/.env` from `.env.example` |
-| `Connection refused` on 5432 | `docker compose up -d --wait` |
-| Postgres container exits immediately | Postgres 18 volume path / wipe with `docker compose down -v` |
-| `.venv/bin/activate: No such file` | Create `venv` (not `.venv`) under `apps/api-server` |
-| `No module named 'langgraph.checkpoint.postgres'` | `pip install langgraph-checkpoint-postgres` |
-| `relation "checkpoints" does not exist` during RLS | Expected if setup not run; current migration skips missing checkpoint tables |
-| `docker exec ... No such container` | Use `docker compose exec postgres ...` or `align-main-postgres-1` |
-| Wrong empty DB in GUI | Connect to database **`align`**, user **`align_owner`** |
 
 ---
 

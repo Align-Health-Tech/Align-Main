@@ -30,8 +30,8 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         values = snap_values(runner, session_id)
         self.assertIn("localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 7)
-        self.assertEqual(values["onset_circumstance"]["text"], "Within 48 hours")
-        self.assertEqual(values["onset_circumstance"]["source"], "option")
+        self.assertEqual(values["duration"]["text"], "Within a week")
+        self.assertEqual(values["duration"]["source"], "option")
         self.assertEqual(len(values["body_structures"]), 1)
         body = values["body_structures"][0]
         self.assertEqual(body["region_detail"]["layman_term"], "right wrist")
@@ -46,7 +46,7 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         )
         self.assertEqual(step.phase, "non_localised_detail")
         ids = [q.id for q in (step.questions or [])]
-        self.assertEqual(ids, ["nl_onset", "nl_severity", "nl_functional"])
+        self.assertEqual(ids, ["nl_severity", "nl_functional", "duration"])
         self.assertEqual(self.ai.fake_nl_classifier_call_count, 1)
 
         values = snap_values(runner, session_id)
@@ -59,8 +59,8 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         self.assertIn("non_localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 5)
         self.assertEqual(values["functional_impact_score"], 4)
-        self.assertEqual(values["onset_circumstance"]["text"], "Within 1 week")
-        self.assertEqual(values["onset_circumstance"]["source"], "option")
+        self.assertEqual(values["duration"]["text"], "Within a week")
+        self.assertEqual(values["duration"]["source"], "option")
 
     def test_non_localised_clarify_then_details(self) -> None:
         self.ai.set_nl_classifier_script(
@@ -100,7 +100,7 @@ class TestM2DetailNodes(MockClinicalAiTestCase, unittest.TestCase):
         self.assertEqual(self.ai.fake_nl_clarify_qg_call_count, 1)
         self.assertEqual(
             [q.id for q in (after_clarify.questions or [])],
-            ["nl_onset", "nl_severity", "nl_functional"],
+            ["nl_severity", "nl_functional", "duration"],
         )
 
         values = snap_values(runner, session_id)

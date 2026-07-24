@@ -1,0 +1,101 @@
+=== duration QG Azure smoke ===
+
+=== LOCALISED acute ankle ===
+
+LOCALISED acute ankle tool_loop web_search_count=0
+LOCALISED acute ankle topics (expect []): []
+LOCALISED acute ankle questions:
+[
+  {
+    "id": "duration",
+    "kind": "single_choice",
+    "prompt": "How long have you had this ankle pain?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "In the last few hours",
+        "label": "In the last few hours",
+        "en_label": null
+      },
+      {
+        "value": "Since this morning",
+        "label": "Since this morning",
+        "en_label": null
+      },
+      {
+        "value": "Yesterday",
+        "label": "Yesterday",
+        "en_label": null
+      },
+      {
+        "value": "In the last few days",
+        "label": "In the last few days",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "duration",
+    "personalization_note": "Chief complaint suggests an acute ankle twist today, so short time-range options fit best."
+  }
+]
+LOCALISED acute ankle web_search_count=0 OK
+
+=== NOT_LOCALISED gradual systemic ===
+
+NOT_LOCALISED gradual systemic tool_loop web_search_count=0
+NOT_LOCALISED gradual systemic topics (expect []): []
+NOT_LOCALISED gradual systemic questions:
+[
+  {
+    "id": "duration",
+    "kind": "single_choice",
+    "prompt": "How long have you been feeling exhausted and feverish?",
+    "en_prompt": null,
+    "options": [
+      {
+        "value": "A few days",
+        "label": "A few days",
+        "en_label": null
+      },
+      {
+        "value": "1 to 2 weeks",
+        "label": "1 to 2 weeks",
+        "en_label": null
+      },
+      {
+        "value": "2 to 4 weeks",
+        "label": "2 to 4 weeks",
+        "en_label": null
+      },
+      {
+        "value": "More than a month",
+        "label": "More than a month",
+        "en_label": null
+      },
+      {
+        "value": "Other",
+        "label": "Other",
+        "en_label": null
+      }
+    ],
+    "required": true,
+    "default_value": null,
+    "default_values": null,
+    "collect_target_id": "duration",
+    "personalization_note": "Fatigue and feverish feelings described as ongoing for a while; use broader recent-to-longer time ranges."
+  }
+]
+NOT_LOCALISED gradual systemic web_search_count=0 OK
+
+=== SUMMARY ===
+LOCALISED: PASS (failures=0, questions=1)
+NOT_LOCALISED: PASS (failures=0, questions=1)
+
+total_failures=0

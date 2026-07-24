@@ -2,7 +2,7 @@
 
 Package layout splits region tables by diagram family; this module re-exports
 the same public API as the former single-file catalogue so existing imports
-(`from engine.static.body_diagram_catalogue import resolve_prefill_candidates`,
+(`from catalogues.body_diagram import resolve_prefill_candidates`,
 …) keep working unchanged.
 
 Two tables (not one): PREFILL_MAPPINGS allows duplicate region_ids across
@@ -12,7 +12,7 @@ Deterministic — no LLM.
 """
 from __future__ import annotations
 
-from engine.static.body_diagram_catalogue.resolvers import (
+from catalogues.body_diagram.resolvers import (
     DiagramPrefill,
     PREFILL_MAPPINGS,
     REGION_CODINGS,
@@ -20,7 +20,7 @@ from engine.static.body_diagram_catalogue.resolvers import (
     resolve_coding,
     resolve_prefill_candidates,
 )
-from engine.static.body_diagram_catalogue.types import PrefillMapping, RegionCoding
+from catalogues.body_diagram.types import PrefillMapping, RegionCoding
 
 __all__ = [
     "DiagramPrefill",

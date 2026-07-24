@@ -29,9 +29,6 @@ of symptoms they already gave.
 
 Return `{reason, questions}` where each question is a `QuestionField`.
 
-**Must match engine validator `validate_qg_questions` for
-`non_localised_clarify` (fail loudly if violated):**
-
 - `kind` must be **`single_choice`**.
 - Option **values** must be exactly, in this order:
   `["Yes", "No", "I don't know"]`.

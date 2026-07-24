@@ -90,6 +90,21 @@ QUESTIONS_BY_PHASE: dict[str, list[QuestionField]] = {
             required=False,
         )
     ],
+    "duration": [
+        QuestionField(
+            id="duration",
+            kind="single_choice",
+            prompt="How long have you had this?",
+            personalization_note="mock duration",
+            collect_target_id="duration",
+            options=[
+                QuestionOption(value="Last 24 hours", label="Last 24 hours"),
+                QuestionOption(value="Within a week", label="Within a week"),
+                QuestionOption(value="More than a week", label="More than a week"),
+                QuestionOption(value="Other", label="Other"),
+            ],
+        )
+    ],
     "ice": [
         QuestionField(
             id="ice_idea",

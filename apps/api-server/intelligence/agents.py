@@ -5,13 +5,12 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from intelligence.llm_client import run_agent, run_agent_with_tools
+from intelligence.llm_client import run_agent
 from intelligence.registry import (
     REDFLAG_TARGETS,
     normalize_redflag_subcategory,
     targets_for_session_phase,
 )
-from intelligence.tools import web_search
 from schemas.collect_targets import SESSION_TO_COLLECT_PHASE
 from schemas.clinical_ai_io import (
     ClassifierInput,
@@ -101,7 +100,7 @@ def translate_to_english(
 
 
 # ---------------------------------------------------------------------------
-# Devise & Prioritise (tools path) — private parse types stay here
+# Devise & Prioritise — private parse types stay here
 # ---------------------------------------------------------------------------
 
 # Fields Devise may see — never example_prompt / suggested_options (QG-only).
@@ -141,21 +140,13 @@ def _get_candidate_pool(phase: str, context: dict) -> list[dict]:
 def run_devise_and_prioritise(
     phase: str,
     context: dict,
-    *,
-    tool_choice: Optional[str] = None,
 ) -> list[TopicCandidate]:
-    """Rank topics for this phase. Uses web_search; is_red_flag set for redflag_screening.
-
-    ``tool_choice`` defaults to model auto (None). Pass ``\"web_search\"`` only
-    for rare plumbing checks — not habitual production or smoke paths.
-    """
-    raw = run_agent_with_tools(
+    """Rank topics from model reasoning; red-flag status is stamped in code."""
+    raw = run_agent(
         "devise_and_prioritise",
         phase,
         {"context": context, "candidate_pool": _get_candidate_pool(phase, context)},
         _DeviseTopicsResult,
-        tools=[web_search],
-        tool_choice=tool_choice,
     )
     is_red_flag = phase == "redflag_screening"
     out: list[TopicCandidate] = []
@@ -168,7 +159,7 @@ def run_devise_and_prioritise(
                 topic=topic,
                 relevance_score=c.relevance_score,
                 is_red_flag=is_red_flag,
-                source=c.source,
+                source="base_reasoning",
                 rationale=c.rationale,
             )
         )

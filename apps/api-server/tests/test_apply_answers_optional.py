@@ -187,6 +187,10 @@ class TestApplyAnswersOptionalSocialHistory(unittest.TestCase):
             options=[
                 QuestionOption(value="Smoke or vape", label="Smoke or vape"),
                 QuestionOption(value="Drink alcohol", label="Drink alcohol"),
+                QuestionOption(
+                    value="None of these apply to me",
+                    label="None of these apply to me",
+                ),
                 QuestionOption(value="Other", label="Other"),
             ],
         )
@@ -212,6 +216,21 @@ class TestApplyAnswersOptionalSocialHistory(unittest.TestCase):
                 ("SOCIAL_HISTORY", "works night shifts", "free_text"),
             ],
         )
+
+    def test_none_of_these_does_not_create_social_history_fact(self) -> None:
+        updates = map_patient_answers(
+            self._state(),
+            {
+                "answers": [
+                    {
+                        "question_id": "social_history",
+                        "value": ["None of these apply to me"],
+                    }
+                ]
+            },
+            [self._multi_question()],
+        )
+        self.assertNotIn("intake_facts", updates)
 
     def test_free_text_question_stores_social_history_with_translate(self) -> None:
         question = QuestionField(

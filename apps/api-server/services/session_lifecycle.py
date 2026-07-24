@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from engine.helpers.next_step import build_next_step, build_next_step_raw
 from engine.runner import SessionRunner
-from engine.static.deterministic_forms import (
+from forms import (
     build_consent_questions,
     build_survey_questions,
 )
@@ -100,8 +100,12 @@ class SessionLifecycle:
         record.status = "COMPLETED"
         return record.id, record.status
 
+    # ------------------------------------------------------------------
+    # CLI debugging
+    # ------------------------------------------------------------------
+
     def get_graph_state(self, session_id: str) -> SessionState | None:
-        """CLI / tests — checkpoint SessionState when graph has started."""
+        """CLI / tests — checkpoint SessionState when graph has started. Currently used for CLI debugging"""
         record = self._store.sessions.get(session_id)
         if record is None or record.status == "NOT_STARTED":
             return None

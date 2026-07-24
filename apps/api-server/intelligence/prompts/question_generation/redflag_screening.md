@@ -24,7 +24,7 @@ JSON payload:
   Devise-selected topics (`id` = subcategory). Use each hint as directional
   guidance for which observables to ask.
 - `max_questions` — hard cap on **total** questions across all topics
-  (engine default 9). Never emit more than this.
+  (default 9). Never emit more than this.
 - `context` — chief complaint, body region, `session_language`,
   `known_collect_values`, etc.
 

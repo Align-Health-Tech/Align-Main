@@ -76,14 +76,10 @@ or fever).
 
 Do not surface mental-health-primary red flags in this product version.
 
-## Web search
+## Reasoning source
 
-Unlike priority ranking, **prefer checking when uncertain**. If you are not
-confident whether a subcategory should be in or out for this presentation,
-use `web_search` for a brief directional check rather than guessing from
-base knowledge alone. Still use judgment — search is a nudge for safety
-gaps, not a forced call on every turn. Set `source` to `web_search` only
-when you actually used the tool; otherwise `base_reasoning`.
+Use model reasoning only. Set every candidate's source to
+`base_reasoning`; do not request or assume external search.
 
 ## Output shape
 
@@ -91,7 +87,7 @@ Each candidate: `{topic, relevance_score, source, rationale}`.
 
 - `topic` — pool `subcategory` string (e.g. `BREATHING`, `CIRCULATION`).
 - `relevance_score` — 0–1 (≥ 0.65 to include).
-- `source` — `base_reasoning` | `web_search`.
+- `source` — `base_reasoning`.
 - `rationale` — brief English audit note (plain language a patient could
   understand): the clinical signal that triggered this candidate **and**
   why it matters (~200 chars).
@@ -131,7 +127,7 @@ Empty `candidates: []` is valid and preferred when nothing clears the floor.
     {
       "topic": "BREATHING",
       "relevance_score": 0.84,
-      "source": "web_search",
+      "source": "base_reasoning",
       "rationale": "Patient mentioned chest tightness during intake; worth checking whether breathing feels harder than usual at rest or on light effort."
     },
     {

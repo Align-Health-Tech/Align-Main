@@ -5,7 +5,7 @@ from typing import Optional, get_args
 
 from pydantic import BaseModel
 
-from engine.static.body_diagram_catalogue.types import (
+from catalogues.body_diagram.types import (
     PrefillMapping,
     RegionCoding,
     SexVariant,

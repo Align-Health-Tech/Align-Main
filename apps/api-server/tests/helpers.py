@@ -31,14 +31,14 @@ def answer_localised_detail_questions(
         {
             "answers": [
                 {"question_id": "loc_severity", "value": "7"},
-                {"question_id": "loc_onset", "value": "WITHIN_48_HOURS"},
+                {"question_id": "duration", "value": "Within a week"},
             ]
         },
     )
 
 
 def answer_localised_detail(runner: SessionRunner, session_id: str) -> NextStep:
-    """Body-diagram tap + severity/onset — lands on priority_questions."""
+    """Body-diagram tap + severity/duration — lands on priority_questions."""
     step = answer_body_diagram(runner, session_id)
     assert step.phase == "localised_detail"
     assert step.step_type == "question_batch"
@@ -50,9 +50,9 @@ def answer_nl_details(runner: SessionRunner, session_id: str) -> NextStep:
         session_id,
         {
             "answers": [
-                {"question_id": "nl_onset", "value": "WITHIN_1_WEEK"},
                 {"question_id": "nl_severity", "value": "5"},
                 {"question_id": "nl_functional", "value": "4"},
+                {"question_id": "duration", "value": "Within a week"},
             ]
         },
     )

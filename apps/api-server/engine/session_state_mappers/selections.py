@@ -9,7 +9,18 @@ from schemas.literals import IntakeFactKind
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import IntakeFactState, SessionState
 
-_EMPTY_SELECTIONS = frozenset({"none", "none of these", "no"})
+_EMPTY_SELECTIONS = frozenset(
+    {
+        "none",
+        "none of these",
+        "no",
+    }
+)
+_EMPTY_SELECTION_PREFIXES = (
+    "none of these",
+    "no allergies",
+    "no known allergies",
+)
 
 
 def labels_by_folded(question: QuestionField) -> dict[str, str]:
@@ -31,7 +42,11 @@ def parse_chip(
     if not text:
         return None
     folded = text.casefold()
-    if folded in _EMPTY_SELECTIONS or folded == "other":
+    if (
+        folded in _EMPTY_SELECTIONS
+        or folded.startswith(_EMPTY_SELECTION_PREFIXES)
+        or folded == "other"
+    ):
         return None
     if folded.startswith("other:"):
         detail = text.split(":", 1)[1].strip()

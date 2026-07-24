@@ -2,7 +2,7 @@
 
 `Phase` / `StepType` include `consent` and `survey` even though those are
 **not** LangGraph nodes. Routers construct those NextSteps from
-`engine/static/deterministic_forms.py`. Every other phase value is produced by a
+`forms/`. Every other phase value is produced by a
 graph `interrupt()` (or `complete` for terminal).
 
 Literal vocabularies live in ``schemas.literals``.

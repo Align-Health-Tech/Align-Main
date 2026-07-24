@@ -50,7 +50,7 @@ and explain the residual gap in `reason`.
 - If two or more are genuinely tied and you cannot distinguish them, return
   `ready: false` with a `reason` that **names the candidate buckets**, and
   still set `category` to your **current best-fit lean** (see output
-  contract) so the engine can force-commit later if needed.
+  contract) so a later timeout can use that lean without calling you again.
 - `context.non_localised_clarify_rounds` is the clarify batch count so far —
   prefer committing when near the 0.85 threshold on later rounds.
 
@@ -87,8 +87,8 @@ Return structured fields matching the API schema:
 - `ready` — boolean
 - `category` — one of the **six buckets above**. When `ready: true`, this is
   the commit. When `ready: false`, still set `category` to your **current
-  best-fit lean** (highest-confidence among candidates) so the engine can
-  force-commit after three clarify rounds without another model call.
+  best-fit lean** (highest-confidence among candidates) so after three
+  clarify rounds that lean can be used without calling you again.
 - `confidence` — 0–1
 - `reason` — brief English audit note (not patient-visible)
 

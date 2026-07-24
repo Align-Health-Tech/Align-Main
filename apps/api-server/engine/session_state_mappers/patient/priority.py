@@ -11,7 +11,6 @@ from engine.session_state_mappers.selections import (
 )
 from engine.session_state_mappers.shared import _YES
 from engine.session_state_mappers.narrative import narrative_dump_free_text, narrative_dump_option
-from engine.static.onset_timing import onset_timing_label
 from schemas.literals import IntakeFactKind
 from schemas.question_fields import QuestionField
 from schemas.session_states import SessionState
@@ -63,10 +62,10 @@ def _onset_narrative(
     state: SessionState,
     selections: list[tuple[str, bool]],
 ) -> dict[str, Any]:
-    """Singular onset field — timing chips stay options; else free text."""
+    """Singular onset field — option chips or free text."""
     text, is_free = selections[0]
     if not is_free:
-        return narrative_dump_option(onset_timing_label(text))
+        return narrative_dump_option(text)
     return narrative_dump_free_text(text, session_language=state.session_language)
 
 

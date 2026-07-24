@@ -1,0 +1,15 @@
+=== duration QG Azure smoke ===
+
+=== LOCALISED acute ankle ===
+
+ERROR duration QG: Connection error.
+LOCALISED acute ankle tool_loop web_search_count=0
+=== NOT_LOCALISED gradual systemic ===
+
+ERROR duration QG: Connection error.
+NOT_LOCALISED gradual systemic tool_loop web_search_count=0
+=== SUMMARY ===
+LOCALISED: FAIL (failures=1, questions=0)
+NOT_LOCALISED: FAIL (failures=1, questions=0)
+
+total_failures=2

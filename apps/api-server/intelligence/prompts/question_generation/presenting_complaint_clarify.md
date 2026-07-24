@@ -29,14 +29,11 @@ clinical detail they never mentioned.
 
 Return `{reason, questions}` where each question is a `QuestionField`.
 
-**Must match engine validator `validate_qg_questions` for
-`presenting_complaint_clarify` (fail loudly if violated):**
-
 - `kind` must be **`single_choice`** (never `free_text`).
 - Options array length **2–5 inclusive** (this total **includes** `"Other"`).
 - One option's **value** must be exactly **`"Other"`** (capital O), preferably
-  last. The engine/frontend treat presence of `value == "Other"` as the
-  free-text escape hatch (there is no separate `allow_other` flag).
+  last. Presence of `value == "Other"` is the free-text escape hatch
+  (there is no separate `allow_other` flag).
 - Practical pattern: 1–4 content choices + `"Other"` last (e.g. 2+Other=3;
   4+Other=5). If more content answers seem useful, keep the most common and
   omit the rest so the total stays ≤ 5.

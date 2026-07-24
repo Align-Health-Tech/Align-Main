@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from engine.static.body_diagram_catalogue import laterality_for_region_id, resolve_coding
+from catalogues.body_diagram import laterality_for_region_id, resolve_coding
 from schemas.session_states import SessionState
 
 

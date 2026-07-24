@@ -1,0 +1,72 @@
+=== presenting_complaint classifier Azure smoke ===
+
+--- case: localised_wrist ---
+input: 'sharp pain in my right wrist'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'sharp pain in my right wrist', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": true,
+  "category": "LOCALISED",
+  "confidence": 0.95,
+  "reason": "Clear unilateral wrist complaint with specific anatomy extractable from first message.",
+  "chiefComplaintSummary": "Patient reports sharp pain in the right wrist.",
+  "localisedAnatomySites": [
+    {
+      "bodyPart": "wrist",
+      "side": "right",
+      "surface": "unknown",
+      "majorRegion": "arm",
+      "confidence": 0.98,
+      "evidence": "right wrist"
+    }
+  ],
+  "encounterIntakeSupplement": {
+    "onsetCircumstance": null,
+    "duration": null,
+    "character": [
+      "sharp"
+    ],
+    "mitigatingFactors": null,
+    "exacerbatingFactors": null,
+    "persistence": null,
+    "progression": null,
+    "selfManagement": null,
+    "comorbidities": null,
+    "weightChange": null,
+    "accClaimSuspected": null,
+    "accCanWork": null
+  }
+}
+chiefComplaintSummary: Patient reports sharp pain in the right wrist.
+prefill: {'diagram_file': 'Arm Right Back.svg', 'highlighted_region_ids': ['Select_RightWrist']}
+
+--- case: systemic_fever ---
+input: 'fever and feeling generally unwell'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'fever and feeling generally unwell', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": true,
+  "category": "NOT_LOCALISED",
+  "confidence": 0.95,
+  "reason": "Non-focal systemic presentation; no localising anatomical details provided.",
+  "chiefComplaintSummary": "Patient reports fever and feeling generally unwell, without a focal body site.",
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+chiefComplaintSummary: Patient reports fever and feeling generally unwell, without a focal body site.
+
+--- case: vague_hurts ---
+input: 'something hurts'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'something hurts', 'source': 'free_text'}
+raw ClassifierResult:
+{
+  "ready": false,
+  "category": null,
+  "confidence": 0.2,
+  "reason": "Patient stated only 'something hurts' with no body site, symptom description, or localisation details provided.",
+  "chiefComplaintSummary": null,
+  "localisedAnatomySites": null,
+  "encounterIntakeSupplement": null
+}
+
+done; failures=0

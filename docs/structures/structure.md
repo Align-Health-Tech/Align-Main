@@ -2,39 +2,47 @@
 
 ---
 
-## 1. Layers
+## 1. Folders (api-server) — who calls whom
 
 ```mermaid
 flowchart TB
-  FE[Frontend]
-  R[routers — HTTP]
-  E[engine — LangGraph nodes]
-  S[schemas — shared contracts]
-  INT[intelligence — agents + prompts]
-  PMS[pms — Protocol + adapters]
-  DB[(Postgres)]
+  R[routers]
+  SVC[services]
+  E[engine]
+  F[forms]
+  C[catalogues]
+  INT[intelligence]
+  PMS[external_systems/pms]
+  DB[db]
 
-  FE --> R --> E
-  R --> DF[deterministic_forms — consent/survey]
-  E --> S
-  INT --> S
-  R --> S
+  R --> SVC
+  SVC --> E
+  SVC --> F
   E --> INT
-  E --> PMS
-  E --> DB
-  PMS --> DB
+  E --> C
+  E -.->|M7 / planned| PMS
+  E -.->|M7 / planned| DB
+  PMS -.->|M7 / planned| DB
+
+  S[[schemas — shared contracts]]
 ```
 
 
 
+Arrow = runtime call / import of that package. `schemas` is shared by all folders above (not drawn as edges).
 
-| Layer                                | Owns                                                                               | Does not own                                           |
-| ------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **schemas**                          | Shapes everyone shares (`SessionState`, `NextStep`, agent I/O, `CollectTarget`, …) | LLM calls, DB writes, routing                          |
-| **engine**                           | Clinical graph progress; `agent_bridge`; session_state_mappers; NextStep / codecs / static | Prompt text, Azure, PMS, consent/survey HTTP lifecycle |
-| **deterministic_forms** (in engine/) | Consent/survey QuestionField builders for router                                   | Graph topology                                         |
-| **intelligence** (runtime)           | `agents` `run_*`, prompts, registry lists, tools, QG validators                    | Graph topology, HTTP; engine orchestration             |
-| **pms** (runtime)                    | Fetch/push behind `PMSProvider`                                                    | Clinical reasoning                                     |
+
+| Folder                    | Owns                                                                                                                        | Calls                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **routers/**              | HTTP parse/validate; map exceptions → status codes                                                                          | `services`                                             |
+| **services/**             | Encounter status machine; in-memory session/org store (M6); pick `SessionRunner` by `segment_type`                          | `engine`, `forms`                                      |
+| **forms/**                | Consent/survey `QuestionField` builders (not graph nodes)                                                                   | None                                                   |
+| **engine/**               | LangGraph clinical intake: nodes, topology, runner, checkpointer, `agent_bridge`, session_state_mappers, next_step / codecs | `intelligence` (via `agent_bridge` only), `catalogues` |
+| **catalogues/**           | Body-diagram SVG region tables (prefill / coding)                                                                           | None                                                   |
+| **intelligence/**         | Agents `run_`*, prompts, registry, QG validators, LLM client                                                                | None                                                   |
+| **external_systems/pms/** | PMS Protocol + adapters (plain I/O)                                                                                         | None                                                   |
+| **db/**                   | SQLAlchemy models / persistence                                                                                             | None                                                   |
+| **schemas/**              | Shared contracts: Literals, `SessionState`, `NextStep`, agent I/O, collect targets                                          | None                                                   |
 
 
 ---

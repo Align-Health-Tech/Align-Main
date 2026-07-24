@@ -66,8 +66,8 @@ because it is known.
 - Every question **must** include `personalization_note` (why this
   prompt/options fit *this* patient).
 - Default `required: true` for this phase.
-- Set `collect_target_id` to the registry target id when the question maps
-  to one.
+- Set `collect_target_id` to the matching `eligible_targets` id when the
+  question maps to one.
 - **Invent prompts and options from** `clinical_hint` + patient context +
   Devise `rationale`. Tailor to this complaint (~2–5 options).
 

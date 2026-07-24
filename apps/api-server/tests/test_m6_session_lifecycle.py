@@ -95,7 +95,7 @@ class TestM6SessionLifecycle(MockClinicalAiTestCase, unittest.TestCase):
         loc = {
             "answers": [
                 {"question_id": "loc_severity", "value": "7"},
-                {"question_id": "loc_onset", "value": "WITHIN_48_HOURS"},
+                {"question_id": "duration", "value": "Within a week"},
             ]
         }
         r = self.client.post(f"/sessions/{sid}/respond", json={"answer": loc})

@@ -4,8 +4,6 @@ Single source of truth — do not redefine these aliases elsewhere.
 Import from ``schemas.literals`` only.
 
 Convention: every ``Literal`` member on its own line (even for 1–2 values).
-
-Sections group by domain / use case (not by consumer file).
 """
 from __future__ import annotations
 
@@ -87,17 +85,6 @@ IntakeFactSource = Literal[
 # Flags (red-flag / safety rows)
 # ---------------------------------------------------------------------------
 
-FlagSource = Literal[
-    "CATALOGUE",
-    "LILLY_INFERRED",
-    "PRACTITIONER_ENTERED",
-]
-FlagTier = Literal[
-    "MILD",
-    "MODERATE",
-    "SEVERE",
-    "EXTREME",
-]
 FlagStatus = Literal[
     "ACTIVE",
     "INACTIVE",

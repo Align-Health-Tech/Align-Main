@@ -1,4 +1,4 @@
-"""non_localised_detail — Pattern B categoriser + deterministic onset/severity."""
+"""non_localised_detail — Pattern B categoriser + scores + adaptive duration."""
 from __future__ import annotations
 
 from langgraph.types import Command, interrupt
@@ -13,16 +13,15 @@ from engine.helpers.state_codecs import (
     dump_question_fields,
     dump_topic_candidates,
 )
-from engine.static.onset_timing import ONSET_TIMING_OPTIONS
 from schemas.clinical_ai_io import ClassifierInput, ClassifierResult
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
 _PHASE = "non_localised_detail"
 _CLARIFY_PHASE = "non_localised_clarify"
+_DURATION_PHASE = "duration"
 _CATEGORISER = "non_localised_categoriser"
 _MAX_CLARIFY_ROUNDS = 3
-# Last-resort force-commit when no lean was stored from ready:false results.
 _FORCE_COMMIT_DEFAULT = "SYSTEMIC"
 _NL_BUCKETS = frozenset(
     {
@@ -36,16 +35,8 @@ _NL_BUCKETS = frozenset(
 )
 
 
-def _generate_detail_questions(_state: SessionState) -> list[QuestionField]:
+def _score_questions() -> list[QuestionField]:
     return [
-        QuestionField(
-            id="nl_onset",
-            kind="single_choice",
-            prompt="When did this start?",
-            personalization_note="deterministic",
-            collect_target_id="onset_circumstance",
-            options=list(ONSET_TIMING_OPTIONS),
-        ),
         QuestionField(
             id="nl_severity",
             kind="single_choice",
@@ -69,6 +60,14 @@ def _generate_detail_questions(_state: SessionState) -> list[QuestionField]:
     ]
 
 
+def _generate_detail_questions(state: SessionState) -> list[QuestionField]:
+    """Stage 2 — scores (deterministic) + duration (QG, adaptive chips)."""
+    _topics, duration_qs = agent_bridge.devise_then_generate(
+        _DURATION_PHASE, state, devise=False
+    )
+    return [*_score_questions(), *duration_qs]
+
+
 def _lean_from_result(result: ClassifierResult) -> str | None:
     """Best-fit bucket when ready:false — model should still set category."""
     cat = result.category
@@ -90,8 +89,6 @@ def non_localised_detail(state: SessionState) -> Command:
     # --- Stage 1: categoriser / clarify ---
     if state.non_localised_category is None:
         if not state.pending_questions:
-            # Hard stop: after 3 enqueued clarify rounds, never call classifier
-            # again — commit from stored lean (or SYSTEMIC default).
             if state.non_localised_clarify_rounds >= _MAX_CLARIFY_ROUNDS:
                 return Command(
                     update={
@@ -124,8 +121,6 @@ def non_localised_detail(state: SessionState) -> Command:
                     "prioritised_topics": dump_topic_candidates(topics),
                     "pending_questions": dump_question_fields(questions),
                     "awaiting_phase": _PHASE,
-                    # Increment only when a new clarify batch is enqueued
-                    # (not on the Option-2 interrupt re-entry).
                     "non_localised_clarify_rounds": (
                         state.non_localised_clarify_rounds + 1
                     ),
@@ -152,7 +147,7 @@ def non_localised_detail(state: SessionState) -> Command:
             goto="non_localised_detail",
         )
 
-    # --- Stage 2: deterministic onset / severity / functional ---
+    # --- Stage 2: severity / functional + adaptive duration ---
     if not state.pending_questions:
         return Command(
             update={

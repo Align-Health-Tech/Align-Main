@@ -32,8 +32,7 @@ JSON payload:
   empty `candidates: []` is valid when optional questions would add little.
 - Never invent immunisation/vaccination targets. `IMMUNISATION_STATUS` is
   not in this pool and is prohibited.
-- Use `web_search` only when it genuinely helps rank relevance; otherwise use
-  base knowledge. Tool choice remains automatic, not forced.
+- Use model reasoning only. Do not request or assume external search.
 
 ## Ranking guidance
 
@@ -53,7 +52,7 @@ select it as a moral or diagnostic judgment.
 Each candidate is `{topic, relevance_score, source, rationale}`:
 
 - `relevance_score` — 0–1
-- `source` — `base_reasoning` or `web_search`
+- `source` — `base_reasoning`
 - `rationale` — brief English audit note explaining why this missing target
   is useful now
 

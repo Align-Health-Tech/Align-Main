@@ -12,6 +12,7 @@ Builds the same ClassifierInput shape as ``presenting_complaint`` node:
 Results are appended under ``./results/vNNN_results_YYYY-MM-DD_HHMMSS.txt``
 (never overwrites prior runs).
 """
+
 from __future__ import annotations
 
 import json
@@ -28,12 +29,12 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from _smoke_results import next_result_path
+from catalogues.body_diagram import resolve_prefill_candidates
 from engine.agent_bridge import (
     build_agent_context,
     conversation_from_state,
     run_classifier,
 )
-from engine.static.body_diagram_catalogue import resolve_prefill_candidates
 from schemas.clinical_ai_io import ClassifierInput, ClassifierResult
 from schemas.session_states import SessionState
 
@@ -115,12 +116,14 @@ def _run() -> int:
             prefill = resolve_prefill_candidates(sites, patient_sex="female")
             print(
                 "prefill:",
-                None
-                if prefill is None
-                else {
-                    "diagram_file": prefill.diagram_file,
-                    "highlighted_region_ids": prefill.highlighted_region_ids,
-                },
+                (
+                    None
+                    if prefill is None
+                    else {
+                        "diagram_file": prefill.diagram_file,
+                        "highlighted_region_ids": prefill.highlighted_region_ids,
+                    }
+                ),
             )
         print()
     print(f"done; failures={failures}")

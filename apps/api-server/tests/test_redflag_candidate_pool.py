@@ -74,9 +74,7 @@ class TestDeviseClampsRedflagTopics(unittest.TestCase):
                 )(),
             ]
 
-        with patch.object(
-            agents, "run_agent_with_tools", return_value=_Raw()
-        ):
+        with patch.object(agents, "run_agent", return_value=_Raw()):
             out = agents.run_devise_and_prioritise(
                 "redflag_screening", {"presentation_category": "LOCALISED"}
             )
@@ -84,6 +82,27 @@ class TestDeviseClampsRedflagTopics(unittest.TestCase):
             [(t.topic, t.is_red_flag) for t in out],
             [("OTHER", True), ("BREATHING", True)],
         )
+
+    def test_devise_forces_base_reasoning_source(self) -> None:
+        class _Raw:
+            candidates = [
+                type(
+                    "C",
+                    (),
+                    {
+                        "topic": "BREATHING",
+                        "relevance_score": 0.8,
+                        "source": "web_search",
+                        "rationale": "model drift",
+                    },
+                )(),
+            ]
+
+        with patch.object(agents, "run_agent", return_value=_Raw()):
+            out = agents.run_devise_and_prioritise(
+                "redflag_screening", {"presentation_category": "LOCALISED"}
+            )
+        self.assertEqual(out[0].source, "base_reasoning")
 
 
 if __name__ == "__main__":

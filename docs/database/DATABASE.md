@@ -175,14 +175,12 @@ Child of `body_structures` — one row per site the pain radiates to.
 **FHIR: `Flag`**. Red flags / safety markers.
 
 
-| Column                                     | Purpose                                             |
-| ------------------------------------------ | --------------------------------------------------- |
-| `encounter_id`, `organization_id`          | Scope                                               |
-| `source`                                   | `CATALOGUE | LILLY_INFERRED | PRACTITIONER_ENTERED` |
-| `tier`                                     | `MILD | MODERATE | SEVERE | EXTREME`                |
-| `status`                                   | `ACTIVE | INACTIVE | ENTERED_IN_ERROR`              |
-| `fhir_system`, `fhir_code`, `fhir_display` | Already FHIR-shaped                                 |
-| `created_at`, `updated_at`                 | Timestamps                                          |
+| Column                                     | Purpose                                |
+| ------------------------------------------ | -------------------------------------- |
+| `encounter_id`, `organization_id`          | Scope                                  |
+| `status`                                   | `ACTIVE | INACTIVE | ENTERED_IN_ERROR` |
+| `fhir_system`, `fhir_code`, `fhir_display` | Already FHIR-shaped                    |
+| `created_at`, `updated_at`                 | Timestamps                             |
 
 
 ---
@@ -397,4 +395,3 @@ Internal — deliberately not FHIR `AuditEvent` - shaped
   "intakeFactsJson": []
 }
 ```
-

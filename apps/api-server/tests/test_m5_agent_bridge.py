@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from engine import agent_bridge
 from schemas.clinical_ai_io import ClassifierInput, ClassifierResult
@@ -62,6 +63,47 @@ class TestM5AgentBridgeMocks(MockClinicalAiTestCase, unittest.TestCase):
             [o.value for o in (nl_qs[0].options or [])],
             ["Yes", "No", "I don't know"],
         )
+
+    def test_clarify_devise_and_qg_receive_conversation(self) -> None:
+        state = SessionState(
+            session_id="s",
+            patient_id="p",
+            organization_id="o",
+            messages=[
+                {"role": "user", "content": "I have a headache"},
+                {
+                    "role": "user",
+                    "content": "Where is it mainly? One side only",
+                },
+            ],
+        )
+        captured: dict[str, list[dict]] = {}
+
+        def capture_devise(phase: str, context: dict, **kwargs):
+            captured["devise"] = context["conversation"]
+            return self.ai.run_devise_and_prioritise(phase, context, **kwargs)
+
+        def capture_qg(input):
+            captured["qg"] = input.context["conversation"]
+            return self.ai.run_question_generation(input)
+
+        with (
+            patch.object(
+                agent_bridge,
+                "run_devise_and_prioritise",
+                side_effect=capture_devise,
+            ),
+            patch.object(
+                agent_bridge,
+                "run_question_generation",
+                side_effect=capture_qg,
+            ),
+        ):
+            agent_bridge.devise_then_generate("presenting_complaint_clarify", state)
+
+        expected = agent_bridge.conversation_from_state(state)
+        self.assertEqual(captured["devise"], expected)
+        self.assertEqual(captured["qg"], expected)
 
     def test_translate_via_bridge(self) -> None:
         out = agent_bridge.translate_to_english("안녕", "ko")

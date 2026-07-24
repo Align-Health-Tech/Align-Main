@@ -98,7 +98,7 @@ class TestNlClarifyRounds(MockClinicalAiTestCase, unittest.TestCase):
         self.assertEqual(values["non_localised_category"], "NEUROLOGICAL")
         self.assertEqual(
             [q.id for q in (step.questions or [])],
-            ["nl_onset", "nl_severity", "nl_functional"],
+            ["nl_severity", "nl_functional", "duration"],
         )
 
     def test_force_commit_defaults_to_systemic_when_no_lean(self) -> None:
@@ -133,7 +133,7 @@ class TestNlClarifyRounds(MockClinicalAiTestCase, unittest.TestCase):
         )
         self.assertEqual(
             [q.id for q in (step.questions or [])],
-            ["nl_onset", "nl_severity", "nl_functional"],
+            ["nl_severity", "nl_functional", "duration"],
         )
         values = snap_values(runner, session_id)
         self.assertEqual(values["non_localised_clarify_rounds"], 0)

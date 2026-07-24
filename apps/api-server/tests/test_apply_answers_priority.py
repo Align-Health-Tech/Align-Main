@@ -239,6 +239,53 @@ class TestApplyAnswersPriorityRest(unittest.TestCase):
         self.assertEqual(facts[2]["display"]["text"], "mate pīnati")
         self.assertEqual(facts[2]["display"]["en_text"], "peanut allergy")
 
+    def test_no_allergies_does_not_create_intake_fact(self) -> None:
+        q = QuestionField(
+            id="allergy",
+            kind="multi_choice",
+            prompt="Any allergies?",
+            personalization_note="t",
+            collect_target_id="allergy",
+            options=[
+                QuestionOption(value="Medicines", label="Medicines"),
+                QuestionOption(value="No allergies", label="No allergies"),
+                QuestionOption(
+                    value="No known allergies",
+                    label="No known allergies",
+                ),
+                QuestionOption(
+                    value="No allergies that I know of",
+                    label="No allergies that I know of",
+                ),
+                QuestionOption(value="Other", label="Other"),
+            ],
+        )
+        existing = {
+            "kind": "PAST_HISTORY",
+            "source": "PATIENT_INTAKE",
+            "display": {"text": "appendectomy", "source": "option"},
+        }
+
+        for value in (
+            "No allergies",
+            "No known allergies",
+            "No allergies that I know of",
+        ):
+            with self.subTest(value=value):
+                updates = map_patient_answers(
+                    self._state(intake_facts=[existing]),
+                    {
+                        "answers": [
+                            {
+                                "question_id": "allergy",
+                                "value": [value],
+                            }
+                        ]
+                    },
+                    [q],
+                )
+                self.assertNotIn("intake_facts", updates)
+
 
 class TestIntakeFactItemsRlsMigration(unittest.TestCase):
     """Policy in intake_patient_scope_meds_001 must use patient-linkage, not encounter_id."""

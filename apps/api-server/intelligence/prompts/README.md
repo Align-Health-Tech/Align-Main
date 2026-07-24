@@ -18,17 +18,16 @@ prompts/
 | -------- | ------ |
 | `classifier` | `presenting_complaint`, `non_localised_categoriser` |
 | `devise_and_prioritise` | `priority_questions`, `optional_questions`, `redflag_screening`, `presenting_complaint_clarify`, `non_localised_clarify` |
-| `question_generation` | `priority_questions`, `optional_questions`, `redflag_screening`, `ice`, `presenting_complaint_clarify`, `non_localised_clarify` |
+| `question_generation` | `priority_questions`, `optional_questions`, `redflag_screening`, `ice`, `duration`, `presenting_complaint_clarify`, `non_localised_clarify` |
 | `nurse_review` | `summary` |
 | `translation` | `to_english` |
 
 ## Three agents
 
-Implemented as thin wrappers in `agents.py` over `llm_client.run_agent` /
-`run_agent_with_tools`:
+Implemented as thin wrappers in `agents.py` over `llm_client.run_agent`:
 
 1. **Classifier** — `run_classifier`
-2. **Devise & Prioritise** — `run_devise_and_prioritise` (tools path)
+2. **Devise & Prioritise** — `run_devise_and_prioritise`
 3. **Question Generation** — `run_question_generation`
    (`QuestionField.personalization_note` required — do not blind-copy registry options)
 
@@ -41,7 +40,7 @@ Red flag screening is Devise + Question Generation with `phase` /
 
 | Status | Prompts |
 | ------ | ------- |
-| **Ported** (Azure smoked) | `classifier/presenting_complaint`, `devise_and_prioritise` + `question_generation` for `presenting_complaint_clarify`, `non_localised_categoriser` / `non_localised_clarify`, `priority_questions`, `redflag_screening`, `optional_questions`; `question_generation/ice` (QG-only; smoke: `smoke_optional_and_ice/`); `nurse_review/summary` (single agent; smoke: `smoke_nurse_review/`); `translation/to_english` (Pattern E; smoke: `smoke_translation/`) |
+| **Ported** (Azure smoked) | `classifier/presenting_complaint`, `devise_and_prioritise` + `question_generation` for `presenting_complaint_clarify`, `non_localised_categoriser` / `non_localised_clarify`, `priority_questions`, `redflag_screening`, `optional_questions`; `question_generation/ice`, `question_generation/duration` (smoke: `smoke_duration/`) (QG-only; smoke: `smoke_optional_and_ice/`); `nurse_review/summary` (single agent; smoke: `smoke_nurse_review/`); `translation/to_english` (Pattern E; smoke: `smoke_translation/`) |
 | **Still stubs / thin** | — (M5 prompt port complete) |
 
 ## Dual track (M5)

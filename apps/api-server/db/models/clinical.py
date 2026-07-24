@@ -7,9 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 from schemas.literals import (
-    FlagSource,
     FlagStatus,
-    FlagTier,
     IntakeFactKind,
     IntakeFactSource,
     Laterality,
@@ -67,15 +65,13 @@ class Flag(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     organization_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True
     )
-    source: Mapped[FlagSource] = mapped_column(String, nullable=False)
-    tier: Mapped[FlagTier] = mapped_column(String, nullable=False)
     status: Mapped[FlagStatus] = mapped_column(String, nullable=False, default="ACTIVE")
     fhir_system: Mapped[str | None] = mapped_column(String, nullable=True)
     fhir_code: Mapped[str | None] = mapped_column(String, nullable=True)
     fhir_display: Mapped[str | None] = mapped_column(String, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<Flag id={self.id} tier={self.tier} status={self.status}>"
+        return f"<Flag id={self.id} status={self.status}>"
 
 
 class IntakeFactItem(Base, UUIDPrimaryKeyMixin, TimestampMixin):

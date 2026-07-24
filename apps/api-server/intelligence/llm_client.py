@@ -1,4 +1,5 @@
 """Azure chat helpers — load prompt, call LLM, return a Pydantic model."""
+
 from __future__ import annotations
 
 import json
@@ -6,12 +7,17 @@ import os
 from typing import Any, Optional, Sequence, TypeVar
 
 from dotenv import load_dotenv
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
-from langchain_core.tools import BaseTool
-from langchain_openai import AzureChatOpenAI
-from pydantic import BaseModel
-
 from intelligence.prompt_loader import load_prompt
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
+from langchain_core.tools import BaseTool
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -37,7 +43,7 @@ def reset_last_tool_loop() -> None:
     _last_tool_loop["tool_calls"] = []
 
 
-def get_model(*, temperature: float = 0) -> AzureChatOpenAI:
+def get_model(*, temperature: float = 0) -> ChatOpenAI:
     """Build AzureChatOpenAI from env.
 
     Required: AZURE_OPENAI_API_KEY, AZURE_MODEL_NAME, AZURE_OPENAI_ENDPOINT
@@ -55,14 +61,14 @@ def get_model(*, temperature: float = 0) -> AzureChatOpenAI:
     if not endpoint:
         raise RuntimeError("Set AZURE_OPENAI_ENDPOINT")
 
-    api_version = (os.getenv("AZURE_OPENAI_API_VERSION") or "2025-04-01-preview").strip()
-
-    return AzureChatOpenAI(
+    return ChatOpenAI(
         api_key=api_key,
-        azure_endpoint=endpoint,
-        azure_deployment=deployment,
-        api_version=api_version,
+        base_url=endpoint,
+        model=deployment,
         temperature=temperature,
+        reasoning_effort="low",
+        timeout=60,
+        max_retries=0,
     )
 
 
@@ -75,9 +81,7 @@ def chat_structured(
 ) -> T:
     """Invoke Azure chat with with_structured_output(schema)."""
     model = get_model(temperature=temperature).with_structured_output(schema)
-    result = model.invoke(
-        [SystemMessage(content=system), HumanMessage(content=user)]
-    )
+    result = model.invoke([SystemMessage(content=system), HumanMessage(content=user)])
     if not isinstance(result, schema):
         return schema.model_validate(result)
     return result

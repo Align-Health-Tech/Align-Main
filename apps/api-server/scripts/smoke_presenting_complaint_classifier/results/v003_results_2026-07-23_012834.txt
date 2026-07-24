@@ -1,0 +1,18 @@
+=== presenting_complaint classifier Azure smoke ===
+
+--- case: localised_wrist ---
+input: 'sharp pain in my right wrist'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'sharp pain in my right wrist', 'source': 'free_text'}
+ERROR: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}
+
+--- case: systemic_fever ---
+input: 'fever and feeling generally unwell'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'fever and feeling generally unwell', 'source': 'free_text'}
+ERROR: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}
+
+--- case: vague_hurts ---
+input: 'something hurts'
+context keys: ['body_structures', 'character', 'chief_complaint', 'comorbidities', 'completed_phases', 'duration', 'encounter_medication', 'exacerbating_factors', 'functional_impact_score', 'ice_concern', 'ice_expectation', 'ice_idea', 'intake_facts', 'known_collect_values', 'mitigating_factors', 'non_localised_category', 'non_localised_category_lean', 'non_localised_clarify_rounds', 'onset_circumstance', 'patient_sex', 'persistence', 'pregnancy_possible', 'presentation_category', 'progression', 'raised_flag_topics', 'self_management', 'session_language', 'severity_score', 'weight_change'] | chief_complaint: {'text': 'something hurts', 'source': 'free_text'}
+ERROR: Error code: 401 - {'error': {'code': '401', 'message': 'Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.'}}
+
+done; failures=3

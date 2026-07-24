@@ -4,6 +4,7 @@ Nodes and session_state_mappers call symbols defined here. CI graph tests
 patch this module (never Azure). Real Azure only via local prompt smoke
 (non-CI). Implementation lives in ``intelligence.agents``.
 """
+
 from __future__ import annotations
 
 from typing import Optional, get_args
@@ -49,12 +50,8 @@ def run_classifier(input: ClassifierInput) -> ClassifierResult:
 def run_devise_and_prioritise(
     phase: str,
     context: dict,
-    *,
-    tool_choice: Optional[str] = None,
 ) -> list[TopicCandidate]:
-    return _agents.run_devise_and_prioritise(
-        phase, context, tool_choice=tool_choice
-    )
+    return _agents.run_devise_and_prioritise(phase, context)
 
 
 def run_question_generation(input: QuestionGenerationInput) -> QuestionGenerationResult:
@@ -139,20 +136,19 @@ def devise_then_generate(
     *,
     devise: bool = True,
     max_questions: Optional[int] = None,
-    tool_choice: Optional[str] = None,
 ) -> tuple[list[TopicCandidate], list[QuestionField]]:
     """Pattern C — Devise then Question Generation for one session phase.
 
     Pass ``devise=False`` for QG-only phases (ICE): skips Devise, uses empty
     topics, still runs eligible lookup + QG + validate.
 
-    ``tool_choice`` is forwarded to Devise only when ``devise`` is True.
+    Devise uses model reasoning only; it does not invoke external tools.
     """
     context = build_agent_context(state)
+    if phase in _CLARIFY_PHASES:
+        context["conversation"] = conversation_from_state(state)
     if devise:
-        topics = run_devise_and_prioritise(
-            phase, context, tool_choice=tool_choice
-        )
+        topics = run_devise_and_prioritise(phase, context)
     else:
         topics = []
     eligible = _eligible_for_phase(phase, context)
@@ -176,9 +172,7 @@ def devise_then_generate(
     # Hard truncate — models occasionally ignore max_questions (esp. redflag
     # finding-split). Keep Devise topic order / QG emission order.
     if cap is not None and len(result.questions) > cap:
-        result = result.model_copy(
-            update={"questions": result.questions[:cap]}
-        )
+        result = result.model_copy(update={"questions": result.questions[:cap]})
     validate_qg_questions(phase, result.questions)
     return topics, result.questions
 
@@ -186,6 +180,13 @@ def devise_then_generate(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+_CLARIFY_PHASES = frozenset(
+    {
+        "presenting_complaint_clarify",
+        "non_localised_clarify",
+    }
+)
 
 # Derived from IntakeFactKind — kind.lower() is the collect-target / prefill key.
 # Apply writes allergy / past_history / family_history / social_history today.
@@ -208,11 +209,16 @@ def _known_collect_values(state: SessionState) -> dict[str, object]:
 
     Keys are registry collect-target ids (1:1 with SessionState field names
     where applicable). Presence of a key means the target is already known.
+
+    briding the actual engine with the interface
     """
     out: dict[str, object] = {}
     onset = _narrative_text(state.onset_circumstance)
     if onset:
         out["onset_circumstance"] = onset
+    duration = _narrative_text(state.duration)
+    if duration:
+        out["duration"] = duration
     if state.character:
         chars = [t for c in state.character if (t := _narrative_text(c))]
         if chars:

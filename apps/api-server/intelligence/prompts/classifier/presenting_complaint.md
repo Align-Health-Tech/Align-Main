@@ -48,7 +48,7 @@ Return structured fields matching the API schema:
 
 - Prefer one extra clarifier over misrouting. A wrong route costs the patient
   time and can lose location detail. When unsure, set `ready: false` with a
-  concise `reason` (the engine will ask the patient).
+  concise `reason` (a follow-up question will be asked next).
 - Naming a broad region (stomach/back/chest/head/leg) is usually still
   **LOCALISED**: need _where within that region_ before giving up — return
   `ready: false` rather than forcing a route.
@@ -68,7 +68,7 @@ Return structured fields matching the API schema:
   regions.
 - Anterior/posterior or left/right wording does not make a complaint
   **NOT_LOCALISED** when it is the same body region. If the exact view is unclear
-  and the catalogue cannot show both views at once, return `ready: false` with
+  and both views cannot be shown at once, return `ready: false` with
   a reason about clarifying view/side rather than switching to **NOT_LOCALISED**.
 - Connected or consecutive sites are not automatically NOT_LOCALISED. They may
   describe radiation or a connected local pattern. Clarify primary site versus
@@ -149,8 +149,8 @@ _common onset/mechanism across multiple sites_.
 ### Localised anatomy extraction (when LOCALISED)
 
 - Set top-level `localisedAnatomySites` using only the controlled anatomy
-  vocabulary below. Do not output body-diagram titles, frontend selector IDs,
-  or SVG path IDs. Backend code maps the anatomy facts to the exact UI diagram.
+  vocabulary below. Do not invent diagram titles, tap-target IDs, or SVG path
+  IDs — those are derived later from your anatomy fields.
 - Extract the patient's primary localised site(s). For radiating complaints,
   extract the origin/main site only; radiation destinations are captured later.
   If origin is genuinely ambiguous, return `ready: false` and put that gap in
@@ -173,15 +173,10 @@ surface: front, back, inner, outer, unknown
 majorRegion: face, arm, leg, torso, unknown
 ```
 
-Notes on catalogue-aligned additions (keep in sync with
-`engine/static/body_diagram_catalogue/`):
-
-- `upper_abdomen`, `chin`, `forehead` — supported prefill body parts.
-- `cheek` — **provisional** mapping for Face diagram `Select_LeftSide` /
-  `Select_RightSide` (region_id only says "side of face"; could be cheek,
-  temple, or general lateral face). Confirm with clinical/design before
-  treating as settled vocabulary — see
-  `engine/static/body_diagram_catalogue/face.py` module docstring.
+When category is LOCALISED, do not use bodyPart/side/surface/majorRegion = unknown.
+Pick the closest controlled value that best matches the patient's site.
+If no plausible site exists, set ready: false and ask a clarify question instead of emitting unknown sites.
+Examples: whole-head / all-over headache → forehead + midline + front + majorRegion face.
 
 ### Encounter intake supplement (when `ready: true`)
 

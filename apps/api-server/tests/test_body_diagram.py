@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unittest
 
-from engine.static.body_diagram_catalogue import (
+from catalogues.body_diagram import (
     resolve_coding,
     resolve_prefill_candidates,
 )
@@ -141,7 +141,7 @@ class TestLocalisedDetailBodyDiagram(MockClinicalAiTestCase, unittest.TestCase):
         self.assertEqual(after_tap.phase, "localised_detail")
         self.assertEqual(after_tap.step_type, "question_batch")
         ids = [q.id for q in (after_tap.questions or [])]
-        self.assertEqual(ids, ["loc_severity", "loc_onset"])
+        self.assertEqual(ids, ["loc_severity", "duration"])
         self.assertNotIn("loc_laterality", ids)
         self.assertNotIn("loc_region", ids)
 
@@ -158,8 +158,8 @@ class TestLocalisedDetailBodyDiagram(MockClinicalAiTestCase, unittest.TestCase):
         values = snap_values(runner, session_id)
         self.assertIn("localised_detail", values["completed_phases"])
         self.assertEqual(values["severity_score"], 7)
-        self.assertEqual(values["onset_circumstance"]["text"], "Within 48 hours")
-        self.assertEqual(values["onset_circumstance"]["source"], "option")
+        self.assertEqual(values["duration"]["text"], "Within a week")
+        self.assertEqual(values["duration"]["source"], "option")
         self.assertEqual(
             values["body_structures"][0]["region_detail"], expected.model_dump()
         )

@@ -24,7 +24,10 @@ api-server/
 │   ├── topology/           # per-segment graphs
 │   ├── session_state_mappers/  # patient + AI result → SessionState
 │   ├── helpers/            # next_step, state_codecs, completed_phases
-│   └── static/             # catalogues / deterministic forms
+│   └── …
+├── forms/                  # Router-level consent/survey QuestionField builders
+├── catalogues/
+│   └── body_diagram/       # SVG region catalogue (engine LOCALISED)
 ├── intelligence/           # Clinical AI agents + prompts + registry
 ├── external_systems/
 │   └── pms/                # Practice-management Protocol + adapters
@@ -42,7 +45,7 @@ intelligence/
 ├── prompt_loader.py    # load prompts/{category}/{phase}.md
 ├── registry.py         # PRIORITY/OPTIONAL targets + REDFLAG_TARGETS
 ├── qg_phase_validators.py
-├── tools.py            # DuckDuckGo web_search (Devise)
+├── tools.py            # DuckDuckGo helper (currently not wired)
 └── prompts/            # phase prompts — see prompts/README.md
 ```
 
@@ -72,7 +75,8 @@ Engine talks to AI only via `engine.agent_bridge`: `run_classifier`,
 | `engine/graph.py` / `runner.py` / `topology/` / `checkpointer.py` | Compile, public API, per-segment edges, MemorySaver |
 | `engine/session_state_mappers/` | `map_patient_answers` / `map_ai_result` + phase mappers + `narrative.py` |
 | `engine/helpers/` | `next_step`, `state_codecs`, `completed_phases` |
-| `engine/static/` | Lookup/reference data (forms, body-diagram catalogue) |
+| `forms/` | Router-level consent/survey QuestionField builders |
+| `catalogues/body_diagram/` | SVG body-diagram region catalogue (engine LOCALISED) |
 | `engine/agent_bridge.py` | Engine→intelligence boundary (CI patch seam) |
 | `engine/nodes/` | Per-phase clinical nodes (AI only via `engine.agent_bridge`) |
 | `intelligence/` | Agents, prompts, registry, QG validators |

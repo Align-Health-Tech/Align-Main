@@ -40,13 +40,13 @@ values. A key present means that target is already known.
 ## Rules
 
 - Rank from `candidate_pool` only. Do not invent target ids outside the pool.
-- Use `web_search` only when it genuinely helps triage relevance for this
-  complaint; otherwise `source: "base_reasoning"`.
+- Use model reasoning only. Set every candidate's source to
+  `base_reasoning`.
 - Each candidate: `{topic, relevance_score, source, rationale}`.
   - `topic` — use the pool entry's `id` (e.g. `medication`,
     `onset_circumstance`, `allergy`).
   - `relevance_score` — 0–1.
-  - `source` — `base_reasoning` | `web_search`.
+  - `source` — `base_reasoning`.
   - `rationale` — brief English audit note (why this target, why this rank).
 - Prefer higher-acuity gaps, then symptom detail, then background
   (allergy, comorbidities, pregnancy).

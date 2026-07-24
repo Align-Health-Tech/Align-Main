@@ -9,8 +9,7 @@ Cases:
      with default_value / default_values (uniform prefill-and-confirm).
   2. Minimal localised complaint — no defaults populated.
   3. Female patient — pregnancy target eligible (registry sex rule).
-  4. Wrist injury + Eliquis (apixaban) — realistic search-worthy case;
-     tool_choice auto; report real tool-loop telemetry.
+  4. Wrist injury + Eliquis (apixaban) — base-reasoning ranking.
 
 Results under ``./results/vNNN_results_YYYY-MM-DD_HHMMSS.txt``.
 """
@@ -37,7 +36,6 @@ from engine.agent_bridge import (
     run_classifier,
 )
 from engine.session_state_mappers.ai import map_classifier_result
-from intelligence.llm_client import get_last_tool_loop
 from intelligence.registry import (
     PRIORITY_TARGETS,
     get_eligible_targets,
@@ -226,20 +224,6 @@ def _check_no_legacy_example_verbatim(
                 f"example_prompt {prompt!r} (not treated as bank echo)"
             )
     return rejects, warns
-
-
-def _print_tool_telemetry(label: str) -> dict:
-    loop = get_last_tool_loop()
-    calls = loop.get("tool_calls") or []
-    print(
-        f"{label} tool_loop:",
-        {
-            "tool_choice": loop.get("tool_choice"),
-            "tool_call_count": len(calls),
-            "tool_calls": calls,
-        },
-    )
-    return loop
 
 
 def _print_devise_brief(topics: list[TopicCandidate]) -> None:
@@ -454,24 +438,21 @@ def _run() -> int:
             failures += 1
     print()
 
-    # --- Case 4: wrist + Eliquis — realistic search-worthy (tool_choice auto) ---
-    print("--- case 4: wrist_eliquis_search_auto ---")
+    # --- Case 4: wrist + Eliquis — base-reasoning ranking ---
+    print("--- case 4: wrist_eliquis_base_reasoning ---")
     text4 = (
         "Hurt my wrist yesterday after a fall, still swollen and bruised. "
         "I'm on Eliquis (apixaban) for a heart condition."
     )
     state4 = _classify_and_apply(_state(text4, patient_sex="male"))
     print("known_collect_values:", build_agent_context(state4)["known_collect_values"])
-    searched_naturally = False
     try:
-        topics4, questions4 = devise_then_generate(_PHASE, state4)  # tool_choice auto
+        topics4, questions4 = devise_then_generate(_PHASE, state4)
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR devise_then_generate: {exc}")
         failures += 1
         topics4, questions4 = [], []
     else:
-        loop4 = _print_tool_telemetry("case4")
-        searched_naturally = bool(loop4.get("tool_calls"))
         print("devise topics:")
         print(_dump(topics4))
         _print_devise_brief(topics4)
@@ -492,21 +473,14 @@ def _run() -> int:
         print(
             "case4 ranking notes:",
             {
-                "searched_naturally": searched_naturally,
                 "medication_rank_index": med_rank,
                 "comorbidities_rank_index": comorb_rank,
-                "self_reported_web_search": any(
-                    t.source == "web_search" for t in topics4
-                ),
+                "sources": sorted({t.source for t in topics4}),
             },
         )
-        if searched_naturally:
-            print("case4: model invoked web_search under tool_choice=auto OK")
-        else:
-            print(
-                "case4: no tool call under auto — model judged search "
-                "unnecessary; ranking still reviewed above for reasonableness"
-            )
+        if any(t.source != "base_reasoning" for t in topics4):
+            print("REJECTED: devise emitted a non-base_reasoning source")
+            failures += 1
     print()
 
     print(f"done; failures={failures}")

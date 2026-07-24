@@ -1,53 +1,41 @@
-"""localised_detail — body_diagram SVG tap, then severity / onset questions."""
+"""localised_detail — body_diagram SVG tap, then severity + adaptive duration."""
 from __future__ import annotations
 
 from langgraph.types import Command, interrupt
 
+from engine import agent_bridge
 from engine.session_state_mappers import map_patient_answers
 from engine.helpers.completed_phases import with_completed
 from engine.helpers.next_step import build_body_diagram_next_step, build_next_step
 from engine.helpers.state_codecs import as_question_fields, dump_question_fields
-from engine.static.body_diagram_catalogue import resolve_prefill_candidates
-from engine.static.onset_timing import (
-    ONSET_TIMING_OPTIONS,
-    onset_timing_default,
-)
+from catalogues.body_diagram import resolve_prefill_candidates
 from schemas.clinical_ai_io import LocalisedAnatomySite
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import SessionState
 
 _PHASE = "localised_detail"
+_DURATION_PHASE = "duration"
+
+
+def _severity_question() -> QuestionField:
+    return QuestionField(
+        id="loc_severity",
+        kind="single_choice",
+        prompt="How severe is the pain right now? (0 = none, 10 = worst)",
+        personalization_note="deterministic",
+        collect_target_id="severity_score",
+        options=[
+            QuestionOption(value=str(i), label=str(i)) for i in range(0, 11)
+        ],
+    )
 
 
 def _generate_detail_questions(state: SessionState) -> list[QuestionField]:
-    """Round 2 — no region/laterality MCQs (those come from SVG region_id)."""
-    onset_default: str | None = None
-    if isinstance(state.onset_circumstance, dict):
-        text = state.onset_circumstance.get("text")
-        if isinstance(text, str):
-            onset_default = onset_timing_default(text)
-
-    return [
-        QuestionField(
-            id="loc_severity",
-            kind="single_choice",
-            prompt="How severe is the pain right now? (0 = none, 10 = worst)",
-            personalization_note="deterministic",
-            collect_target_id="severity_score",
-            options=[
-                QuestionOption(value=str(i), label=str(i)) for i in range(0, 11)
-            ],
-        ),
-        QuestionField(
-            id="loc_onset",
-            kind="single_choice",
-            prompt="When did this start?",
-            personalization_note="deterministic",
-            collect_target_id="onset_circumstance",
-            options=list(ONSET_TIMING_OPTIONS),
-            default_value=onset_default,
-        ),
-    ]
+    """Round 2 — severity (deterministic) + duration (QG, adaptive chips)."""
+    _topics, duration_qs = agent_bridge.devise_then_generate(
+        _DURATION_PHASE, state, devise=False
+    )
+    return [_severity_question(), *duration_qs]
 
 
 def _arm_body_diagram(state: SessionState) -> Command:
@@ -74,8 +62,6 @@ def _arm_body_diagram(state: SessionState) -> Command:
 
 def localised_detail(state: SessionState) -> Command:
     # --- Round 1: SVG body diagram (gate = empty body_structures) ---
-    # Nothing earlier in the graph writes body_structures, so empty vs
-    # non-empty cleanly separates "need tap" from "need severity/onset".
     if not state.body_structures:
         if state.awaiting_phase != _PHASE:
             return _arm_body_diagram(state)
@@ -93,7 +79,7 @@ def localised_detail(state: SessionState) -> Command:
             goto="localised_detail",
         )
 
-    # --- Round 2: severity / onset QuestionFields ---
+    # --- Round 2: severity + adaptive duration ---
     if not state.pending_questions:
         return Command(
             update={

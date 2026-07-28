@@ -14,6 +14,15 @@ npm install
 
 This installs Turborepo + workspace apps (`urgent-care-app`, `api-server` npm scripts).
 
+Generate the frontend API contracts from the local FastAPI app:
+
+```bash
+npm run generate --workspace=@align/generated-types
+```
+
+The generator uses `apps/api-server/venv/bin/python`, so complete the Python
+environment setup below before running it on a fresh clone.
+
 ---
 
 ## 2. Start Postgres
@@ -218,6 +227,18 @@ npm run dev:apps-only
 | API health | http://localhost:8000/health |
 | API docs | http://localhost:8000/docs |
 | Urgent care UI | http://localhost:3000 (Next default) |
+
+The urgent-care app proxies its browser requests through a same-origin Next.js
+Route Handler. It reads the server-only variable below and defaults to the
+local API URL shown above:
+
+```env
+ALIGN_API_BASE_URL=http://localhost:8000
+```
+
+Patient consent, identity, and `en` / `ko` / `zh` UI copy are frontend-owned.
+The existing FastAPI session lifecycle remains unchanged; after identity entry,
+the UI creates a session and submits its canonical consent response.
 
 ---
 

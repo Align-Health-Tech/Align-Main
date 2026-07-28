@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Align urgent-care demo
 
-## Getting Started
+Single-page multilingual urgent-care intake backed by the existing FastAPI
+session lifecycle.
 
-First, run the development server:
+## Behaviour
+
+- Desktop (`>=1024px`): patient pane at 42% and clinician pane at 58%, with
+  independent scrolling.
+- Mobile/tablet: sticky Patient/Clinician toggle with Patient selected first.
+- Patient UI languages: English (`en`), Korean (`ko`), and Simplified Chinese
+  (`zh`).
+- Consent and patient identity are frontend-owned. After identity is valid, the
+  app creates the backend session and immediately submits the backend's
+  canonical consent acceptance before showing the first clinical question.
+- Clinical questions render directly from FastAPI `NextStep`.
+- One encounter is kept per browser tab in `sessionStorage`. Restart explicitly
+  clears it.
+
+The backend is unchanged for this demo. Consequently the clinician pane is a
+live mirror of answers submitted in the current browser tab, not a backend
+clinician-detail read model. Choice answers use `en_label ?? label`; non-English
+free text retains patient wording and is labelled as untranslated. The
+backend's internal AI summary is intentionally not exposed.
+
+## Local development
+
+From the repository root:
 
 ```bash
+npm install
+npm run generate --workspace=@align/generated-types
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The UI is served at `http://localhost:3000`. Its same-origin Route Handler
+forwards only the required session routes to:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+ALIGN_API_BASE_URL=http://localhost:8000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`ALIGN_API_BASE_URL` is server-only. The default above is used when it is not
+set.
 
-## Learn More
+## Verification
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run generate --workspace=@align/generated-types
+npm run typecheck --workspace=urgent-care-app
+npm run lint --workspace=urgent-care-app
+npm run test --workspace=urgent-care-app
+npm run build --workspace=urgent-care-app
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Generated contracts live in `packages/generated-types/src/api.ts` and must be
+regenerated whenever the FastAPI OpenAPI schema changes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Source reuse
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Patient presentation patterns, clinician cards, Align design tokens, locale
+copy, the Align logo, body-diagram interaction, and SVGs were adapted from
+`Align-Pilot-V2` commit `821010f`. Shorecare branding, legacy controllers,
+dashboard routing, Supabase, tRPC, authentication, realtime, and printing were
+not imported.

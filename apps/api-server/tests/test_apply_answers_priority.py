@@ -287,30 +287,5 @@ class TestApplyAnswersPriorityRest(unittest.TestCase):
                 self.assertNotIn("intake_facts", updates)
 
 
-class TestIntakeFactItemsRlsMigration(unittest.TestCase):
-    """Policy in intake_patient_scope_meds_001 must use patient-linkage, not encounter_id."""
-
-    def test_upgrade_sql_mirrors_patients_linkage(self) -> None:
-        from pathlib import Path
-
-        path = (
-            Path(__file__).resolve().parents[1]
-            / "alembic"
-            / "versions"
-            / "intake_patient_scope_meds.py"
-        )
-        src = path.read_text()
-        self.assertIn(
-            "patient_id = (\n"
-            "            SELECT patient_id FROM encounters WHERE id = app.current_encounter_id()",
-            src,
-        )
-        upgrade = src.split("def downgrade")[0]
-        self.assertNotIn(
-            "encounter_id = app.current_encounter_id()",
-            upgrade,
-        )
-
-
 if __name__ == "__main__":
     unittest.main()

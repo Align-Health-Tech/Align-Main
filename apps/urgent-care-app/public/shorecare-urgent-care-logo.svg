@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="250" height="103" viewBox="0 0 250 103" role="img" aria-labelledby="title desc">
+  <title id="title">Shorecare Urgent Care Clinic</title>
+  <desc id="desc">White Shorecare logo on red background with urgent care clinic subtitle.</desc>
+  <rect width="250" height="103" fill="#ed1745"/>
+  <text x="22" y="64" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="37" font-weight="400">Shore</text>
+  <text x="156" y="64" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="37" font-weight="400">care</text>
+  <text x="37" y="82" fill="#f5b3bd" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing=".8">Urgent Care Clinic</text>
+  <circle cx="138" cy="37" r="16" fill="none" stroke="#ffffff" stroke-width="4"/>
+  <rect x="135" y="26" width="6" height="22" rx="1.5" fill="#ffffff"/>
+  <rect x="127" y="34" width="22" height="6" rx="1.5" fill="#ffffff"/>
+</svg>

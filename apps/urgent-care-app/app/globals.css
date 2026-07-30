@@ -1,17 +1,68 @@
 @import "tailwindcss";
 
+/* Mirrors src/lib/tokens.ts — keep both in sync. */
 :root {
   --patient-bg: #eceef8;
+  --patient-bg-deep: #e3e6f4;
   --surface: #fff;
   --ink: #0d1b4b;
   --ink-soft: #3d4a72;
-  --muted: #7b86aa;
+  --muted: #8a94b8;
   --line: #d8dcf0;
+  --line-soft: #eef0fb;
   --primary: #5352cc;
   --primary-dark: #4342b8;
+  --primary-soft: #eceef8;
+  --primary-light: #e8e8f9;
+  --primary-ink: #3b3aa0;
   --lavender: #d0d1ff;
-  --danger: #c93d32;
-  --danger-soft: #fdecea;
+  --teal: #2ac3b0;
+  --teal-soft: #e0f7f5;
+  --danger: #e04f3a;
+  --danger-soft: #fdece9;
+  --danger-ink: #8e2e27;
+  --gold: #f5a623;
+  --gold-soft: #fef3dc;
+
+  --shadow-sm: 0 1px 3px rgba(13, 27, 75, .06), 0 2px 8px rgba(13, 27, 75, .04);
+  --shadow-md: 0 4px 16px rgba(13, 27, 75, .1), 0 8px 24px rgba(13, 27, 75, .06);
+  --shadow-primary: 0 4px 16px rgba(83, 82, 204, .3);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+}
+
+/* Exposes the tokens above as Tailwind v4 utilities (bg-primary, text-ink, ...). */
+@theme inline {
+  --color-patient-bg: var(--patient-bg);
+  --color-patient-bg-deep: var(--patient-bg-deep);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-light: var(--primary-light);
+  --color-primary-ink: var(--primary-ink);
+  --color-lavender: var(--lavender);
+  --color-teal: var(--teal);
+  --color-teal-soft: var(--teal-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-dm-sans: var(--font-dm-sans);
+  --font-serif: var(--font-instrument-serif), Georgia, ui-serif, serif;
 }
 
 * { box-sizing: border-box; }
@@ -19,17 +70,20 @@ html, body { width: 100%; min-height: 100%; margin: 0; }
 body {
   color: var(--ink);
   background: #e7e9f2;
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Noto Sans", "Apple SD Gothic Neo", "Microsoft YaHei", sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Apple SD Gothic Neo",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 button, input, textarea, select { font: inherit; }
 button { color: inherit; }
 
+/* No `min-height` floor: with `overflow: hidden` it silently clipped the bottom
+   of both panes on short viewports. Each pane scrolls internally instead. */
 .demo-shell {
   display: grid;
-  grid-template-columns: 42% 58%;
+  grid-template-columns: 30% 70%;
   height: 100dvh;
-  min-height: 680px;
   overflow: hidden;
 }
 .workspace-pane { min-width: 0; min-height: 0; }
@@ -47,34 +101,34 @@ button { color: inherit; }
 }
 .patient-header, .clinician-header {
   display: flex;
-  min-height: 78px;
+  min-height: 62px;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 26px;
+  padding: 10px 20px;
 }
 .patient-header {
   border-bottom: 1px solid rgba(216, 220, 240, .85);
   background: rgba(255, 255, 255, .7);
   backdrop-filter: blur(14px);
 }
-.align-logo { width: auto; height: 44px; object-fit: contain; }
+.align-logo { width: auto; height: 32px; object-fit: contain; }
 .text-button {
   cursor: pointer;
   border: 0;
-  border-radius: 999px;
-  padding: 9px 13px;
+  border-radius: var(--radius-pill);
+  padding: 7px 11px;
   background: transparent;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 .text-button:hover { background: #fff; }
-.patient-progress { height: 4px; background: #dfe2f1; }
+.patient-progress { height: 4px; background: var(--line); }
 .patient-progress span {
   display: block;
   height: 100%;
-  border-radius: 0 99px 99px 0;
-  background: linear-gradient(90deg, #5352cc, #7675e2);
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--primary);
   transition: width 300ms ease;
 }
 .patient-scroll, .clinician-scroll {
@@ -83,15 +137,20 @@ button { color: inherit; }
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.patient-scroll { padding: 30px clamp(20px, 5vw, 54px) 64px; }
-.patient-card-stack { width: 100%; max-width: 560px; margin: 0 auto; }
+/* Sizes patient content against the pane's own width, not the viewport — the
+   pane is a fixed 30% fraction, so vw-based queries would misjudge it. */
+.patient-scroll {
+  container: patient-pane / inline-size;
+  padding: 22px clamp(16px, 2.4cqw, 28px) 48px;
+}
+.patient-card-stack { width: 100%; max-width: 430px; margin: 0 auto; }
 
 .language-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 30px;
+  gap: 12px;
+  margin-bottom: 22px;
 }
 .language-field > span {
   color: var(--muted);
@@ -120,194 +179,208 @@ button { color: inherit; }
 }
 .language-segment button.selected {
   background: var(--primary);
-  box-shadow: 0 3px 10px rgba(83, 82, 204, .25);
+  box-shadow: var(--shadow-primary);
   color: white;
 }
-.page-heading { margin-bottom: 24px; }
+.page-heading { margin-bottom: 18px; }
 .page-heading > span {
   display: block;
-  margin-bottom: 9px;
+  margin-bottom: 7px;
   color: var(--primary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: .15em;
   text-transform: uppercase;
 }
+/* 28px cap matches the pilot's PageTitle. */
 .page-heading h1 {
-  max-width: 520px;
   margin: 0;
   color: var(--ink);
-  font-size: clamp(29px, 3.2vw, 40px);
+  font-size: clamp(21px, 7cqw, 28px);
   font-weight: 820;
-  letter-spacing: -.04em;
-  line-height: 1.08;
+  letter-spacing: -.03em;
+  line-height: 1.15;
 }
 .page-heading p {
-  max-width: 510px;
-  margin: 12px 0 0;
+  margin: 9px 0 0;
   color: var(--ink-soft);
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 13px;
+  line-height: 1.6;
 }
 .content-card, .clinician-card, .complete-card {
   border: 1px solid rgba(216, 220, 240, .92);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   background: var(--surface);
-  box-shadow: 0 4px 16px rgba(13, 27, 75, .06);
+  box-shadow: var(--shadow-md);
 }
-.consent-card { padding: 24px; }
+.consent-card { padding: 18px; }
 .consent-points {
   display: grid;
-  gap: 14px;
-  margin: 0 0 24px;
+  gap: 11px;
+  margin: 0 0 18px;
   padding: 0;
   list-style: none;
 }
 .consent-points li {
   display: grid;
-  grid-template-columns: 25px 1fr;
-  gap: 10px;
+  grid-template-columns: 21px 1fr;
+  gap: 9px;
   align-items: start;
   color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 12.5px;
+  line-height: 1.5;
 }
 .consent-points li span {
   display: grid;
-  width: 23px;
-  height: 23px;
+  width: 19px;
+  height: 19px;
   place-items: center;
   border-radius: 50%;
-  background: #e8e8f9;
+  background: var(--primary-light);
   color: var(--primary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 .consent-choice {
   display: grid;
   cursor: pointer;
-  grid-template-columns: 24px 1fr;
-  gap: 12px;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
   align-items: start;
   border: 1.5px solid var(--line);
-  border-radius: 15px;
-  padding: 17px;
-  background: #f9faff;
+  border-radius: var(--radius-md);
+  padding: 13px;
+  background: var(--line-soft);
   transition: 150ms ease;
 }
-.consent-choice.selected { border-color: var(--primary); background: #f0f0ff; }
+.consent-choice.selected { border-color: var(--primary); background: var(--primary-light); }
 .consent-choice input { position: absolute; opacity: 0; }
 .checkbox-visual {
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 19px;
+  height: 19px;
   place-items: center;
   border: 2px solid #a9afd0;
-  border-radius: 6px;
+  border-radius: 5px;
   color: white;
+  font-size: 11px;
 }
 .consent-choice.selected .checkbox-visual { border-color: var(--primary); background: var(--primary); }
-.consent-choice strong { font-size: 14px; line-height: 1.5; }
+.consent-choice strong { font-size: 12.5px; line-height: 1.45; }
 
 .primary-button, .secondary-button, .complete-button {
   cursor: pointer;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   font-weight: 780;
   transition: transform 100ms ease, opacity 150ms ease, background 150ms ease;
 }
 .primary-button {
   width: 100%;
-  min-height: 56px;
-  margin-top: 18px;
+  min-height: 48px;
+  margin-top: 14px;
   border: 0;
-  padding: 13px 20px;
+  padding: 11px 18px;
   background: var(--primary);
-  box-shadow: 0 6px 20px rgba(83, 82, 204, .28);
+  box-shadow: var(--shadow-primary);
   color: white;
+  font-size: 14px;
 }
+.primary-button:disabled { background: #b4b8d8; box-shadow: none; }
 .primary-button:hover:not(:disabled), .complete-button:hover:not(:disabled) { background: var(--primary-dark); }
 .primary-button:active:not(:disabled), .secondary-button:active:not(:disabled), .complete-button:active:not(:disabled) { transform: scale(.985); }
 button:disabled { cursor: not-allowed; opacity: .42; }
 
-.identity-form { display: grid; gap: 20px; padding: 25px; }
-.text-field-label { display: grid; gap: 8px; }
+.identity-form { display: grid; gap: 15px; padding: 18px; }
+.text-field-label { display: grid; gap: 6px; }
 .text-field-label > span, .field-label, .choice-fieldset legend {
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 760;
 }
 .text-field {
   width: 100%;
-  min-height: 50px;
+  min-height: 44px;
   border: 1.5px solid var(--line);
-  border-radius: 13px;
+  border-radius: var(--radius-md);
   outline: 0;
-  padding: 11px 13px;
-  background: #fbfcff;
+  padding: 10px 12px;
+  background: var(--surface);
   color: var(--ink);
+  font-size: 14px;
   transition: border 120ms ease, box-shadow 120ms ease;
 }
+.text-field:not(:placeholder-shown) { border-color: var(--teal); }
 .text-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(83, 82, 204, .12); }
-.text-area { min-height: 112px; resize: vertical; line-height: 1.5; }
+.text-area { min-height: 92px; resize: vertical; line-height: 1.5; }
 .choice-fieldset, .question-card { min-width: 0; margin: 0; border: 0; }
 .choice-fieldset { padding: 0; }
-.choice-fieldset legend { margin-bottom: 9px; }
-.choice-grid { display: grid; gap: 10px; }
+.choice-fieldset legend { margin-bottom: 8px; }
+.choice-grid { display: grid; gap: 8px; }
 .choice-grid.two { grid-template-columns: repeat(2, 1fr); }
 .choice-card {
   display: grid;
   cursor: pointer;
-  grid-template-columns: 23px 1fr;
-  gap: 11px;
+  grid-template-columns: 19px 1fr;
+  gap: 9px;
   align-items: center;
-  min-height: 52px;
+  min-height: 44px;
   border: 1.5px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 14px;
-  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
   text-align: left;
+  transition: border-color 150ms ease, background 150ms ease,
+    box-shadow 150ms ease;
 }
 .choice-card:hover { border-color: #aeb4dc; }
-.choice-card.selected { border-color: var(--primary); background: #eeeeff; color: #30308f; }
+.choice-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: var(--shadow-primary);
+  color: var(--primary-ink);
+}
 .choice-indicator {
   display: grid;
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   place-items: center;
   border: 1.5px solid #b8bedb;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
 }
 .choice-card.selected .choice-indicator { border-color: var(--primary); background: var(--primary); color: #fff; }
-.field-error { color: var(--danger); font-size: 12px; font-weight: 650; }
-.question-stack { display: grid; gap: 15px; }
-.question-card { padding: 21px; }
+.field-error { color: var(--danger-ink); font-size: 12px; font-weight: 650; }
+.question-stack { display: grid; gap: 12px; }
+.question-card { padding: 16px; }
 .question-card legend {
   width: 100%;
-  margin: 0 0 15px;
+  margin: 0 0 12px;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 780;
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.optional { color: var(--muted); font-size: 12px; font-weight: 600; }
-.other-field { margin-top: 12px; }
-.action-stack { display: grid; gap: 8px; }
+.optional { color: var(--muted); font-size: 11px; font-weight: 600; }
+.other-field { margin-top: 10px; }
+.action-stack { display: grid; gap: 7px; }
 .secondary-button {
-  min-height: 48px;
+  min-height: 42px;
   border: 1px solid var(--line);
-  padding: 11px 18px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, .68);
   color: var(--ink-soft);
+  font-size: 13px;
 }
 .inline-error {
   margin: 14px 0 0;
   border: 1px solid #f0c0bb;
-  border-radius: 13px;
+  border-radius: var(--radius-md);
   padding: 11px 13px;
   background: var(--danger-soft);
-  color: #8e2e27;
+  color: var(--danger-ink);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -349,15 +422,15 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .completion-screen .page-heading h1, .completion-screen .page-heading p { margin-right: auto; margin-left: auto; }
 .completion-icon {
   display: grid;
-  width: 76px;
-  height: 76px;
-  margin: 0 auto 25px;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
   place-items: center;
   border-radius: 50%;
   background: var(--primary);
-  box-shadow: 0 8px 25px rgba(83, 82, 204, .28);
+  box-shadow: var(--shadow-primary);
   color: white;
-  font-size: 34px;
+  font-size: 27px;
   font-weight: 800;
 }
 
@@ -366,15 +439,15 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .diagram-canvas {
   position: relative;
   display: grid;
-  min-height: 400px;
+  min-height: 320px;
   place-items: center;
   overflow: hidden;
-  border-radius: 15px;
+  border-radius: var(--radius-md);
   background: linear-gradient(145deg, #fbfbff, #f0f1f8);
   touch-action: manipulation;
   user-select: none;
 }
-.diagram-svg-host { display: grid; width: 100%; min-height: 390px; place-items: center; }
+.diagram-svg-host { display: grid; width: 100%; min-height: 310px; place-items: center; }
 .diagram-svg-host svg { width: 100%; }
 .diagram-loading {
   width: 70%;
@@ -403,9 +476,9 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   gap: 6px 12px;
   align-items: center;
   margin: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 11px 13px;
-  background: #f2f2ff;
+  background: var(--primary-light);
 }
 .selected-region span { color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .selected-region strong { font-size: 13px; }
@@ -414,58 +487,70 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   background: radial-gradient(circle at 90% 0%, rgba(208, 209, 255, .5), transparent 33rem), #f7f5f1;
 }
 .clinician-header {
-  min-height: 92px;
+  min-height: 68px;
   border-bottom: 1px solid #e0dcd4;
-  padding: 17px clamp(24px, 4vw, 52px);
+  padding: 12px clamp(18px, 2vw, 30px);
   background: rgba(250, 249, 246, .78);
   backdrop-filter: blur(15px);
 }
-.clinician-kicker { color: #68748d; font-size: 10px; font-weight: 850; letter-spacing: .18em; }
-.clinician-header h1 { margin: 2px 0 0; color: #0f2851; font-size: 25px; letter-spacing: -.03em; }
-.clinician-logo { width: auto; height: 38px; object-fit: contain; }
-.clinician-scroll { display: grid; gap: 18px; align-content: start; padding: 26px clamp(24px, 4vw, 52px) 70px; }
+.clinician-kicker { color: #68748d; font-size: 9px; font-weight: 850; letter-spacing: .18em; }
+.clinician-header h1 { margin: 2px 0 0; color: #0f2851; font-size: 19px; letter-spacing: -.03em; }
+.clinician-logo { width: auto; height: 28px; object-fit: contain; }
+/* `grid-auto-rows: min-content` is load-bearing: `.clinician-card` sets
+   `overflow: hidden`, which zeroes a grid item's automatic minimum size. With
+   default `auto` rows the grid was free to squash every card to fit the pane's
+   definite height instead of overflowing, so card bodies vanished until you
+   zoomed out. Content-sized rows overflow properly and let this element scroll. */
+.clinician-scroll {
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 12px;
+  align-content: start;
+  padding: 18px clamp(18px, 2vw, 30px) 52px;
+}
 .status-strip {
   display: grid;
-  grid-template-columns: 10px 1fr auto;
-  gap: 12px;
+  grid-template-columns: 9px 1fr auto;
+  gap: 10px;
   align-items: center;
   border: 1px solid #e4dfd7;
-  border-radius: 16px;
-  padding: 14px 17px;
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
   background: rgba(255, 255, 255, .82);
 }
 .status-strip div { display: grid; gap: 2px; }
-.status-strip small, .complete-card small { color: #738096; font-size: 10px; font-weight: 780; letter-spacing: .08em; text-transform: uppercase; }
-.status-strip strong { color: #0f2851; font-size: 14px; }
+.status-strip small, .complete-card small { color: #738096; font-size: 9px; font-weight: 780; letter-spacing: .08em; text-transform: uppercase; }
+.status-strip strong { color: #0f2851; font-size: 13px; }
 .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #a8aeb9; }
-.status-dot.active { background: #2ac3b0; box-shadow: 0 0 0 4px rgba(42, 195, 176, .14); }
-.status-dot.review { background: #f5a623; box-shadow: 0 0 0 4px rgba(245, 166, 35, .14); }
+.status-dot.active { background: var(--teal); box-shadow: 0 0 0 4px rgba(42, 195, 176, .14); }
+.status-dot.review { background: var(--gold); box-shadow: 0 0 0 4px rgba(245, 166, 35, .14); }
 .status-dot.complete { background: #46845a; }
 .status-pill { border-radius: 999px; padding: 6px 9px; background: #eceef4; color: #4a5870; font-size: 10px; font-weight: 850; letter-spacing: .06em; }
-.clinician-card { overflow: hidden; border-color: #e3ded6; border-radius: 16px; box-shadow: 0 4px 15px rgba(15, 40, 81, .05); }
+.clinician-card { overflow: hidden; border-color: #e3ded6; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(15, 40, 81, .05); }
+/* `align-items: start` + no fixed height: the subtitle was being clipped by the
+   card's `overflow: hidden` when it wrapped past the old 58px floor. */
 .clinician-card-header {
   display: flex;
-  min-height: 58px;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
-  gap: 18px;
-  padding: 12px 20px;
+  gap: 14px;
+  padding: 10px 16px;
 }
 .clinician-card-header.cream { background: linear-gradient(120deg, #ede8e0, #f8f5ef); }
-.clinician-card-header.lavender { background: #d0d1ff; }
+.clinician-card-header.lavender { background: var(--lavender); }
 .clinician-card-header.red { background: #f5c7c3; }
-.clinician-card-header h2 { margin: 0; color: #0f2851; font-size: 16px; line-height: 1.25; }
-.clinician-card-header p { margin: 3px 0 0; color: #5d6d86; font-size: 11px; }
-.clinician-card-body { padding: 21px; background: #fff; }
+.clinician-card-header h2 { margin: 0; color: #0f2851; font-size: 14px; line-height: 1.25; }
+.clinician-card-header p { margin: 2px 0 0; color: #5d6d86; font-size: 10.5px; line-height: 1.35; }
+.clinician-card-body { padding: 16px; background: #fff; }
 .copy-button {
   display: grid;
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 27px;
+  height: 27px;
   cursor: pointer;
   place-items: center;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, .38);
   color: #0f2851;
   font-weight: 800;
@@ -484,21 +569,21 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 }
 .chevron { display: inline-block; margin-left: 12px; transition: transform 150ms ease; }
 .chevron.expanded { transform: rotate(180deg); }
-.patient-name { margin: 0 0 17px; color: #15243c; font-size: 24px; letter-spacing: -.03em; }
-.bio-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
-.bio-item { display: grid; gap: 5px; border-radius: 10px; padding: 11px; background: #f6f7f9; }
+.patient-name { margin: 0 0 13px; color: #15243c; font-size: 19px; letter-spacing: -.03em; }
+.bio-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.bio-item { display: grid; gap: 4px; border-radius: var(--radius-sm); padding: 9px; background: #f6f7f9; }
 .bio-item.wide { grid-column: span 2; }
-.bio-item span { color: #718096; font-size: 10px; font-weight: 750; }
-.bio-item strong { overflow-wrap: anywhere; color: #202b3d; font-size: 13px; }
-.answer-list { display: grid; gap: 13px; }
-.answer-row { border-bottom: 1px solid #edf0f3; padding-bottom: 13px; }
+.bio-item span { color: #718096; font-size: 9px; font-weight: 750; }
+.bio-item strong { overflow-wrap: anywhere; color: #202b3d; font-size: 12px; }
+.answer-list { display: grid; gap: 10px; }
+.answer-row { border-bottom: 1px solid #edf0f3; padding-bottom: 10px; }
 .answer-row:last-child { border: 0; padding-bottom: 0; }
 .answer-row.raised { border: 1px solid #efb9b3; border-radius: 12px; padding: 12px; background: var(--danger-soft); }
-.translated-answer { display: grid; gap: 4px; }
-.translated-answer > span { color: #66758b; font-size: 11px; font-weight: 760; }
-.translated-answer > strong { color: #17253a; font-size: 14px; line-height: 1.45; }
-.translated-answer.prominent > strong { font-size: 20px; letter-spacing: -.02em; }
-.translated-answer > small { color: #8490a2; font-size: 11px; }
+.translated-answer { display: grid; gap: 3px; }
+.translated-answer > span { color: #66758b; font-size: 10px; font-weight: 760; }
+.translated-answer > strong { color: #17253a; font-size: 13px; line-height: 1.4; }
+.translated-answer.prominent > strong { font-size: 17px; letter-spacing: -.02em; }
+.translated-answer > small { color: #8490a2; font-size: 10px; }
 .native-context {
   display: grid;
   gap: 3px;
@@ -529,17 +614,26 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   border-color: #ded8cf;
-  padding: 19px 21px;
+  padding: 15px 17px;
 }
-.complete-card > div { display: grid; gap: 5px; }
-.complete-button { min-height: 44px; border: 0; padding: 10px 16px; background: var(--primary); color: white; font-size: 13px; }
+.complete-card > div { display: grid; gap: 4px; }
+.complete-card strong { color: #0f2851; font-size: 15px; }
+.complete-button { min-height: 38px; border: 0; padding: 9px 14px; background: var(--primary); color: white; font-size: 12px; }
 .mobile-pane-toggle { display: none; }
 
+/* The 30% pane can be narrow even on a wide viewport, so this keys off the
+   pane's own inline size rather than a viewport media query. */
+@container patient-pane (max-width: 330px) {
+  .language-field { align-items: stretch; flex-direction: column; gap: 8px; }
+  .language-segment { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .language-segment button { padding-right: 4px; padding-left: 4px; }
+  .choice-grid.two { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 1180px) and (min-width: 1024px) {
-  .patient-scroll { padding-right: 28px; padding-left: 28px; }
-  .clinician-scroll, .clinician-header { padding-right: 30px; padding-left: 30px; }
+  .clinician-scroll, .clinician-header { padding-right: 20px; padding-left: 20px; }
 }
 @media (max-width: 1023px) {
   .demo-shell { display: block; min-height: 100dvh; overflow: hidden; }
@@ -566,17 +660,15 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   .patient-progress { flex: 0 0 4px; }
 }
 @media (max-width: 600px) {
-  .patient-scroll, .clinician-scroll { padding-right: 16px; padding-left: 16px; }
-  .patient-header, .clinician-header { padding-right: 17px; padding-left: 17px; }
-  .align-logo { height: 37px; }
-  .language-field { align-items: stretch; flex-direction: column; }
+  .patient-scroll, .clinician-scroll { padding-right: 14px; padding-left: 14px; }
+  .patient-header, .clinician-header { padding-right: 15px; padding-left: 15px; }
+  .language-field { align-items: stretch; flex-direction: column; gap: 8px; }
   .language-segment { display: grid; grid-template-columns: repeat(3, 1fr); }
-  .language-segment button { padding-right: 5px; padding-left: 5px; }
-  .content-card, .identity-form { border-radius: 17px; }
-  .consent-card, .identity-form, .question-card, .clinician-card-body { padding: 18px; }
+  .language-segment button { padding-right: 4px; padding-left: 4px; }
+  .consent-card, .identity-form, .question-card, .clinician-card-body { padding: 14px; }
   .choice-grid.two { grid-template-columns: 1fr; }
-  .diagram-canvas { min-height: 330px; }
-  .diagram-svg-host { min-height: 320px; }
+  .diagram-canvas { min-height: 280px; }
+  .diagram-svg-host { min-height: 270px; }
   .bio-grid { grid-template-columns: repeat(2, 1fr); }
   .bio-item.wide { grid-column: span 2; }
   .status-pill { max-width: 110px; text-align: center; }

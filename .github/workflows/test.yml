@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # The frontend has no test suite by design — backend tests cover the logic.
+  # Typecheck + lint + build are the guards here.
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck --workspace=urgent-care-app
+      - run: npm run lint --workspace=urgent-care-app
+      - run: npm run build --workspace=urgent-care-app
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r apps/api-server/requirements.txt
+      # unittest, not pytest — pytest is deliberately not a dependency.
+      - run: python -m unittest discover -s tests -p "test_*.py"
+        working-directory: apps/api-server

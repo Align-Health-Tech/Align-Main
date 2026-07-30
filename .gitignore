@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/    
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -259,6 +259,9 @@ ENV/
 # Alembic / local DB dumps
 *.sql.dump
 pgdata/
+
+# Debug transcripts written by tests/test_m6_session_lifecycle.py on every run
+apps/api-server/tests/transcripts/
 # Node.js modules
 node_modules/
 

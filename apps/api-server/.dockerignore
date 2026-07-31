@@ -1,0 +1,20 @@
+# Build context for this Dockerfile is apps/api-server itself.
+
+# The local virtualenv is ~hundreds of MB and its binaries are built for the
+# host, not the image. Copying it in would also shadow site-packages.
+venv
+.venv
+
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+
+# Written by tests/test_m6_session_lifecycle.py on every run.
+tests/transcripts
+
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store

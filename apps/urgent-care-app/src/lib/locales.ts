@@ -1,9 +1,17 @@
 import type { Locale, QuestionField } from "./contracts";
 
+/** Endonyms — for the patient's own language picker. */
 export const LANGUAGE_NAMES: Record<Locale, string> = {
   en: "English",
   ko: "한국어",
   zh: "简体中文",
+};
+
+/** English names — the clinician pane must not render non-Latin script. */
+export const LANGUAGE_NAMES_EN: Record<Locale, string> = {
+  en: "English",
+  ko: "Korean",
+  zh: "Chinese (Simplified)",
 };
 
 export type LocaleCopy = {
@@ -36,6 +44,7 @@ export type LocaleCopy = {
   yes: string;
   no: string;
   optional: string;
+  scaleUnanswered: string;
   requiredError: string;
   nameError: string;
   yearError: string;
@@ -93,6 +102,7 @@ export const COPY = {
     yes: "Yes",
     no: "No",
     optional: "optional",
+    scaleUnanswered: "Not answered yet",
     requiredError: "Please answer all required questions.",
     nameError: "Enter between 1 and 80 characters.",
     yearError: "Enter a valid four-digit year of birth.",
@@ -149,6 +159,7 @@ export const COPY = {
     yes: "예",
     no: "아니요",
     optional: "선택 사항",
+    scaleUnanswered: "아직 선택하지 않음",
     requiredError: "필수 질문에 모두 답해 주세요.",
     nameError: "1자 이상 80자 이하로 입력해 주세요.",
     yearError: "올바른 네 자리 출생 연도를 입력해 주세요.",
@@ -203,6 +214,7 @@ export const COPY = {
     yes: "是",
     no: "否",
     optional: "选填",
+    scaleUnanswered: "尚未选择",
     requiredError: "请回答所有必答问题。",
     nameError: "请输入 1 至 80 个字符。",
     yearError: "请输入有效的四位出生年份。",
@@ -274,13 +286,33 @@ export function patientOptionLabel(
   if (question.id === "survey_ease") {
     return SURVEY_LABELS[value]?.[locale] ?? fallback;
   }
+  // "Other" is a fixed machine value on every multi_choice, so we can localise
+  // it here rather than trusting QG to have done so. Belt-and-braces: the QG
+  // prompts require a localised label, but this option appears on nearly every
+  // question and reads badly in English next to translated chips.
+  if (value === "Other" && locale !== "en") {
+    return COPY[locale].other;
+  }
   return fallback;
 }
 
-export function englishPrompt(question: QuestionField): string {
-  return (
-    question.en_prompt ??
-    DETERMINISTIC_PROMPTS[question.id]?.en ??
-    question.prompt
-  );
+export function englishPrompt(
+  question: QuestionField,
+  locale: Locale,
+): string {
+  const english = question.en_prompt ?? DETERMINISTIC_PROMPTS[question.id]?.en;
+  if (english) return english;
+  // An English session's `prompt` is already English.
+  if (locale === "en") return question.prompt;
+  // QG is contracted to emit en_prompt whenever session_language != "en". When
+  // it does not, name the field instead of falling back to `prompt` — that
+  // would put the patient's language into the clinician-only view.
+  return targetLabel(question.collect_target_id);
+}
+
+/** "onset_circumstance" -> "Onset circumstance". */
+function targetLabel(collectTargetId: string | null | undefined): string {
+  if (!collectTargetId) return "Response";
+  const words = collectTargetId.replace(/_/g, " ").trim();
+  return words ? words[0].toUpperCase() + words.slice(1) : "Response";
 }

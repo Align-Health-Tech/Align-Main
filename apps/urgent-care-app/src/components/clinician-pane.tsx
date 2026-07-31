@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import type { DemoState } from "../lib/demo-state";
 import type { MirrorAnswer } from "../lib/contracts";
-import { LANGUAGE_NAMES } from "../lib/locales";
+import { LANGUAGE_NAMES_EN } from "../lib/locales";
 import { ReadOnlyBodyDiagram } from "./body-diagram";
 
 type Props = {
@@ -67,7 +67,7 @@ export function ClinicianPane({ state, onComplete }: Props) {
             fullName,
             demographics.patientSex || "Not collected yet",
             age === null ? "Not collected yet" : `${age} years`,
-            LANGUAGE_NAMES[state.locale],
+            LANGUAGE_NAMES_EN[state.locale],
           ].join("\n")}
         >
           <h2 className="patient-name">{fullName}</h2>
@@ -82,7 +82,7 @@ export function ClinicianPane({ state, onComplete }: Props) {
             />
             <BioItem
               label="Preferred language"
-              value={LANGUAGE_NAMES[state.locale]}
+              value={LANGUAGE_NAMES_EN[state.locale]}
               wide
             />
           </div>
@@ -127,10 +127,6 @@ export function ClinicianPane({ state, onComplete }: Props) {
               <div className="body-label-row">
                 <span className="legend-swatch" />
                 <strong>{state.bodySelection.englishLabel}</strong>
-                {state.bodySelection.nativeLabel !==
-                state.bodySelection.englishLabel ? (
-                  <small>{state.bodySelection.nativeLabel}</small>
-                ) : null}
               </div>
             </>
           ) : (
@@ -156,14 +152,15 @@ export function ClinicianPane({ state, onComplete }: Props) {
 
         <ClinicianCard
           title="AI encounter summary"
-          subtitle="Available when a clinician detail API is connected"
+          subtitle="Written in English by the nurse-review agent"
           tone="cream"
-          copyText=""
+          copyText={state.encounterSummary ?? ""}
         >
-          <Placeholder
-            text="Not collected yet"
-            detail="The current backend does not expose its internal encounter summary."
-          />
+          {state.encounterSummary ? (
+            <p className="encounter-summary">{state.encounterSummary}</p>
+          ) : (
+            <Placeholder detail="Generated once the patient reaches review." />
+          )}
         </ClinicianCard>
 
         <div className="complete-card">
@@ -263,6 +260,12 @@ function AnswerList({
   );
 }
 
+/**
+ * English only. This pane is read by clinicians who do not speak the patient's
+ * language, so it never renders `nativePrompt` or `nativeValue` — an
+ * untranslated answer is reported as a gap rather than shown in a language the
+ * reader cannot use. Patient names are the one exception (see `patient-name`).
+ */
 function TranslatedAnswer({
   answer,
   prominent = false,
@@ -274,19 +277,11 @@ function TranslatedAnswer({
   return (
     <div className={prominent ? "translated-answer prominent" : "translated-answer"}>
       <span>{answer.englishPrompt}</span>
-      <strong>{english ?? answer.nativeValue}</strong>
-      {answer.nativePrompt !== answer.englishPrompt ? (
-        <small>{answer.nativePrompt}</small>
-      ) : null}
-      {answer.nativeValue !== english ? (
-        <p className="native-context">
-          <em>Patient wording</em>
-          {answer.nativeValue}
-          {!english ? (
-            <small>English translation unavailable in frontend-only mode</small>
-          ) : null}
-        </p>
-      ) : null}
+      {english !== null ? (
+        <strong>{english}</strong>
+      ) : (
+        <strong className="untranslated-note">Not available in English</strong>
+      )}
     </div>
   );
 }
@@ -371,7 +366,9 @@ function capitalize(value: string): string {
 
 function mirrorCopy(answer: MirrorAnswer | undefined): string {
   if (!answer) return "Not collected yet";
-  return `${answer.englishPrompt}: ${answer.englishValue ?? answer.nativeValue}`;
+  // English only — this text is pasted into clinical notes.
+  const value = answer.englishValue ?? "Not available in English";
+  return `${answer.englishPrompt}: ${value}`;
 }
 
 function isAffirmative(answer: MirrorAnswer): boolean {

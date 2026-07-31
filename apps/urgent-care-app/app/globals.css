@@ -139,11 +139,19 @@ button { color: inherit; }
 }
 /* Sizes patient content against the pane's own width, not the viewport — the
    pane is a fixed 30% fraction, so vw-based queries would misjudge it. */
+/* Trailing space lives on the card stack, not here: a sticky footer can only
+   travel to the bottom of ITS containing block, so bottom padding on the
+   scroll container would strand the footer that far above the pane edge. */
 .patient-scroll {
   container: patient-pane / inline-size;
-  padding: 22px clamp(16px, 2.4cqw, 28px) 48px;
+  padding: 22px clamp(16px, 2.4cqw, 28px) 0;
 }
-.patient-card-stack { width: 100%; max-width: 430px; margin: 0 auto; }
+.patient-card-stack {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
 
 .language-field {
   display: flex;
@@ -365,7 +373,85 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 }
 .optional { color: var(--muted); font-size: 11px; font-weight: 600; }
 .other-field { margin-top: 10px; }
-.action-stack { display: grid; gap: 7px; }
+.scale-field { display: grid; gap: 6px; padding-top: 2px; }
+.scale-readout {
+  color: var(--primary-ink);
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  text-align: center;
+}
+.scale-readout.empty { color: var(--muted); font-size: 20px; }
+.scale-slider {
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.scale-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+}
+.scale-slider::-moz-range-track {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+}
+/* -8px centres the 22px thumb on the 6px track ((22-6)/2). */
+.scale-slider::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border: 3px solid #fff;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  box-shadow: var(--shadow-primary);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.scale-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #fff;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  box-shadow: var(--shadow-primary);
+}
+.scale-slider:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.scale-ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pinned flush to the bottom of the pane so Submit / Skip are always reachable.
+   The 48px of trailing space sits on `.patient-card-stack` (this element's
+   containing block) rather than on the scroll container — that is what lets the
+   bar stay at the pane edge instead of stopping 48px short at full scroll.
+   Do NOT reintroduce a negative margin to force it lower: that shortens the
+   scrollable area and leaves the last question stuck underneath the bar.
+   The gradient keeps cards legible as they pass beneath. */
+.action-stack {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
+  display: grid;
+  padding: 14px 0 16px;
+  gap: 7px;
+  background: linear-gradient(
+    to bottom,
+    rgba(236, 238, 248, 0) 0,
+    var(--patient-bg) 14px,
+    var(--patient-bg) 100%
+  );
+}
 .secondary-button {
   min-height: 42px;
   border: 1px solid var(--line);
@@ -584,18 +670,16 @@ button:disabled { cursor: not-allowed; opacity: .42; }
 .translated-answer > strong { color: #17253a; font-size: 13px; line-height: 1.4; }
 .translated-answer.prominent > strong { font-size: 17px; letter-spacing: -.02em; }
 .translated-answer > small { color: #8490a2; font-size: 10px; }
-.native-context {
-  display: grid;
-  gap: 3px;
-  margin: 6px 0 0;
-  border-left: 2px solid #caccf2;
-  padding-left: 9px;
-  color: #56647a;
-  font-size: 12px;
-  line-height: 1.45;
+/* Amber, not grey: this stands in for a value the clinician cannot read, so it
+   has to be visible as a gap. `dangerInk` is reserved for errors — a missing
+   translation is a caveat, not a failure. */
+.untranslated-note { color: #9b6a34; font-style: italic; font-weight: 600; }
+.encounter-summary {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
 }
-.native-context em { color: #7a8597; font-size: 9px; font-style: normal; font-weight: 820; letter-spacing: .08em; text-transform: uppercase; }
-.native-context small { color: #9b6a34; font-size: 10px; }
 .neutral-placeholder {
   display: grid;
   gap: 5px;
@@ -673,6 +757,181 @@ button:disabled { cursor: not-allowed; opacity: .42; }
   .bio-item.wide { grid-column: span 2; }
   .status-pill { max-width: 110px; text-align: center; }
 }
+/* ---------------------------------------------------------------------------
+   Welcome guide — first-run modal explaining the demo.
+   Sits above both panes (`.demo-shell` children use z-index up to 2).
+--------------------------------------------------------------------------- */
+.guide-overlay {
+  position: fixed;
+  z-index: 50;
+  display: grid;
+  padding: 24px;
+  place-items: center;
+  background: rgba(13, 27, 75, .46);
+  backdrop-filter: blur(6px);
+  inset: 0;
+  animation: guide-fade 180ms ease;
+}
+.guide-card {
+  position: relative;
+  display: flex;
+  width: min(560px, 100%);
+  max-height: min(640px, calc(100dvh - 48px));
+  flex-direction: column;
+  border: 1px solid rgba(216, 220, 240, .9);
+  border-radius: var(--radius-xl);
+  padding: 30px 30px 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+  animation: guide-rise 220ms cubic-bezier(.2, .8, .3, 1);
+}
+.guide-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1;
+}
+.guide-close:hover { background: var(--primary-light); }
+.guide-eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.guide-title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: clamp(24px, 3.4vw, 32px);
+  font-weight: 400;
+  letter-spacing: -.01em;
+  line-height: 1.18;
+}
+.guide-lede {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.guide-points {
+  display: grid;
+  margin: 20px 0 0;
+  padding: 0;
+  gap: 13px;
+  list-style: none;
+}
+.guide-points li {
+  display: grid;
+  gap: 3px;
+  border-left: 2px solid var(--lavender);
+  padding-left: 12px;
+}
+.guide-points strong { color: var(--ink); font-size: 13px; font-weight: 800; }
+.guide-points span { color: var(--ink-soft); font-size: 12.5px; line-height: 1.55; }
+.guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  border: 1px solid var(--lavender);
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  align-self: flex-start;
+  transition: 150ms ease;
+}
+.guide-link:hover { border-color: var(--primary); background: var(--primary-light); }
+.guide-link span { font-size: 11px; }
+.guide-note {
+  margin: 18px 0 0;
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.guide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 22px;
+}
+.guide-dots { display: flex; gap: 6px; }
+.guide-dots button {
+  width: 7px;
+  height: 7px;
+  cursor: pointer;
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: 0;
+  background: var(--line);
+  transition: 160ms ease;
+}
+.guide-dots button.active { width: 20px; background: var(--primary); }
+.guide-actions { display: flex; gap: 8px; }
+.guide-back, .guide-next {
+  min-height: 38px;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.guide-back {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+}
+.guide-next {
+  border: 0;
+  background: var(--primary);
+  box-shadow: var(--shadow-primary);
+  color: #fff;
+}
+.guide-next:hover { background: var(--primary-dark); }
+/* Parked bottom-left so it never collides with the clinician pane's controls. */
+.guide-reopen {
+  position: fixed;
+  z-index: 40;
+  bottom: 16px;
+  left: 16px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 800;
+}
+.guide-reopen:hover { background: var(--primary-soft); }
+@keyframes guide-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes guide-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;

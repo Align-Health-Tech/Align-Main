@@ -3,6 +3,7 @@
 import { useEffect, useReducer } from "react";
 import { ClinicianPane } from "./clinician-pane";
 import { PatientPane } from "./patient-pane";
+import { WelcomeGuide } from "./welcome-guide";
 import {
   ApiError,
   completeSession,
@@ -48,6 +49,7 @@ export function DemoWorkspace() {
           type: "SYNC_SESSION",
           nextStep: response.next_step,
           status: response.status,
+          mirror: response.mirror,
         });
       })
       .catch((error: unknown) => {
@@ -82,6 +84,7 @@ export function DemoWorkspace() {
           type: "SYNC_SESSION",
           nextStep: current.next_step,
           status: current.status,
+          mirror: current.mirror,
         });
         return;
       } catch {
@@ -141,6 +144,7 @@ export function DemoWorkspace() {
           answer,
           state.locale,
         ),
+        mirror: response.mirror,
         bodySelection,
       });
     } catch (error) {
@@ -157,6 +161,7 @@ export function DemoWorkspace() {
         type: "SYNC_SESSION",
         nextStep: current.next_step,
         status: current.status,
+        mirror: current.mirror,
       });
     } catch {
       // The local mirror remains useful when a status-only refresh fails.
@@ -224,6 +229,7 @@ export function DemoWorkspace() {
           onComplete={() => void markComplete()}
         />
       </div>
+      <WelcomeGuide />
     </main>
   );
 }

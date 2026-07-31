@@ -1,8 +1,10 @@
 import type {
   BodySelection,
+  ClinicianMirror,
   Demographics,
   Locale,
   MirrorAnswer,
+  MirrorField,
   NextStep,
   Pane,
   QuestionField,
@@ -27,6 +29,8 @@ export type DemoState = {
   nextStep: NextStep | null;
   status: string | null;
   mirrorAnswers: MirrorAnswer[];
+  /** English synthesis from the nurse-review agent; server-authored. */
+  encounterSummary: string | null;
   bodySelection: BodySelection | null;
   activePane: Pane;
   busy: boolean;
@@ -45,12 +49,18 @@ export type DemoAction =
       nextStep: NextStep;
       status: string;
     }
-  | { type: "SYNC_SESSION"; nextStep: NextStep; status: string }
+  | {
+      type: "SYNC_SESSION";
+      nextStep: NextStep;
+      status: string;
+      mirror?: ClinicianMirror;
+    }
   | {
       type: "ANSWER_SAVED";
       nextStep: NextStep;
       status: string;
       mirrorAnswers: MirrorAnswer[];
+      mirror?: ClinicianMirror;
       bodySelection?: BodySelection;
     }
   | { type: "SET_BUSY"; busy: boolean }
@@ -77,6 +87,7 @@ export const INITIAL_STATE: DemoState = {
   nextStep: null,
   status: null,
   mirrorAnswers: [],
+  encounterSummary: null,
   bodySelection: null,
   activePane: "patient",
   busy: false,
@@ -130,6 +141,12 @@ export function demoReducer(
         stage: "clinical",
         nextStep: action.nextStep,
         status: action.status,
+        mirrorAnswers: translateMirrorAnswers(
+          state.mirrorAnswers,
+          action.mirror,
+        ),
+        encounterSummary:
+          action.mirror?.encounter_summary ?? state.encounterSummary,
         restoring: false,
         busy: false,
         error: null,
@@ -140,10 +157,14 @@ export function demoReducer(
         stage: "clinical",
         nextStep: action.nextStep,
         status: action.status,
-        mirrorAnswers: [
-          ...state.mirrorAnswers,
-          ...action.mirrorAnswers,
-        ],
+        // Re-translates the whole list, not just the new rows: the server may
+        // only produce en_text for an earlier answer on a later turn.
+        mirrorAnswers: translateMirrorAnswers(
+          [...state.mirrorAnswers, ...action.mirrorAnswers],
+          action.mirror,
+        ),
+        encounterSummary:
+          action.mirror?.encounter_summary ?? state.encounterSummary,
         bodySelection: action.bodySelection ?? state.bodySelection,
         busy: false,
         error: null,
@@ -166,8 +187,93 @@ export function demoReducer(
   }
 }
 
+/** How buildMirrorAnswers joins a multi-select into one row. */
+const MULTI_VALUE_SEPARATOR = ", ";
+
+/**
+ * Fill in `englishValue` from the server mirror.
+ *
+ * The frontend can render English for options and yes/no on its own, but not
+ * for free text — that needs the translation the backend already made. The
+ * mirror stores one field per answer item, keyed by the patient's own wording.
+ */
+function translateMirrorAnswers(
+  rows: MirrorAnswer[],
+  mirror: ClinicianMirror | undefined,
+): MirrorAnswer[] {
+  if (!mirror?.fields.length) return rows;
+
+  const englishByNative = new Map<string, string>();
+  const fieldsByTarget = new Map<string, MirrorField[]>();
+  for (const field of mirror.fields) {
+    if (field.en_text) englishByNative.set(field.text, field.en_text);
+    const group = fieldsByTarget.get(field.collect_target_id);
+    if (group) group.push(field);
+    else fieldsByTarget.set(field.collect_target_id, [field]);
+  }
+
+  let changed = false;
+  const next = rows.map((row) => {
+    if (row.englishValue !== null) return row;
+    const english =
+      englishByWording(row, englishByNative) ??
+      englishByTarget(row, fieldsByTarget);
+    if (english === null) return row;
+    changed = true;
+    return { ...row, englishValue: english };
+  });
+  return changed ? next : rows;
+}
+
+/** Match on the patient's wording — precise, and handles multi-select items. */
+function englishByWording(
+  row: MirrorAnswer,
+  englishByNative: Map<string, string>,
+): string | null {
+  if (!englishByNative.size) return null;
+  const parts = row.nativeValue
+    .split(MULTI_VALUE_SEPARATOR)
+    .map((part) => englishForPart(part, englishByNative));
+  // All-or-nothing: a half-translated row would read as if the untranslated
+  // half were already English.
+  if (parts.some((part) => part === undefined)) return null;
+  return parts.join(MULTI_VALUE_SEPARATOR);
+}
+
+/**
+ * Fall back to the state column. Covers answers the server rewrote — notably
+ * `chief_complaint`, which the classifier replaces with an English summary, so
+ * the patient's original sentence is no longer in the mirror to match against.
+ */
+function englishByTarget(
+  row: MirrorAnswer,
+  fieldsByTarget: Map<string, MirrorField[]>,
+): string | null {
+  if (!row.collectTargetId) return null;
+  const fields = fieldsByTarget.get(row.collectTargetId);
+  if (!fields?.length) return null;
+  const parts = fields.map((field) => field.en_text);
+  if (parts.some((part) => !part)) return null;
+  return parts.join(MULTI_VALUE_SEPARATOR);
+}
+
+function englishForPart(
+  part: string,
+  englishByNative: Map<string, string>,
+): string | undefined {
+  const exact = englishByNative.get(part);
+  if (exact !== undefined) return exact;
+  // displayAnswer renders an "Other" escape as `<localized Other>: <detail>`,
+  // but the server stores only the detail — match on that and re-prefix.
+  const separator = part.indexOf(": ");
+  if (separator === -1) return undefined;
+  const detail = englishByNative.get(part.slice(separator + 2));
+  return detail === undefined ? undefined : `Other: ${detail}`;
+}
+
 const STORAGE_KEY = "align-urgent-care-demo-v1";
-const STORAGE_VERSION = 1;
+// 2: MirrorAnswer gained collectTargetId; v1 rows cannot be joined to the mirror.
+const STORAGE_VERSION = 2;
 
 type StoredDemoState = {
   version: number;
@@ -179,6 +285,7 @@ type StoredDemoState = {
   nextStep: NextStep | null;
   status: string | null;
   mirrorAnswers: MirrorAnswer[];
+  encounterSummary: string | null;
   bodySelection: BodySelection | null;
 };
 
@@ -213,6 +320,7 @@ export function saveStoredState(state: DemoState): void {
     nextStep: state.nextStep,
     status: state.status,
     mirrorAnswers: state.mirrorAnswers,
+    encounterSummary: state.encounterSummary,
     bodySelection: state.bodySelection,
   };
   window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
@@ -281,7 +389,8 @@ export function buildMirrorAnswers(
         id: `${step.phase}:${step.turn_number}:${question.id}:${index}`,
         phase: step.phase,
         questionId: question.id,
-        englishPrompt: englishPrompt(question),
+        collectTargetId: question.collect_target_id ?? null,
+        englishPrompt: englishPrompt(question, locale),
         nativePrompt: patientPrompt(question, locale),
         englishValue: displayed.every((value) => value.english !== null)
           ? displayed.map((value) => value.english).join(", ")

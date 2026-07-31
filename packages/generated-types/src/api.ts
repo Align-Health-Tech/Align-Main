@@ -102,6 +102,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ClinicianMirror */
+        ClinicianMirror: {
+            /**
+             * Session Language
+             * @default en
+             */
+            session_language: string;
+            /** Encounter Summary */
+            encounter_summary?: string | null;
+            /**
+             * Fields
+             * @default []
+             */
+            fields: components["schemas"]["MirrorField"][];
+        };
         /** CompleteResponse */
         CompleteResponse: {
             /** Session Id */
@@ -116,17 +131,42 @@ export interface components {
             next_step: components["schemas"]["NextStep"];
             /** Status */
             status: string;
+            /**
+             * @default {
+             *       "session_language": "en",
+             *       "fields": []
+             *     }
+             */
+            mirror: components["schemas"]["ClinicianMirror"];
         };
         /** GetSessionResponse */
         GetSessionResponse: {
             next_step: components["schemas"]["NextStep"];
             /** Status */
             status: string;
+            /**
+             * @default {
+             *       "session_language": "en",
+             *       "fields": []
+             *     }
+             */
+            mirror: components["schemas"]["ClinicianMirror"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** MirrorField */
+        MirrorField: {
+            /** Collect Target Id */
+            collect_target_id: string;
+            /** Text */
+            text: string;
+            /** En Text */
+            en_text?: string | null;
+            /** Source */
+            source?: string | null;
         };
         /** NextStep */
         NextStep: {
@@ -139,7 +179,7 @@ export interface components {
              * Phase
              * @enum {string}
              */
-            phase: "consent" | "presenting_complaint" | "localised_detail" | "non_localised_detail" | "priority_questions" | "redflag_screening" | "optional_questions" | "ice" | "survey";
+            phase: "consent" | "presenting_complaint" | "localised_detail" | "non_localised_detail" | "priority_questions" | "redflag_screening" | "optional_questions" | "ice" | "survey" | "complete";
             /** Turn Number */
             turn_number: number;
             /** Questions */
@@ -157,7 +197,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "single_choice" | "multi_choice" | "yes_no" | "consent_accept" | "free_text";
+            kind: "single_choice" | "multi_choice" | "yes_no" | "consent_accept" | "free_text" | "scale";
             /** Prompt */
             prompt: string;
             /** En Prompt */
@@ -202,6 +242,13 @@ export interface components {
             next_step: components["schemas"]["NextStep"];
             /** Status */
             status: string;
+            /**
+             * @default {
+             *       "session_language": "en",
+             *       "fields": []
+             *     }
+             */
+            mirror: components["schemas"]["ClinicianMirror"];
         };
         /** ValidationError */
         ValidationError: {

@@ -434,6 +434,13 @@ function QuestionControl({
           onChange={(event) => onChange(event.target.value)}
           rows={4}
         />
+      ) : question.kind === "scale" ? (
+        <ScaleField
+          question={question}
+          locale={locale}
+          value={value}
+          onChange={onChange}
+        />
       ) : question.kind === "consent_accept" ? (
         <label className={`consent-choice ${value === true ? "selected" : ""}`}>
           <input
@@ -484,6 +491,64 @@ function QuestionControl({
         />
       ) : null}
     </fieldset>
+  );
+}
+
+/**
+ * 0–N rating slider.
+ *
+ * Deliberately starts unanswered rather than defaulting to a midpoint — an
+ * untouched slider must not submit a severity the patient never chose. The
+ * readout stays "—" until they interact, and `hasQuestionValue` keeps the batch
+ * invalid until then.
+ */
+function ScaleField({
+  question,
+  locale,
+  value,
+  onChange,
+}: {
+  question: QuestionField;
+  locale: Locale;
+  value: unknown;
+  onChange: (value: unknown) => void;
+}) {
+  const copy = COPY[locale];
+  const points = (question.options ?? [])
+    .map((option) => Number(option.value))
+    .filter((point) => Number.isFinite(point));
+  const min = points.length ? Math.min(...points) : 0;
+  const max = points.length ? Math.max(...points) : 10;
+
+  const answered = value !== null && value !== undefined && value !== "";
+  const current = answered ? Number(value) : min;
+
+  // Committing on pointer down as well as on change is load-bearing: a patient
+  // whose answer equals the resting position (min) would otherwise never fire a
+  // change event, leaving the question permanently unanswerable.
+  const commit = (next: number) => onChange(String(next));
+
+  return (
+    <div className="scale-field">
+      <output className={answered ? "scale-readout" : "scale-readout empty"}>
+        {answered ? current : "—"}
+      </output>
+      <input
+        type="range"
+        className="scale-slider"
+        min={min}
+        max={max}
+        step={1}
+        value={current}
+        aria-valuetext={answered ? String(current) : copy.scaleUnanswered}
+        onPointerDown={() => commit(current)}
+        onChange={(event) => commit(Number(event.target.value))}
+      />
+      <div className="scale-ends" aria-hidden>
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+    </div>
   );
 }
 

@@ -1,0 +1,17 @@
+<!-- App icon (browser tab, bookmarks).
+
+     The Align mark only: the two leaf paths lifted from
+     public/Align Logo Dark.svg, where they span x 0..306 and y 23..328. The
+     wordmark is dropped deliberately, being illegible at 16px.
+
+     Filled with the app's primary token (#5352cc) rather than the near-white
+     the source file uses, so the icon reads on a light browser tab. The 0.64
+     opacity is kept: where the two shapes overlap they darken, and that is
+     what gives the mark its lens shape.
+
+     Note for editors: XML forbids a double hyphen inside a comment, so CSS
+     custom property names cannot be written out here. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 19 314 314" width="314" height="314">
+  <path opacity="0.64" d="M306 328H33C33 177.226 155.226 55 306 55V328Z" fill="#5352cc"/>
+  <path opacity="0.64" d="M0 23L273 23C273 173.774 150.774 296 0 296L0 23Z" fill="#5352cc"/>
+</svg>

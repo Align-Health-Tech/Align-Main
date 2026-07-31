@@ -39,7 +39,7 @@ def _score_questions() -> list[QuestionField]:
     return [
         QuestionField(
             id="nl_severity",
-            kind="single_choice",
+            kind="scale",
             prompt="How severe do you feel overall? (0–10)",
             personalization_note="deterministic",
             collect_target_id="severity_score",
@@ -49,7 +49,7 @@ def _score_questions() -> list[QuestionField]:
         ),
         QuestionField(
             id="nl_functional",
-            kind="single_choice",
+            kind="scale",
             prompt="How much is this affecting daily activity? (0–10)",
             personalization_note="deterministic",
             collect_target_id="functional_impact_score",

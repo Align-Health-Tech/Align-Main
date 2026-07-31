@@ -20,7 +20,7 @@ _DURATION_PHASE = "duration"
 def _severity_question() -> QuestionField:
     return QuestionField(
         id="loc_severity",
-        kind="single_choice",
+        kind="scale",
         prompt="How severe is the pain right now? (0 = none, 10 = worst)",
         personalization_note="deterministic",
         collect_target_id="severity_score",

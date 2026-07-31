@@ -45,6 +45,20 @@ For every question:
 - Do **not** use `free_text` as the question kind — free text is only via
   Other.
 
+### Field discipline — `prompt` / `label` language
+
+`prompt` and every option `label` are what the patient reads. Write them in
+`context.session_language` — ALWAYS, for every question and every option,
+including "Other" and any none-of-these option. A patient who chose Korean must
+never see an English question or chip.
+
+`value` is the opposite: it is a machine key, never shown. Keep every `value` in
+English and stable regardless of session language.
+
+When `context.session_language` is NOT `"en"`, `en_prompt` and `en_label` are
+REQUIRED on every question and every option — the clinician dashboard is
+English-only and has no other source for them. Never leave them null then.
+
 ## Language fields
 
 Only set `en_prompt` / `en_label` when `context.session_language != "en"`.

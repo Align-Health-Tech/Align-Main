@@ -118,6 +118,36 @@ class TestValidateQgQuestions(unittest.TestCase):
             ],
         )
 
+    def _duration_question(self, other_label: str) -> QuestionField:
+        return QuestionField(
+            id="duration",
+            kind="single_choice",
+            prompt="얼마나 오래 지속되었나요?",
+            en_prompt="How long has this been going on?",
+            personalization_note="t",
+            collect_target_id="duration",
+            options=[
+                QuestionOption(value="Last 24 hours", label="지난 24시간", en_label="Last 24 hours"),
+                QuestionOption(value="Within a week", label="일주일 이내", en_label="Within a week"),
+                QuestionOption(value="Other", label=other_label, en_label="Other"),
+            ],
+        )
+
+    def test_duration_accepts_localised_other_label(self) -> None:
+        """Patient-facing labels are translated; only `value` stays English.
+
+        The validator used to require label == "Other", which made any
+        non-English session crash in the duration node.
+        """
+        validate_qg_questions("duration", [self._duration_question("기타")])
+
+    def test_duration_still_requires_an_other_value(self) -> None:
+        question = self._duration_question("기타")
+        question.options[2].value = "기타"
+        with self.assertRaises(ValueError) as ctx:
+            validate_qg_questions("duration", [question])
+        self.assertIn("Other", str(ctx.exception))
+
     def test_priority_comorbidities_rejects_non_multi_choice(self) -> None:
         with self.assertRaises(ValueError) as ctx:
             validate_qg_questions(

@@ -18,8 +18,8 @@ def narrative_dump_free_text(
     ).model_dump()
 
 
-def narrative_dump_option(label: str) -> dict:
-    return _narrative_from_option(label).model_dump()
+def narrative_dump_option(label: str, *, en_label: str | None = None) -> dict:
+    return _narrative_from_option(label, en_label=en_label).model_dump()
 
 
 # ---------------------------------------------------------------------------
@@ -44,6 +44,13 @@ def _narrative_from_free_text(
     )
 
 
-def _narrative_from_option(label: str) -> NarrativeField:
-    """Option pick — no translation call."""
-    return NarrativeField(text=label, source="option")
+def _narrative_from_option(
+    label: str, *, en_label: str | None = None
+) -> NarrativeField:
+    """Option pick — no translation call; QG already supplied the English.
+
+    ``en_label`` is None for English sessions (``label`` is already English) and
+    also when QG failed to emit one — the clinician dashboard shows the gap
+    rather than passing a localised label off as English.
+    """
+    return NarrativeField(text=label, en_text=en_label, source="option")

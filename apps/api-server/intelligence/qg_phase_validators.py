@@ -226,10 +226,13 @@ def _validate_ice_question(
         )
         
     value_labels = {option.value: option.label for option in options}
-    if "Other" not in value_labels or value_labels["Other"] != "Other":
+    # Checks `value`, never `label`: value is the machine key and stays English,
+    # while label is patient-facing and must be in the session language ("기타",
+    # "其他", …). Requiring label == "Other" made a localised session unroutable.
+    if "Other" not in value_labels:
         raise ValueError(
             f"QG phase {phase!r} question {question.id!r}: "
-            f"options must include 'Other'; got value_labels={value_labels!r}"
+            f"options must include an 'Other' value; got value_labels={value_labels!r}"
         )
 
 
@@ -267,10 +270,13 @@ def _validate_duration_question(
             f"expected 3–6 options (chips + Other), got {len(options)}"
         )
     value_labels = {option.value: option.label for option in options}
-    if "Other" not in value_labels or value_labels["Other"] != "Other":
+    # Checks `value`, never `label`: value is the machine key and stays English,
+    # while label is patient-facing and must be in the session language ("기타",
+    # "其他", …). Requiring label == "Other" made a localised session unroutable.
+    if "Other" not in value_labels:
         raise ValueError(
             f"QG phase {phase!r} question {question.id!r}: "
-            f"options must include 'Other'; got value_labels={value_labels!r}"
+            f"options must include an 'Other' value; got value_labels={value_labels!r}"
         )
 
 

@@ -42,8 +42,9 @@ def map_optional_questions(
 
     weight = selections_for_target(questions, by_id, "weight_change")
     if weight is not None:
+        # Plain scalar column, not a NarrativeField — no English companion slot.
         updates["weight_change"] = (
-            "; ".join(text for text, _ in weight) if weight else None
+            "; ".join(selection.text for selection in weight) if weight else None
         )
 
     exacerbating = selections_for_target(questions, by_id, "exacerbating_factors")

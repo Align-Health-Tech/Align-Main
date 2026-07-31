@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from engine.session_state_mappers.selections import (
+    Selection,
     intake_fact_additions,
     merge_intake_facts,
     narrative_dumps,
@@ -60,13 +61,15 @@ def map_priority_questions(
 
 def _onset_narrative(
     state: SessionState,
-    selections: list[tuple[str, bool]],
+    selections: list[Selection],
 ) -> dict[str, Any]:
     """Singular onset field — option chips or free text."""
-    text, is_free = selections[0]
-    if not is_free:
-        return narrative_dump_option(text)
-    return narrative_dump_free_text(text, session_language=state.session_language)
+    selection = selections[0]
+    if not selection.is_free:
+        return narrative_dump_option(selection.text, en_label=selection.en_text)
+    return narrative_dump_free_text(
+        selection.text, session_language=state.session_language
+    )
 
 
 def _apply_encounter_medication(

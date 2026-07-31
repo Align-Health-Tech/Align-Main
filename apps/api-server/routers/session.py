@@ -10,6 +10,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from schemas.clinician_mirror import ClinicianMirror, build_clinician_mirror
 from schemas.question_fields import NextStep
 from services.session_errors import SessionConflictError, SessionNotFoundError
 from services.session_lifecycle import lifecycle
@@ -18,11 +19,22 @@ from services.session_store import store
 router = APIRouter(tags=["sessions"])
 
 
+def _mirror(session_id: str) -> ClinicianMirror:
+    """Clinician projection for the session, or empty before the graph starts.
+
+    Demo scope: the clinician pane is the same browser app as the patient pane,
+    so this rides along on the patient responses instead of getting its own
+    authenticated endpoint.
+    """
+    return build_clinician_mirror(lifecycle.get_graph_state(session_id))
+
+
 class CreateSessionResponse(BaseModel):
     session_id: str
     next_step: NextStep
     # M6: expose status for lifecycle verification (not in original envelope).
     status: str
+    mirror: ClinicianMirror = ClinicianMirror()
 
 
 class RespondRequest(BaseModel):
@@ -34,11 +46,13 @@ class RespondRequest(BaseModel):
 class RespondResponse(BaseModel):
     next_step: NextStep
     status: str
+    mirror: ClinicianMirror = ClinicianMirror()
 
 
 class GetSessionResponse(BaseModel):
     next_step: NextStep
     status: str
+    mirror: ClinicianMirror = ClinicianMirror()
 
 
 @router.post("/sessions", response_model=CreateSessionResponse)
@@ -59,7 +73,10 @@ def create_session(
     except SessionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return CreateSessionResponse(
-        session_id=session_id, next_step=step, status=status
+        session_id=session_id,
+        next_step=step,
+        status=status,
+        mirror=_mirror(session_id),
     )
 
 
@@ -71,7 +88,9 @@ def respond(session_id: str, body: RespondRequest) -> RespondResponse:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except SessionConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return RespondResponse(next_step=step, status=status)
+    return RespondResponse(
+        next_step=step, status=status, mirror=_mirror(session_id)
+    )
 
 
 @router.get("/sessions/{session_id}", response_model=GetSessionResponse)
@@ -82,7 +101,9 @@ def get_session(session_id: str) -> GetSessionResponse:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except SessionConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    return GetSessionResponse(next_step=step, status=status)
+    return GetSessionResponse(
+        next_step=step, status=status, mirror=_mirror(session_id)
+    )
 
 
 def reset_in_memory_store() -> None:

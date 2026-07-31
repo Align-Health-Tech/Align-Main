@@ -101,11 +101,15 @@ class SessionLifecycle:
         return record.id, record.status
 
     # ------------------------------------------------------------------
-    # CLI debugging
+    # State readback (CLI debugging + clinician mirror)
     # ------------------------------------------------------------------
 
     def get_graph_state(self, session_id: str) -> SessionState | None:
-        """CLI / tests — checkpoint SessionState when graph has started. Currently used for CLI debugging"""
+        """Checkpointed SessionState, or None before the graph has started.
+
+        Also backs the clinician mirror on the session responses, so the
+        None-before-consent case is a normal path, not just a CLI edge.
+        """
         record = self._store.sessions.get(session_id)
         if record is None or record.status == "NOT_STARTED":
             return None
@@ -233,9 +237,12 @@ class SessionLifecycle:
                 turn_number = state.turn_number
             except Exception:  # noqa: BLE001 — pre-graph edge
                 turn_number = 0
+        # phase="complete", not the last phase walked. This step is terminal, so
+        # reporting "ice" here made the clinician header keep showing "Ice" after
+        # the patient had finished.
         return NextStep(
             step_type="complete",
-            phase="ice",
+            phase="complete",
             turn_number=turn_number,
         )
 

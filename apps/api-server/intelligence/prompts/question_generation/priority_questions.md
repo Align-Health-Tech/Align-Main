@@ -71,10 +71,24 @@ because it is known.
 - **Invent prompts and options from** `clinical_hint` + patient context +
   Devise `rationale`. Tailor to this complaint (~2–5 options).
 
+### Field discipline — `prompt` / `label` language
+
+`prompt` and every option `label` are what the patient reads. Write them in
+`context.session_language` — ALWAYS, for every question and every option,
+including "Other" and any none-of-these option. A patient who chose Korean must
+never see an English question or chip.
+
+`value` is the opposite: it is a machine key, never shown. Keep every `value` in
+English and stable regardless of session language.
+
 ### Field discipline — `en_prompt` / `en_label`
 
 ONLY set `en_prompt` / `en_label` when `session_language` is NOT `"en"`.
 When session is English, omit both (null) — do not duplicate prompt/label.
+
+When session_language is NOT `"en"`, `en_prompt` and `en_label` are REQUIRED on
+every question and every option — the clinician dashboard is English-only and
+has no other source for them. Never leave them null in that case.
 
 ### Field discipline — `default_value` vs `default_values`
 

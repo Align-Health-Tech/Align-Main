@@ -122,7 +122,9 @@ AnswerSource = Literal[
 # Which phase produced a NextStep. Distinct from StepType — several phases
 # share the same step_type (e.g. priority / redflag / ice → question_batch).
 # consent / survey are router-constructed (deterministic_forms), not graph nodes.
-# review / complete are graph nodes but not patient NextStep phases (no interrupt).
+# review is a graph node but not a patient NextStep phase (no interrupt).
+# complete is never an ``awaiting_phase`` — it is the terminal NextStep's phase,
+# so clinician UI can label the phase without inferring it from step_type.
 Phase = Literal[
     "consent",
     "presenting_complaint",
@@ -133,6 +135,7 @@ Phase = Literal[
     "optional_questions",
     "ice",
     "survey",
+    "complete",
 ]
 
 # What the frontend must render for this NextStep.
@@ -145,12 +148,16 @@ StepType = Literal[
 ]
 
 # UI control kind for one QuestionField.
+# `scale` is a 0–N rating rendered as a slider. It still carries the full
+# `options` list, so answer mapping, prefill and the clinician mirror treat it
+# exactly like a single_choice — only the patient-side control differs.
 QuestionKind = Literal[
     "single_choice",
     "multi_choice",
     "yes_no",
     "consent_accept",
     "free_text",
+    "scale",
 ]
 
 # ---------------------------------------------------------------------------

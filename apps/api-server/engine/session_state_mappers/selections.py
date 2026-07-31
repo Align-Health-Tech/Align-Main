@@ -1,13 +1,28 @@
-"""Shared answer → (text, is_free_text) parsing for apply mappers."""
+"""Shared answer → Selection parsing for apply mappers."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, NamedTuple, Optional
 
 from engine.session_state_mappers.shared import _YES
 from engine.session_state_mappers.narrative import narrative_dump_free_text, narrative_dump_option
 from schemas.literals import IntakeFactKind
 from schemas.question_fields import QuestionField, QuestionOption
 from schemas.session_states import IntakeFactState, SessionState
+
+
+class Selection(NamedTuple):
+    """One parsed answer chip.
+
+    ``en_text`` carries the option's ``en_label`` through to
+    ``NarrativeField.en_text``. Without it a non-English session stored only the
+    localised label, so the clinician dashboard — which must be English — had no
+    English for any option pick. Free text has no ``en_label``; it gets
+    translated instead (Pattern E).
+    """
+
+    text: str
+    is_free: bool
+    en_text: Optional[str] = None
 
 _EMPTY_SELECTIONS = frozenset(
     {
@@ -23,9 +38,10 @@ _EMPTY_SELECTION_PREFIXES = (
 )
 
 
-def labels_by_folded(question: QuestionField) -> dict[str, str]:
+def labels_by_folded(question: QuestionField) -> dict[str, tuple[str, Optional[str]]]:
+    """value -> (patient-facing label, English label if the session is not English)."""
     return {
-        (opt.value or "").strip().casefold(): opt.label
+        (opt.value or "").strip().casefold(): (opt.label, opt.en_label)
         for opt in (question.options or [])
         if isinstance(opt, QuestionOption)
     }
@@ -33,9 +49,9 @@ def labels_by_folded(question: QuestionField) -> dict[str, str]:
 
 def parse_chip(
     raw: object,
-    labels: dict[str, str],
-) -> tuple[str, bool] | None:
-    """Return (display_text, is_free_text), or None to skip."""
+    labels: dict[str, tuple[str, Optional[str]]],
+) -> Selection | None:
+    """Parse one answer chip, or None to skip."""
     if raw is None:
         return None
     text = str(raw).strip()
@@ -50,32 +66,33 @@ def parse_chip(
         return None
     if folded.startswith("other:"):
         detail = text.split(":", 1)[1].strip()
-        return (detail, True) if detail else None
-    label = labels.get(folded)
-    if label:
-        return label, False
+        return Selection(detail, True) if detail else None
+    entry = labels.get(folded)
+    if entry:
+        label, en_label = entry
+        return Selection(label, False, en_label)
     # Unknown token — treat as free text so Pattern E translate can run.
-    return text, True
+    return Selection(text, True)
 
 
 def selections_for_target(
     questions: list[QuestionField],
     by_id: dict[str, Any],
     target_id: str,
-) -> list[tuple[str, bool]] | None:
+) -> list[Selection] | None:
     """Parse all answered questions for ``target_id``.
 
     Returns:
       - ``None`` — target not answered (leave prior state)
       - ``[]`` — answered but empty / declined (e.g. None of these, parent No)
-      - non-empty list — (display_text, is_free_text) rows
+      - non-empty list — Selection rows
     """
     qs = [q for q in questions if q.collect_target_id == target_id]
     if not qs or not any(q.id in by_id for q in qs):
         return None
 
     declined = False
-    selected: list[tuple[str, bool]] = []
+    selected: list[Selection] = []
     saw_content_kind = False
     for question in qs:
         if question.id not in by_id:
@@ -94,7 +111,7 @@ def selections_for_target(
         if question.kind == "free_text":
             text = str(raw).strip() if raw is not None else ""
             if text:
-                selected.append((text, True))
+                selected.append(Selection(text, True))
             continue
 
         if question.kind not in ("multi_choice", "single_choice"):
@@ -116,29 +133,31 @@ def selections_for_target(
 
 def narrative_dumps(
     state: SessionState,
-    selections: list[tuple[str, bool]],
+    selections: list[Selection],
 ) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
-    for text, is_free in selections:
-        key = text.casefold()
-        if not text or key in seen:
+    for selection in selections:
+        key = selection.text.casefold()
+        if not selection.text or key in seen:
             continue
         seen.add(key)
-        if is_free:
+        if selection.is_free:
             out.append(
                 narrative_dump_free_text(
-                    text, session_language=state.session_language
+                    selection.text, session_language=state.session_language
                 )
             )
         else:
-            out.append(narrative_dump_option(text))
+            out.append(
+                narrative_dump_option(selection.text, en_label=selection.en_text)
+            )
     return out
 
 
 def join_narrative(
     state: SessionState,
-    selections: list[tuple[str, bool]],
+    selections: list[Selection],
 ) -> dict[str, Any] | None:
     """Collapse multi-select into one NarrativeField (e.g. self_management)."""
     dumps = narrative_dumps(state, selections)
@@ -153,7 +172,15 @@ def join_narrative(
         return narrative_dump_free_text(
             joined, session_language=state.session_language
         )
-    return narrative_dump_option(joined)
+    # All-or-nothing on the English side: a partly-English join would read as a
+    # complete translation to a clinician.
+    en_parts = [d.get("en_text") for d in dumps]
+    joined_en = (
+        "; ".join(str(part) for part in en_parts)
+        if all(part for part in en_parts)
+        else None
+    )
+    return narrative_dump_option(joined, en_label=joined_en)
 
 
 def intake_fact_additions(

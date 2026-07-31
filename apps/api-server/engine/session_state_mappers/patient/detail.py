@@ -65,11 +65,15 @@ def _duration_updates(
     sels = selections_for_target(questions, by_id, "duration")
     if not sels:
         return {}
-    text, is_free = sels[0]
-    if is_free:
+    selection = sels[0]
+    if selection.is_free:
         return {
             "duration": narrative_dump_free_text(
-                text, session_language=state.session_language
+                selection.text, session_language=state.session_language
             )
         }
-    return {"duration": narrative_dump_option(text)}
+    return {
+        "duration": narrative_dump_option(
+            selection.text, en_label=selection.en_text
+        )
+    }

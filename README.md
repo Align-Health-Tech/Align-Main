@@ -12,7 +12,6 @@ The app will consist of:
 
 ## 1. Tech stack
 
-
 | Layer               | Choice                                                |
 | ------------------- | ----------------------------------------------------- |
 | Backend framework   | FastAPI (Python)                                      |
@@ -26,20 +25,17 @@ The app will consist of:
 | CI/CD               | GitHub Actions + pre-commit hooks                     |
 | Deployment          | Docker containers, one per app                        |
 
-
 ---
 
 ## 2. Agent structure
 
 ![image](public/images/LillyV1.jpg)
 
-
-| Agent                         | Job                                                | Input                                                    | Output                                                       |
-| ----------------------------- | -------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| **Classifier agent**          | Binary/categorical judgment                        | Free-text patient input                                  | A classification (e.g. physical/localised vs non-localised)  |
-| **Devise & Prioritise agent** | Clinical reasoning — decide *what* should be asked | Previous conversation state + curated Healthify / Health NZ evidence for priority and red-flag phases | Ranked `TopicCandidate` values with source, brief rationale, validated evidence URLs, and red-flag markers (not questions yet) |
-| **Question Generation agent** | Conversational reasoning — decide *how* to ask it  | Topic list + conversation context                        | A batch of natural-language questions or a single question   |
-
+| Agent                         | Job                                                | Input                                                                                                 | Output                                                                                                                         |
+| ----------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Classifier agent**          | Binary/categorical judgment                        | Free-text patient input                                                                               | A classification (e.g. physical/localised vs non-localised)                                                                    |
+| **Devise & Prioritise agent** | Clinical reasoning — decide _what_ should be asked | Previous conversation state + curated Healthify / Health NZ evidence for priority and red-flag phases | Ranked `TopicCandidate` values with source, brief rationale, validated evidence URLs, and red-flag markers (not questions yet) |
+| **Question Generation agent** | Conversational reasoning — decide _how_ to ask it  | Topic list + conversation context                                                                     | A batch of natural-language questions or a single question                                                                     |
 
 ### Why Devise & Prioritise is a separate agent
 
@@ -96,30 +92,13 @@ Align-Main/
 
 ---
 
-## 3. System diagram
-
-High-level layout: one marketing landing page, three segment frontends (urgent care / GP / physio), one shared FastAPI backend, Postgres, external AI providers, and PMS adapters.
-
-![Align high-level system diagram](public/images/align-high-level-system-diagram.jpg)
-
-### Route structure (per app)
-
-```
-/patient/organisation_id   — Not in a current scope
-/clinician/...                       — Not in a current scope
-/demo/...                            — Public endpoint showing both patient demo and clinician portal
-middleware
-```
-
----
-
-## 4. Local setup
+## 3. Local setup
 
 New teammates: follow **[docs/setup/LOCAL.md](docs/setup/LOCAL.md)** (Docker Postgres, Python venv, Alembic, RLS roles, `npm run dev`).
 
 ---
 
-## 5. Specific Documents
+## 4. Specific Documents
 
 - [Local setup](docs/setup/LOCAL.md)
 - [API structure](docs/apps/api-server/APISTRUCTURE.md)

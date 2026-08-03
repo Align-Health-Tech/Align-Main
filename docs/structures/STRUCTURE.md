@@ -20,9 +20,9 @@ flowchart TB
   SVC --> F
   E --> INT
   E --> C
-  E -.->|M7 / planned| PMS
-  E -.->|M7 / planned| DB
-  PMS -.->|M7 / planned| DB
+  E -.->|designed, not built| PMS
+  E -.->|designed, not built| DB
+  PMS -.->|designed, not built| DB
 
   S[[schemas — shared contracts]]
 ```
@@ -35,7 +35,7 @@ Arrow = runtime call / import of that package. `schemas` is shared by all folder
 | Folder                    | Owns                                                                                                                        | Calls                                                  |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | **routers/**              | HTTP parse/validate; map exceptions → status codes                                                                          | `services`                                             |
-| **services/**             | Encounter status machine; in-memory session/org store (M6); pick `SessionRunner` by `segment_type`                          | `engine`, `forms`                                      |
+| **services/**             | Encounter status machine; in-memory session/org store; pick `SessionRunner` by `segment_type`                          | `engine`, `forms`                                      |
 | **forms/**                | Consent/survey `QuestionField` builders (not graph nodes)                                                                   | None                                                   |
 | **engine/**               | LangGraph clinical intake: nodes, topology, runner, checkpointer, `agent_bridge`, session_state_mappers, next_step / codecs | `intelligence` (via `agent_bridge` only), `catalogues` |
 | **catalogues/**           | Body-diagram SVG region tables (prefill / coding)                                                                           | None                                                   |

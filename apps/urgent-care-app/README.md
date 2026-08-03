@@ -5,7 +5,7 @@ session lifecycle.
 
 ## Behaviour
 
-- Desktop (`>=1024px`): patient pane at 42% and clinician pane at 58%, with
+- Desktop (`>=1024px`): patient pane at 30% and clinician pane at 70%, with
   independent scrolling.
 - Mobile/tablet: sticky Patient/Clinician toggle with Patient selected first.
 - Patient UI languages: English (`en`), Korean (`ko`), and Simplified Chinese
@@ -13,15 +13,29 @@ session lifecycle.
 - Consent and patient identity are frontend-owned. After identity is valid, the
   app creates the backend session and immediately submits the backend's
   canonical consent acceptance before showing the first clinical question.
-- Clinical questions render directly from FastAPI `NextStep`.
+- Clinical questions render directly from FastAPI `NextStep`. `kind="scale"`
+  renders as a slider; it starts unanswered rather than at a midpoint, so an
+  untouched control cannot submit a severity the patient never chose.
 - One encounter is kept per browser tab in `sessionStorage`. Restart explicitly
   clears it.
+- A first-run guide modal explains the demo. Dismissal is remembered in
+  `localStorage` (`align-demo-guide-seen-v1`); the `?` button reopens it.
 
-The backend is unchanged for this demo. Consequently the clinician pane is a
-live mirror of answers submitted in the current browser tab, not a backend
-clinician-detail read model. Choice answers use `en_label ?? label`; non-English
-free text retains patient wording and is labelled as untranslated. The
-backend's internal AI summary is intentionally not exposed.
+## The clinician pane is English-only
+
+It is read by clinicians who do not speak the patient's language, so it never
+renders `nativePrompt` or `nativeValue`. An answer with no English is reported
+as a gap ("Not available in English") rather than shown in a language the reader
+cannot use. Patient names are the sole exception.
+
+Rows are built locally from the submitted answers, then their English is filled
+in from the `mirror` field the backend returns on every session response
+(`schemas/clinician_mirror.py`). The join key is `collect_target_id`, not the
+answer text — once the classifier is ready it rewrites `chief_complaint` into an
+English summary, so matching on the patient's original wording finds nothing.
+
+Because `mirror` also comes back from `GET /sessions/{id}`, the clinician view
+survives a page refresh. `encounter_summary` populates the AI summary card.
 
 ## Local development
 
@@ -49,7 +63,6 @@ set.
 npm run generate --workspace=@align/generated-types
 npm run typecheck --workspace=urgent-care-app
 npm run lint --workspace=urgent-care-app
-npm run test --workspace=urgent-care-app
 npm run build --workspace=urgent-care-app
 ```
 

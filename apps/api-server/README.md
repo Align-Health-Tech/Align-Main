@@ -16,8 +16,8 @@ api-server/
 ├── alembic.ini             # Alembic config (DB URL from .env)
 ├── .env.example            # Template for local DATABASE_URL + Azure OpenAI (copy to .env)
 │
-├── routers/                # Transport: session + clinician mark-complete (M6)
-├── services/               # Session lifecycle + in-memory store (DB wiring → M7)
+├── routers/                # Transport: session + clinician mark-complete
+├── services/               # Session lifecycle + in-memory store (never wired to the DB)
 ├── engine/                 # LangGraph clinical intake
 │   ├── agent_bridge.py     # Engine→AI boundary — CI patches this module
 │   ├── nodes/              # Graph nodes

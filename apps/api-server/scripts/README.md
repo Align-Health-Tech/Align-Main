@@ -12,7 +12,7 @@ Results are **never overwritten** — each run writes a new versioned file via
 
 Legacy flat paths (`scripts/smoke_*.py`, `scripts/results/`) are retired.
 
-## Interactive session CLI (M6)
+## Interactive session CLI
 
 ```
 ./venv/bin/python scripts/cli_session.py

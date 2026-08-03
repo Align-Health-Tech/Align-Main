@@ -1,9 +1,10 @@
 # Router session lifecycle
 
-**Status:** M6 implemented — in-memory store (`services/session_store.py` +
-`services/session_lifecycle.py`). HTTP: `routers/session.py`,
-`routers/clinician.py`. **DB persistence of Encounter / Consent /
-SurveyResponse, Postgres checkpointer, auth/RLS → M7.**
+**Status:** implemented against an in-memory store
+(`services/session_store.py` + `services/session_lifecycle.py`). HTTP:
+`routers/session.py`, `routers/clinician.py`. **DB persistence of Encounter /
+Consent / SurveyResponse, the Postgres checkpointer, and auth/RLS were designed
+but never built.**
 
 Drive behaviour from `Encounter.status` **before** touching the graph:
 
@@ -12,7 +13,7 @@ Drive behaviour from `Encounter.status` **before** touching the graph:
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `NOT_STARTED`                                         | Return consent `NextStep` via `build_next_step_raw(0, build_consent_questions(), phase="consent")` — **no** `graph.invoke`. On respond: stub `Consent`, flip status → `IN_PROGRESS`, **then** first `graph.invoke(...)` (start, not resume) → enters `presenting_complaint`.                                                                          |
 | `IN_PROGRESS`                                         | Normal `Command(resume=answer)` into the graph.                                                                                                                                                                                                                                                                                                       |
-| Graph reaches `complete` (`is_session_complete=True`) | If org has survey enabled and no survey response yet → return survey `NextStep` via `build_next_step(state, build_survey_questions(), phase="survey")` — **no** graph. Status stays `IN_PROGRESS`. On respond: stub `SurveyResponse`. Then (or if no survey): set status → `**AWAITING_REVIEW`** and return patient `NextStep(step_type="complete")`. |
+| Graph reaches `complete` (`is_session_complete=True`) | If org has survey enabled and no survey response yet → return survey `NextStep` via `build_next_step(state, build_survey_questions(), phase="survey")` — **no** graph. Status stays `IN_PROGRESS`. On respond: stub `SurveyResponse`. Then (or if no survey): set status → `**AWAITING_REVIEW`** and return patient `NextStep(step_type="complete", phase="complete")`. |
 | `AWAITING_REVIEW`                                     | Patient intake finished; clinician dashboard shows the encounter for review. Graph `review` node (silent nurse summary) already ran inside the graph before `complete`.                                                                                                                                                                               |
 | Clinician marks complete                              | `POST /clinician/sessions/{id}/complete` → status → `**COMPLETED`**.                                                                                                                                                                                                                                                                                  |
 
@@ -44,7 +45,7 @@ Rationale for this design: Make it so that we can share nodes and rearrange the 
 | `COMPLETED`       | Clinician clicked mark-as-complete                                                            |
 
 
-## M6 stubs (pending M7)
+## Stubs — what stands in for the database
 
 - In-memory org + session dict (seeded default `URGENT_CARE` org)
 - Consent / SurveyResponse recorded as stub dicts, not SQL rows
@@ -53,9 +54,13 @@ Rationale for this design: Make it so that we can share nodes and rearrange the 
 - Survey from `build_survey_questions()` only (not org `Survey.schema`)
 - Clinician surface: mark-complete only (no list/detail/comments)
 
+MemorySaver is also why the deployment is pinned to one replica: sessions live
+in the process, so a second instance serves requests that cannot see them.
+
 ## Manual / test tools
 
 - E2E: `tests/test_m6_session_lifecycle.py` (mocked clinical_ai + transcript)
+- Mirror + terminal-step regressions: `tests/test_clinician_mirror.py`
 - Interactive: `scripts/cli_session.py` (mocked by default; `--real-azure` optional)
 
 ## Related

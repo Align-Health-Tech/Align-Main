@@ -1,12 +1,33 @@
 # Align-Main
 
-This is the main repo of Alignhealthtech.
+Main repo of Alignhealthtech. Align piloted in urgent care from March to June
+2026; the company has since wound down, and this repo is kept as a record of
+what was built.
 
-The app will consist of:
+- **Frontend**: one Next.js app per clinical segment — `urgent-care-app` is the
+  one that exists
+- **Backend**: a single FastAPI service hosting both the API layer and the
+  LangGraph orchestration engine
+- **Database**: one unified Postgres instance intended to be shared across
+  segments and across LangGraph's checkpointer and the business tables.
+  **Designed but never connected** — the schema, migrations and row-level
+  security policies are in `apps/api-server/db/` and `alembic/versions/`, but
+  `db/models` is imported only by `alembic/env.py`. Sessions live in process
+  memory, so a restart clears them.
 
-- **Frontend**: one Next.js app per clinical segment
-- **Backend**: a single FastAPI service that hosts both the API layer and the LangGraph orchestration engine
-- **Database**: one unified Postgres instance, shared across segments and across LangGraph's checkpointer and our own business tables
+## Live demo
+
+<https://demo.alignhealthtech.com>
+
+Both panes run side by side in one browser session: the patient intake on the
+left, the clinician dashboard on the right, updating as answers are submitted.
+Answer in Korean or Chinese and the clinician side stays English. The question
+engine runs for real against Azure OpenAI.
+
+Deployed as two containers in a single Azure Container App — the Next server
+proxies to the API over localhost, so the API has no public ingress. Scaled to
+one replica because sessions are in-memory; scale-to-zero means the first
+request after an idle period pays a cold start.
 
 ---
 
@@ -17,13 +38,13 @@ The app will consist of:
 | Backend framework   | FastAPI (Python)                                      |
 | Orchestration       | LangGraph                                             |
 | ORM                 | SQLAlchemy (ORM) + Alembic (Migrations)               |
-| DB                  | Local Postgres now → Supabase or Azure Postgres later |
+| DB                  | Postgres — schema and migrations only, never wired in |
 | Frontend            | Next.js, one app per segment                          |
 | Type contract       | Pydantic → OpenAPI → `openapi-typescript`             |
 | FHIR target version | R4 (not currently in scope)                           |
 | FHIR server         | Microsoft FHIR service (not currently in scope)       |
-| CI/CD               | GitHub Actions + pre-commit hooks                     |
-| Deployment          | Docker containers, one per app                        |
+| CI                  | GitHub Actions — typecheck/lint/build + backend tests  |
+| Deployment          | Docker, two containers in one Azure Container App      |
 
 ---
 

@@ -1,13 +1,27 @@
 # apps/api-server — API reference
 
-FastAPI + LangGraph, single process. Target endpoint surface — what each route will touch in the DB once implemented.
+FastAPI + LangGraph, single process.
 
 Companion docs: [DATABASE.md](../../database/DATABASE.md) (schema), [RLS.md](../../database/RLS.md) (access rules per table), [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md) (consent/survey outside graph), [USERFLOW.md](../../structures/USERFLOW.md).
 
-**M6 note:** Patient + clinician mark-complete routes are wired against an
-**in-memory** store (`services/`). Responses include `status` for lifecycle
-verification. Real Patient/Encounter/Consent/SurveyResponse SQL + auth/RLS
-land in M7. Tables-touched rows below describe the target persistence model.
+**What is actually built** — four routes:
+
+| | |
+| --- | --- |
+| `POST /sessions` | create a guest session |
+| `POST /sessions/{id}/respond` | the intake loop |
+| `GET /sessions/{id}` | resume / review |
+| `POST /clinician/sessions/{id}/complete` | `AWAITING_REVIEW` → `COMPLETED` |
+
+They run against an **in-memory** store (`services/`), not Postgres — sessions
+do not survive a restart.
+
+Every other heading on this page is marked ***not implemented***. Those are
+design work: the clinician list/detail/comments surface, the management API and
+the demo router. Their schema and RLS policies do exist (`db/models/`,
+`alembic/versions/`), but nothing writes to the database — `db/models` is
+imported only by `alembic/env.py`. The "tables touched" rows throughout
+describe that intended persistence model, not current behaviour.
 
 ---
 
@@ -27,7 +41,7 @@ Called once, on QR scan or a URL open.
 | Auth           | QR or URL only                                                                                                                                            |
 | Role           | `align_app`, `is_patient() = true` after this call sets `current_encounter_id`                                                                            |
 | Request        | None                                                                                                                                                      |
-| Response       | `{ session_id: str, next_step: NextStep, status: EncounterStatus }` (M6 adds `status`)                                                                    |
+| Response       | `{ session_id: str, next_step: NextStep, status: EncounterStatus, mirror: ClinicianMirror }` — `mirror` is empty here, the graph has not started yet      |
 | Tables touched | Creates `Patient` (`kind = GUEST`) and `Encounter` (`status = NOT_STARTED`). `Encounter.id` becomes `session_id` and doubles as the LangGraph `thread_id` |
 
 
@@ -41,7 +55,7 @@ The loop. Called once per patient answer, however many times that ends up being.
 | Auth           | Session-scoped — `id` must match the caller's `current_encounter_id`                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Role           | `align_app`, `is_patient() = true`                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Request        | `{ answer: ... }` — shape depends on the current `step_type`                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Response       | `{ next_step: NextStep, status: EncounterStatus }`                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Response       | `{ next_step: NextStep, status: EncounterStatus, mirror: ClinicianMirror }`                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Tables touched | Varies by step — `Consent` (router, gates `Encounter.status → IN_PROGRESS` before first graph invoke), graph-driven `Encounter` columns / `BodyStructure` / `Flag` / `IntakeFactItem`, router-driven `SurveyResponse` after graph complete, plus `LillyAiInteraction`/`AuditLog` as engine-internal writes (via `align_engine`, not this request's `align_app` context — see [RLS.md](../../database/RLS.md)). Lifecycle detail: [ROUTER_SPEC.md](../../structures/ROUTER_SPEC.md). |
 
 Operationally, the first entry into `priority_questions` and
@@ -63,15 +77,41 @@ Read-only. Covers both "resume after a refresh" and "review a completed session"
 | Auth           | Session-scoped, same as above                                                       |
 | Role           | `align_app`, `is_patient() = true`                                                  |
 | Request        | None                                                                                |
-| Response       | `{ next_step: NextStep, status: EncounterStatus }`                                  |
+| Response       | `{ next_step: NextStep, status: EncounterStatus, mirror: ClinicianMirror }`          |
 | Tables touched | None written — reads current `Encounter` state via the checkpointer/business tables |
 
+
+### The `mirror` field
+
+All three session responses carry a `ClinicianMirror`
+(`schemas/clinician_mirror.py`) — a read model projected from `SessionState`:
+
+```
+{ session_language, encounter_summary, fields: [{ collect_target_id, text, en_text, source }] }
+```
+
+It exists because `NextStep` only carries questions *out* to the patient and
+never carries answers back. Without it the frontend could only mirror what it
+had itself submitted, which meant free text stayed in the patient's language —
+and the clinician dashboard is English-only.
+
+- `text` is the patient's own wording; `en_text` is the English companion.
+- `en_text` is `None` for English sessions (`text` is already English), and for
+  option picks whose question generation failed to emit an `en_label`. Callers
+  must render that gap rather than pass `text` off as English.
+- `collect_target_id` is the join key, not the answer text: once the classifier
+  is ready it overwrites `chief_complaint` with an English summary, so the
+  patient's original sentence is no longer in the mirror to match against.
+
+Rides along on the patient responses rather than getting its own authenticated
+endpoint because both panes are one browser session in this build. A real
+deployment would serve it from the clinician surface instead.
 
 ---
 
 ## 2. Clinician dashboard (`routers/clinician.py`)
 
-### `GET /clinician/sessions?status=active`
+### `GET /clinician/sessions?status=active` — *not implemented*
 
 
 |                |                                                           |
@@ -82,7 +122,7 @@ Read-only. Covers both "resume after a refresh" and "review a completed session"
 | Tables touched | `Encounter` (read only)                                   |
 
 
-### `GET /clinician/sessions/{id}`
+### `GET /clinician/sessions/{id}` — *not implemented*
 
 
 |                |                                                                                                                |
@@ -109,7 +149,7 @@ Dashboard “mark as complete” — flips `Encounter.status` from `AWAITING_REV
 | Tables touched | `Encounter` (update `status`)                                              |
 
 
-### `POST /clinician/sessions/{id}/comments`
+### `POST /clinician/sessions/{id}/comments` — *not implemented*
 
 Clinician free-text note — also not graph-driven (alongside mark-complete above).
 
@@ -122,7 +162,7 @@ Clinician free-text note — also not graph-driven (alongside mark-complete abov
 | Tables touched | `PractitionerComment` (insert)                       |
 
 
-### `PUT /clinician/sessions/{id}/comments/{comment_id}` / `DELETE .../{comment_id}`
+### `PUT /clinician/sessions/{id}/comments/{comment_id}` / `DELETE .../{comment_id}` — *not implemented*
 
 Edit or remove a comment. Restricted to the comment's own author (`practitioner_id` must match the caller).
 
@@ -139,7 +179,10 @@ Note: the comments that are synced to the medtech are not updatable
 
 ---
 
-## 3. Management API (`routers/organizations.py`, `routers/practitioners.py`, `routers/admin.py`)
+## 3. Management API — *not implemented*
+
+Designed surface only; none of `routers/organizations.py`,
+`routers/practitioners.py` or `routers/admin.py` exist.
 
 ### Organizations — `align_admin` only
 
@@ -199,13 +242,6 @@ Note: the comments that are synced to the medtech are not updatable
 
 ---
 
-## 4. Demo (`routers/demo.py`)
+## 4. Demo (`routers/demo.py`) — *not implemented*
 
 Same shape as /sessions but with /demo/sessions. The patient will be created with `patient.kind = DEMO` .
-
----
-
-## 5. What's explicitly out of scope right now
-
-- **Going back to a previous answer** — designed (LangGraph `get_state_history`/fork + business-table cleanup rules), deliberately not built for the 2-week demo. Revisit if pilot feedback asks for it.
-- **Direct endpoints for `Consent`, `IntakeFactItem`, `BodyStructure`, `RadiationSite`, etc.** — not missing, just handled inside the session loop as engine side-effects rather than separate REST resources.

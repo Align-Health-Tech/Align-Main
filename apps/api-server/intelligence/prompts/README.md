@@ -50,9 +50,7 @@ quotes are limited to 14 words and one quote per referenced source.
 | Status | Prompts |
 | ------ | ------- |
 | **Ported** (Azure smoked) | `classifier/presenting_complaint`, `devise_and_prioritise` + `question_generation` for `presenting_complaint_clarify`, `non_localised_categoriser` / `non_localised_clarify`, `priority_questions`, `redflag_screening`, `optional_questions`; `question_generation/ice`, `question_generation/duration` (smoke: `smoke_duration/`) (QG-only; smoke: `smoke_optional_and_ice/`); `nurse_review/summary` (single agent; smoke: `smoke_nurse_review/`); `translation/to_english` (Pattern E; smoke: `smoke_translation/`) |
-| **Still stubs / thin** | — (M5 prompt port complete) |
-
-## Dual track (M5)
+## Dual track
 
 | Track | Azure? | Where |
 | ----- | ------ | ----- |

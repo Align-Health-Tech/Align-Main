@@ -143,7 +143,7 @@ python scripts/verify_local_postgres.py
 
 The verifier reads `DATABASE_URL` from the environment or
 `apps/api-server/.env` and refuses to connect to a non-local host. Its
-throwaway engine/session applies Alembic to head, checks the M5 schema contract,
+throwaway engine/session applies Alembic to head, checks the schema contract,
 and commits then reloads three complete states through the SQLAlchemy models:
 the original sore-throat fixture plus the real-Azure localised-wrist and
 non-localised-fever fixtures. The wrist case includes its body-structure,

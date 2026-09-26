@@ -24,10 +24,11 @@ left, the clinician dashboard on the right, updating as answers are submitted.
 Answer in Korean or Chinese and the clinician side stays English. The question
 engine runs for real against Azure OpenAI.
 
-Deployed as two containers in a single Azure Container App — the Next server
-proxies to the API over localhost, so the API has no public ingress. Scaled to
-one replica because sessions are in-memory; scale-to-zero means the first
-request after an idle period pays a cold start.
+Deployed on Vercel as two container services in one project — the Next server
+proxies to the API over a private service binding, so the API has no public
+route. Sessions are in-memory, so a session is lost if Vercel starts a second
+instance or scales the API down after ~5 idle minutes; scale-to-zero also means
+the first request after an idle period pays a cold start.
 
 ---
 
@@ -44,7 +45,7 @@ request after an idle period pays a cold start.
 | FHIR target version | R4 (not currently in scope)                           |
 | FHIR server         | Microsoft FHIR service (not currently in scope)       |
 | CI                  | GitHub Actions — typecheck/lint/build + backend tests  |
-| Deployment          | Docker, two containers in one Azure Container App      |
+| Deployment          | Docker, two container services in one Vercel project   |
 
 ---
 

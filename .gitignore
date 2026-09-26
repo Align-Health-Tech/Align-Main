@@ -270,3 +270,6 @@ node_modules/
 # Rendered from deploy/containerapp.template.yaml — contains the Azure OpenAI
 # key and the ACR password.
 deploy/containerapp.yaml
+
+# vercel
+.vercel

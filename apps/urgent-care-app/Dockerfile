@@ -5,6 +5,9 @@
 #
 #   docker build -f apps/urgent-care-app/Dockerfile -t align-web .
 #
+# Vercel builds from the Dockerfile's own directory, so /Dockerfile.vercel is a
+# symlink to this file: that keeps the repo root as the build context there.
+#
 # The browser never calls the API directly; app/api/demo/[...path]/route.ts
 # proxies server-side to ALIGN_API_BASE_URL. On Vercel that is injected by the
 # `web` -> `api` service binding in vercel.json; locally it defaults to

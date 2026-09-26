@@ -7,7 +7,7 @@
   "services": {
     "web": {
       "root": ".",
-      "entrypoint": "apps/urgent-care-app/Dockerfile",
+      "entrypoint": "Dockerfile.vercel",
       "runtime": "container",
       "bindings": [
         {

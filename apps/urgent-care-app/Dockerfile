@@ -6,8 +6,9 @@
 #   docker build -f apps/urgent-care-app/Dockerfile -t align-web .
 #
 # The browser never calls the API directly; app/api/demo/[...path]/route.ts
-# proxies server-side to ALIGN_API_BASE_URL. In the Container App that stays at
-# the default http://localhost:8000, where the api sidecar listens.
+# proxies server-side to ALIGN_API_BASE_URL. On Vercel that is injected by the
+# `web` -> `api` service binding in vercel.json; locally it defaults to
+# http://localhost:8000.
 
 # --- deps ------------------------------------------------------------------
 FROM node:20-alpine AS deps

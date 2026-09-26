@@ -54,8 +54,9 @@ Rationale for this design: Make it so that we can share nodes and rearrange the 
 - Survey from `build_survey_questions()` only (not org `Survey.schema`)
 - Clinician surface: mark-complete only (no list/detail/comments)
 
-MemorySaver is also why the deployment is pinned to one replica: sessions live
-in the process, so a second instance serves requests that cannot see them.
+MemorySaver also constrains the deployment: sessions live in the process, so a
+second instance serves requests that cannot see them. Vercel cannot pin a
+service to one instance, so the demo relies on low traffic keeping it on one.
 
 ## Manual / test tools
 

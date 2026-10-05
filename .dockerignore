@@ -1,0 +1,32 @@
+# Build context for apps/urgent-care-app/Dockerfile is the repo root, so this
+# file decides what gets uploaded to the daemon. Without it the Python venv and
+# every node_modules tree ship as context and the build crawls.
+
+.git
+.github
+
+# Installed inside the image by `npm ci`, never copied in.
+node_modules
+**/node_modules
+
+# Build output — regenerated in the build stage.
+**/.next
+**/dist
+**/.turbo
+
+# Python: the api-server has its own Dockerfile and context; none of this
+# belongs in the web image.
+**/venv
+**/.venv
+**/__pycache__
+**/*.pyc
+apps/api-server/tests/transcripts
+
+# Local-only
+.env
+.env.*
+!.env.example
+pgdata
+*.sql.dump
+**/.DS_Store
+*.log
